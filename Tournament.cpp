@@ -3,6 +3,7 @@
 #include <iostream>
 #include "InputValidator.h"
 
+
 using namespace std;
 
 Tournament::Tournament()
