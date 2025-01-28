@@ -27,6 +27,7 @@ private:
     // that add up to the dice sum. (No advanced AI or help yet.)
     bool coverSquares(int diceSum);
     bool canCoverAnyCombination(const Player& p, int sum) const;
+    bool areSquaresSevenToNCovered(const Player& player) const;
 
 };
 

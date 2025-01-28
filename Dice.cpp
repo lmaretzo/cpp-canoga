@@ -35,39 +35,46 @@ void Dice::disableManualMode()
 
 pair<int, int> Dice::roll() const
 {
+    // Default to rolling two dice
+    return rollCustom(2);
+}
+
+// New rollCustom method for flexible dice rolling
+pair<int, int> Dice::rollCustom(int diceCount) const
+{
     if (manualMode)
     {
-        cout << "Enter dice values (one or two numbers between 1 and 6): ";
-        int d1 = 0, d2 = 0;
-        cin >> d1;
+        cout << "Enter " << diceCount << " dice value(s) (1-6): ";
 
-        // Input validation for manual rolls
-        while (d1 < 1 || d1 > 6)
+        int d1 = 0, d2 = 0;
+        // Input validation for the first die
+        while (!(cin >> d1) || d1 < 1 || d1 > 6)
         {
-            cout << "Invalid input for die 1. Enter a number between 1 and 6: ";
-            cin >> d1;
+            cin.clear(); // Clear the error flag
+            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Discard invalid input
+            cout << "Invalid input for die 1. Enter a value between 1 and 6: ";
         }
 
-        // Check if a second die is provided
-        if (cin.peek() != '\n')
+        // Input validation for the second die (if rolling two dice)
+        if (diceCount == 2)
         {
-            cin >> d2;
-            while (d2 < 1 || d2 > 6)
+            while (!(cin >> d2) || d2 < 1 || d2 > 6)
             {
-                cout << "Invalid input for die 2. Enter a number between 1 and 6: ";
-                cin >> d2;
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << "Invalid input for die 2. Enter a value between 1 and 6: ";
             }
         }
 
-        // Return the roll values
-        return { d1, d2 > 0 ? d2 : 0 };
+        return { d1, diceCount == 2 ? d2 : 0 };
     }
     else
     {
-        // Roll two dice randomly
-        return rollTwo();
+        // Random dice rolling
+        return (diceCount == 1) ? make_pair(rollOne(), 0) : rollTwo();
     }
 }
+
 
 int Dice::rollOne() const
 {
@@ -77,4 +84,10 @@ int Dice::rollOne() const
 pair<int, int> Dice::rollTwo() const
 {
     return { rollOne(), rollOne() };
+}
+
+pair<int, int> Dice::roll(int diceCount) const
+{
+    // Reuse the rollCustom method for manual or random rolls
+    return rollCustom(diceCount);
 }

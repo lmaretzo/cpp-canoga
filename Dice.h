@@ -26,10 +26,15 @@ public:
 
     // Roll the dice (manual or random depending on mode)
     pair<int, int> roll() const;
+    
+    pair<int, int> roll(int diceCount) const; // Overload to accept 1 or 2 dice
+
 
 private:
     bool manualMode; // True if manual mode is enabled
     mutable vector<int> manualRolls; // Holds the manually entered rolls
+    pair<int, int> rollCustom(int diceCount) const;
+
 };
 
 #endif

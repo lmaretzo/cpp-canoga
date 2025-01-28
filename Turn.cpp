@@ -40,7 +40,17 @@ bool Turn::canCoverAnyCombination(const Player& p, int sum) const
     }
     return false;
 }
-/*** NEW CODE END ***/
+
+bool Turn::areSquaresSevenToNCovered(const Player& player) const {
+    const vector<int>& squares = player.getSquares();
+    for (int i = 6; i < squares.size(); ++i) { // Index 6 = square 7
+        if (squares[i] == 0) { // Uncovered square
+            return false;
+        }
+    }
+    return true;
+}
+
 
 void Turn::execute()
 {
@@ -56,7 +66,38 @@ void Turn::execute()
         player.printBoard();
 
         // 1) Roll dice
-        auto rollVal = diceRef.roll();
+        //auto rollVal = diceRef.roll();
+
+
+                // NEW CODE: Check if squares 7 through n are covered
+        bool allCoveredSevenToN = areSquaresSevenToNCovered(player);
+        int diceToRoll = 2; // Default: roll two dice
+
+        if (allCoveredSevenToN) {
+            // Player can choose to roll one die or two dice
+            cout << "All squares 7 through " << player.getSquares().size()
+                << " are covered. Do you want to roll one die or two dice? (1/2): ";
+            cin >> diceToRoll;
+
+            // Input validation for dice choice
+            while (diceToRoll != 1 && diceToRoll != 2) {
+                cout << "Invalid choice. Enter 1 to roll one die or 2 to roll two dice: ";
+                cin >> diceToRoll;
+            }
+        }
+        else {
+            // Player must roll two dice
+            cout << "Squares 7 through " << player.getSquares().size()
+                << " are not all covered. You must roll two dice.\n";
+        }
+
+        pair<int, int> rollVal = diceRef.roll(diceToRoll); // Use the Dice class's roll method
+
+
+
+
+
+
         int sum = rollVal.first + rollVal.second;
 
 
