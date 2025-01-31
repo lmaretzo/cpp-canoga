@@ -1,4 +1,5 @@
 #include "Turn.h"
+#include "InputValidator.h"
 #include <sstream>
 #include <iostream>
 #include <limits>
@@ -59,14 +60,12 @@ void Turn::execute()
 
     cout << "\n--- " << player.getName() << "'s TURN ---\n";
 
-    /*** NEW CODE START ***/
     bool stillRolling = true;
     do
     {
         player.printBoard();
 
-        // 1) Roll dice
-        //auto rollVal = diceRef.roll();
+
 
 
                 // NEW CODE: Check if squares 7 through n are covered
@@ -74,27 +73,21 @@ void Turn::execute()
         int diceToRoll = 2; // Default: roll two dice
 
         if (allCoveredSevenToN) {
-            // Player can choose to roll one die or two dice
-            cout << "All squares 7 through " << player.getSquares().size()
-                << " are covered. Do you want to roll one die or two dice? (1/2): ";
-            cin >> diceToRoll;
 
-            // Input validation for dice choice
-            while (diceToRoll != 1 && diceToRoll != 2) {
-                cout << "Invalid choice. Enter 1 to roll one die or 2 to roll two dice: ";
-                cin >> diceToRoll;
-            }
+            // NEW CODE: Use InputValidator for yes/no question
+            bool rollOneDie = InputValidator::getYesNo(
+                "All squares 7 through " + to_string(player.getSquares().size()) +
+                " are covered. Do you want to roll one die? (y/n): ");
+
+            diceToRoll = rollOneDie ? 1 : 2; // Set diceToRoll based on user's choice
         }
         else {
-            // Player must roll two dice
             cout << "Squares 7 through " << player.getSquares().size()
                 << " are not all covered. You must roll two dice.\n";
         }
 
+
         pair<int, int> rollVal = diceRef.roll(diceToRoll); // Use the Dice class's roll method
-
-
-
 
 
 
@@ -105,6 +98,11 @@ void Turn::execute()
             << rollVal.first << " and " << rollVal.second
             << " (sum = " << sum << ")\n";
 
+        if (sum == 0) {
+            // NEW CODE: Handle turn skip
+            cout << player.getName() << " chose to skip their turn.\n";
+            break;
+        }
 
 
         // 2) Check if covering is even possible
@@ -182,10 +180,10 @@ bool Turn::coverSquares(int diceSum)
         std::stringstream ss(line);
         while (ss >> val)
         {
-            if (val == 0)
-            {
-                skip = true;
-                break;
+            if (val == 0) {
+                // NEW CODE: Handle skipping the turn
+                cout << player.getName() << " chose to skip their turn.\n";
+                return false;
             }
             if (val < 1 || val > player.getSquares().size())
             {

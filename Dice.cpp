@@ -48,13 +48,17 @@ pair<int, int> Dice::rollCustom(int diceCount) const
 
         int d1 = 0, d2 = 0;
         // Input validation for the first die
-        while (!(cin >> d1) || d1 < 1 || d1 > 6)
+        while (!(cin >> d1) || (d1 != 0 && (d1 < 1 || d1 > 6)))
         {
             cin.clear(); // Clear the error flag
             cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Discard invalid input
-            cout << "Invalid input for die 1. Enter a value between 1 and 6: ";
+            cout << "Invalid input for die 1. Enter a value between 1 and 6, or 0 to skip: ";
         }
-
+        if (d1 == 0)
+        {
+            cout << "Skipping roll.\n";
+            return { 0, 0 };
+        }
         // Input validation for the second die (if rolling two dice)
         if (diceCount == 2)
         {
