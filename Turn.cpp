@@ -12,7 +12,6 @@ Turn::Turn(Player& activePlayer, Player& opp, Dice& d)
     : player(activePlayer), opponent(opp), diceRef(d)
 {
 }
-/*** NEW CODE START ***/
 
 bool Turn::canCoverAnyCombination(const Player& p, int sum) const
 {
@@ -69,13 +68,13 @@ void Turn::execute()
 
 
 
-                // NEW CODE: Check if squares 7 through n are covered
+                // Check if squares 7 through n are covered
         bool allCoveredSevenToN = areSquaresSevenToNCovered(player);
         int diceToRoll = 2; // Default: roll two dice
 
         if (allCoveredSevenToN) {
 
-            // NEW CODE: Use InputValidator for yes/no question
+            // Use InputValidator for yes/no question
             bool rollOneDie = InputValidator::getYesNo(
                 "All squares 7 through " + to_string(player.getSquares().size()) +
                 " are covered. Do you want to roll one die? (y/n): ");
@@ -100,7 +99,7 @@ void Turn::execute()
             << " (sum = " << sum << ")\n";
 
         if (sum == 0) {
-            // NEW CODE: Handle turn skip
+            // Handle turn skip
             cout << player.getName() << " chose to skip their turn.\n";
             break;
         }
@@ -135,34 +134,34 @@ void Turn::execute()
         // and can roll again. If you want to let the user decide to stop,
         // you can ask them. For now, we automatically continue rolling.
     } while (stillRolling);
-    /*** NEW CODE END ***/
 }
 
 
 // Very naive approach: we'll just ask the user for squares to cover that sum up to diceSum
 bool Turn::coverSquares(int diceSum)
 {
-    cout << player.getName() << ", enter the squares you want to cover (space-separated), sum must be "
-        << diceSum << ". Enter 0 to skip.\n";
+    cout << player.getName() << ", enter the squares you want to cover or uncover (space-separated), sum must be " << diceSum << ". Enter 0 to skip.\n";
 
     // We'll read a line of input, parse integers, and see if they sum to diceSum.
     // For simplicity, let the user do the sum. If it equals diceSum, we attempt to cover them.
     // If covering fails (some squares already covered, etc.), we revert.
 
     vector<int> chosen;
+    bool isCovering = true; //  Tracks whether the player is covering or uncovering
     while (true)
     {
         chosen.clear();
 
-        cout << "Squares to cover (e.g. '1 2' or '3' or '0' to skip): ";
+        // Ask if the player wants to cover or uncover using InputValidator
+        isCovering = InputValidator::getYesNo(
+            "Do you want to cover your squares? y/n. 'y' to cover your spaces and 'n' to uncover opponent's squares: ");
 
-        // cin.ignore(numeric_limits<streamsize>::max(), '\n');
-
+        cout << "Squares to " << (isCovering ? "cover" : "uncover") << " (e.g. '1 2' or '3' or '0' to skip): ";
 
         string line;
         getline(cin, line);
 
-        cout << "[DEBUG] Raw input: " << line << "\n"; //debug statement 1/26 5:00pm
+        //cout << "[DEBUG] Raw input: " << line << "\n"; //debug statement 1/26 5:00pm
 
 
         if (line.empty())
@@ -183,7 +182,7 @@ bool Turn::coverSquares(int diceSum)
         while (ss >> val)
         {
             if (val == 0) {
-                // NEW CODE: Handle skipping the turn
+                //  Handle skipping the turn
                 cout << player.getName() << " chose to skip their turn.\n";
                 return false;
             }
@@ -203,7 +202,7 @@ bool Turn::coverSquares(int diceSum)
             chosen.push_back(val);
             sumCheck += val;
 
-            // NEW CODE: Prevent selecting more than 4 squares
+            //  Prevent selecting more than 4 squares
             if (chosen.size() > 4)
             {
                 cout << "You can only choose up to 4 squares. Try again.\n";
@@ -212,11 +211,66 @@ bool Turn::coverSquares(int diceSum)
             }
         }
 
-        if (!validParse || sumCheck != diceSum) // NEW: Now allows 4 squares)
+        if (!validParse || sumCheck != diceSum) // Now allows 4 squares)
         {
             cout << "Invalid selection. Make sure the numbers sum to " << diceSum << " and you only pick up to 4 squares.\n";
             continue;
         }
+
+
+
+        // Attempt to apply the selected action (covering or uncovering)
+        bool allSuccessful = true;
+        for (int sq : chosen)
+        {
+            bool success;
+            if (isCovering)
+            {
+                success = player.coverSquare(sq); // Cover own square
+            }
+            else
+            {
+                success = opponent.uncoverSquare(sq); // Uncover opponent's square
+            }
+
+            if (!success)
+            {
+                // If any action fails, revert all previous actions
+                allSuccessful = false;
+                for (int revertSq : chosen)
+                {
+                    if (isCovering)
+                        player.uncoverSquare(revertSq);
+                    else
+                        opponent.coverSquare(revertSq);
+                }
+                cout << "Could not " << (isCovering ? "cover" : "uncover") << " squares. Try again.\n";
+                break;
+            }
+        }
+
+        if (allSuccessful)
+        {
+            cout << (isCovering ? "Covered" : "Uncovered") << " squares: ";
+            for (int sq : chosen) cout << sq << " ";
+            cout << "\n";
+            return true;
+        }
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         if (skip)
         {
