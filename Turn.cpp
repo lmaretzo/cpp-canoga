@@ -28,15 +28,16 @@ bool Turn::canCoverAnyCombination(const Player& p, int sum) const
     int subsetCount = (1 << uncovered.size());
     for (int mask = 1; mask < subsetCount; mask++)
     {
-        int total = 0;
+        int total = 0, count = 0;
         for (size_t bit = 0; bit < uncovered.size(); bit++)
         {
             if (mask & (1 << bit))
             {
                 total += uncovered[bit];
+                count++;
             }
         }
-        if (total == sum)
+        if (total == sum && count <= 4)
             return true; // Found a valid combo
     }
     return false;
@@ -178,6 +179,7 @@ bool Turn::coverSquares(int diceSum)
 
         // use a stringstream
         std::stringstream ss(line);
+
         while (ss >> val)
         {
             if (val == 0) {
@@ -200,11 +202,19 @@ bool Turn::coverSquares(int diceSum)
 
             chosen.push_back(val);
             sumCheck += val;
+
+            // NEW CODE: Prevent selecting more than 4 squares
+            if (chosen.size() > 4)
+            {
+                cout << "You can only choose up to 4 squares. Try again.\n";
+                validParse = false;
+                break;
+            }
         }
 
-        if (!validParse)
+        if (!validParse || sumCheck != diceSum) // NEW: Now allows 4 squares)
         {
-            cout << "Invalid input. Try again.\n";
+            cout << "Invalid selection. Make sure the numbers sum to " << diceSum << " and you only pick up to 4 squares.\n";
             continue;
         }
 
