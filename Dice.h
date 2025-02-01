@@ -145,6 +145,7 @@ Algorithm:
     3) If manualMode is off, generate random dice rolls.
 Reference: AI assistance was used to refine the input validation logic.
 ********************************************************************* */
+
     pair<int, int> rollCustom(int diceCount) const;
 
 };
