@@ -1,3 +1,9 @@
+/************************************************************
+ * Name:  Lucas Maretzo
+ * Project:  Canoga
+ * Date:  1/31/2025
+ ************************************************************/
+
 #include "Round.h"
 #include "Turn.h"
 #include <iostream>
@@ -18,9 +24,6 @@ Round::~Round()
 
 void Round::play()
 {
-    // This is a minimal approach:
-    // We'll have each player take exactly one turn in a loop
-    // until either covers all squares or we decide to limit turns.
 
     determineFirstPlayer();
 
@@ -47,7 +50,7 @@ void Round::play()
     {
         cout << "\n** " << player1.getName() << " covers all squares and wins the round! **\n";
 
-        // NEW: Calculate opponent's uncovered square sum
+        // NEW: Calculate opponent's uncovered square sum ai assistance
 // FIXED: Properly loop through uncovered squares
         int scoreToAdd = 0;
         vector<int> oppSquares = player2.getSquares();
@@ -84,12 +87,11 @@ void Round::play()
 
 
 
-    // new code starts here
     // Display updated scores at the end of the round
     cout << "\n--- Updated Scores ---\n";
     cout << player1.getName() << ": " << player1.getScore() << "\n";
     cout << player2.getName() << ": " << player2.getScore() << "\n";
-    // new code ends here
+    // ai assistance code ends here
 
 
 }

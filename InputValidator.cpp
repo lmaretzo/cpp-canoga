@@ -1,3 +1,9 @@
+/************************************************************
+ * Name:  Lucas Maretzo
+ * Project:  Canoga
+ * Date:  1/31/2025
+ ************************************************************/
+
 #include "InputValidator.h"
 
 using namespace std;

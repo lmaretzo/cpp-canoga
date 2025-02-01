@@ -52,11 +52,9 @@ bool Turn::areSquaresSevenToNCovered(const Player& player) const {
     return true;
 }
 
-
+// AI ASSISTANCE begins
 void Turn::execute()
 {
-    // For demonstration: the player does exactly one roll in this Turn.
-    // Later, you can extend so the player continues rolling until no valid move is possible.
 
     cout << "\n--- " << player.getName() << "'s TURN ---\n";
 
@@ -81,18 +79,9 @@ void Turn::execute()
 
             diceToRoll = rollOneDie ? 1 : 2; // Set diceToRoll based on user's choice
         }
-        //else {
-        //    cout << "Squares 7 through " << player.getSquares().size()
-        //        << " are not all covered. You must roll two dice.\n";
-        //}
-
-
         pair<int, int> rollVal = diceRef.roll(diceToRoll); // Use the Dice class's roll method
 
-
-
         int sum = rollVal.first + rollVal.second;
-
 
         cout << player.getName() << " rolled "
             << rollVal.first << " and " << rollVal.second
@@ -103,7 +92,6 @@ void Turn::execute()
             cout << player.getName() << " chose to skip their turn.\n";
             break;
         }
-
 
         // 2) Check if covering is even possible
         if (!canCoverAnyCombination(player, sum))
@@ -136,15 +124,12 @@ void Turn::execute()
     } while (stillRolling);
 }
 
+//AI Assistance ends
 
-// Very naive approach: we'll just ask the user for squares to cover that sum up to diceSum
 bool Turn::coverSquares(int diceSum)
 {
     cout << player.getName() << ", enter the squares you want to cover or uncover (space-separated), sum must be " << diceSum << ". Enter 0 to skip.\n";
 
-    // We'll read a line of input, parse integers, and see if they sum to diceSum.
-    // For simplicity, let the user do the sum. If it equals diceSum, we attempt to cover them.
-    // If covering fails (some squares already covered, etc.), we revert.
 
     vector<int> chosen;
     bool isCovering = true; //  Tracks whether the player is covering or uncovering
@@ -166,7 +151,7 @@ bool Turn::coverSquares(int diceSum)
 
         if (line.empty())
         {
-            // if the getline is empty (maybe leftover from a previous input?), read again
+            // if the getline is empty (maybe leftover from a previous input, read again
             continue;
         }
 
@@ -256,22 +241,6 @@ bool Turn::coverSquares(int diceSum)
             cout << "\n";
             return true;
         }
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         if (skip)
         {
             // user chose to skip

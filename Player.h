@@ -1,3 +1,9 @@
+/************************************************************
+ * Name:  Lucas Maretzo
+ * Project:  Canoga
+ * Date:  1/31/2025
+ ************************************************************/
+
 #pragma once
 #ifndef PLAYER_H
 #define PLAYER_H
@@ -7,8 +13,7 @@
 
 using namespace std;
 
-// A basic Player class for Human or Computer.
-// Strategy/hints will be added later, so we have a placeholder method for that.
+
 
 class Player
 {
@@ -30,7 +35,7 @@ public:
     void addToScore(int points);
 
     // Board squares
-    // For simplicity, let's fix the board to 9 squares for now.
+    // For simplicity, fixing the board to 9 squares for now.
     // squares[i] == 0 => uncovered, squares[i] == (i+1) => covered
     bool coverSquare(int squareLabel);   // label: 1..9
     bool uncoverSquare(int squareLabel); // label: 1..9
@@ -38,14 +43,13 @@ public:
     bool areAllCovered() const;   // check if all squares are covered
     bool areAllUncovered() const; // check if all squares are uncovered
 
-    // Return a copy of the squares array (for display, etc.)
+    // return a copy of the squares array 
     vector<int> getSquares() const;
 
     void printBoard() const; // Print the player's current board
 
 
     // Placeholder for future "hint" or "strategy" method
-    // (We will implement advanced logic later.)
     void offerHint();
 
     void resetSquares(int boardSize); // Pass the board size to resetSquares

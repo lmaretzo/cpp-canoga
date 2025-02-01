@@ -1,3 +1,9 @@
+/************************************************************
+ * Name:  Lucas Maretzo
+ * Project:  Canoga
+ * Date:  1/31/2025
+ ************************************************************/
+
 #include "Player.h"
 #include <iostream> // for debugging or printing in hint method
 

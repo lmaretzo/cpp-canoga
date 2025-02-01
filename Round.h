@@ -1,10 +1,16 @@
+/************************************************************
+ * Name:  Lucas Maretzo
+ * Project:  Canoga
+ * Date:  1/31/2025
+ ************************************************************/
+
 #ifndef ROUND_H
 #define ROUND_H
 
 #include "Player.h"
 #include "Dice.h"
 
-// Forward declarations
+// forward declarations
 class Turn;
 
 using namespace std;
@@ -15,7 +21,7 @@ public:
     Round(Player& p1, Player& p2, Dice& d, int boardSize);
     ~Round();
 
-    // Conduct a single round (basic version: each player gets one turn).
+    // Conduct a single round
     // The round ends if someone covers all squares.
     void play();
 
