@@ -46,21 +46,43 @@ void Round::play()
     if (player1.areAllCovered())
     {
         cout << "\n** " << player1.getName() << " covers all squares and wins the round! **\n";
-        // Score is sum of opponent's uncovered squares (a simple approach)
-        // For a minimal version, let's say the winner just gets +10 points.
-        // In the actual rules, you'd sum the uncovered squares from the other player, etc.
-        player1.addToScore(10);
+
+        // NEW: Calculate opponent's uncovered square sum
+// FIXED: Properly loop through uncovered squares
+        int scoreToAdd = 0;
+        vector<int> oppSquares = player2.getSquares();
+        for (size_t i = 0; i < oppSquares.size(); i++) // Use index correctly
+        {
+            if (oppSquares[i] == 0) // If uncovered
+            {
+                scoreToAdd += (i + 1); // Square labels are 1-based
+            }
+        }
+
+        player1.addToScore(scoreToAdd);
+        cout << player1.getName() << " is awarded " << scoreToAdd << " points.\n"; // Print correct score
     }
     else if (player2.areAllCovered())
     {
         cout << "\n** " << player2.getName() << " covers all squares and wins the round! **\n";
-        player2.addToScore(10);
+
+        // FIXED: Properly loop through uncovered squares
+        int scoreToAdd = 0;
+        vector<int> oppSquares = player1.getSquares();
+        for (size_t i = 0; i < oppSquares.size(); i++) // Use index correctly
+        {
+            if (oppSquares[i] == 0) // If uncovered
+            {
+                scoreToAdd += (i + 1); // Square labels are 1-based
+            }
+        }
+
+        player2.addToScore(scoreToAdd);
+        cout << player2.getName() << " is awarded " << scoreToAdd << " points.\n"; // Print correct score
     }
-    else
-    {
-        cout << "\nThe round ended but nobody covered all squares (possible house rule or limit?).\n";
-        // Optionally award partial points or do nothing.
-    }
+
+
+
 
     // new code starts here
     // Display updated scores at the end of the round

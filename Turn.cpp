@@ -36,7 +36,7 @@ bool Turn::canCoverAnyCombination(const Player& p, int sum) const
                 count++;
             }
         }
-        if (total == sum && count <= 4)
+        if (total == sum && count >= 1 && count <= 4)
             return true; // Found a valid combo
     }
     return false;
@@ -81,10 +81,10 @@ void Turn::execute()
 
             diceToRoll = rollOneDie ? 1 : 2; // Set diceToRoll based on user's choice
         }
-        else {
-            cout << "Squares 7 through " << player.getSquares().size()
-                << " are not all covered. You must roll two dice.\n";
-        }
+        //else {
+        //    cout << "Squares 7 through " << player.getSquares().size()
+        //        << " are not all covered. You must roll two dice.\n";
+        //}
 
 
         pair<int, int> rollVal = diceRef.roll(diceToRoll); // Use the Dice class's roll method
