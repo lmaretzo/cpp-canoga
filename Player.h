@@ -13,23 +13,48 @@
 
 using namespace std;
 
-
-
+/* *********************************************************************
+Class Name: Player
+Purpose: Represents a player in the Canoga game, managing their board and actions.
+Attributes:
+    - playerName: The name of the player.
+    - computer: Boolean indicating if the player is AI-controlled.
+    - score: The player's current score.
+    - squares: A vector representing the covered/uncovered squares.
+Functions:
+    - Player(): Default constructor.
+    - Player(string name, bool isComputer, int boardSize): Initializes a player with given attributes.
+    - ~Player(): Destructor.
+    - getName(): Returns the player's name.
+    - isComputerPlayer(): Returns true if the player is AI-controlled.
+    - getScore(): Returns the player's score.
+    - setName(string name): Sets the player's name.
+    - setIsComputer(bool flag): Sets the player type (human or AI).
+    - addToScore(int points): Adds points to the player's score.
+    - coverSquare(int squareLabel): Covers a square.
+    - uncoverSquare(int squareLabel): Uncovers a square.
+    - areAllCovered(): Checks if all squares are covered.
+    - areAllUncovered(): Checks if all squares are uncovered.
+    - getSquares(): Returns the player's squares.
+    - printBoard(): Prints the player's board.
+    - offerHint(): Placeholder for future strategy logic.
+Reference: None
+********************************************************************* */
 class Player
 {
 public:
     Player();
-    Player(const string& name, bool isComputer, int boardSize);
+    Player(const string& name, int boardSize);
     ~Player();
 
     // Getters
     string getName() const;
-    bool isComputerPlayer() const;
+   // bool isComputerPlayer() const;
     int getScore() const;
 
     // Setters
     void setName(const string& name);
-    void setIsComputer(bool flag);
+   // void setIsComputer(bool flag);
 
     // Score methods
     void addToScore(int points);
@@ -48,6 +73,10 @@ public:
 
     void printBoard() const; // Print the player's current board
 
+    // NEW: Virtual method for choosing squares based on a dice roll.
+// This method implements the default AI strategy.
+    virtual vector<int> chooseSquares(int diceSum);
+
 
     // Placeholder for future "hint" or "strategy" method
     void offerHint();
@@ -59,7 +88,7 @@ public:
 
 private:
     string playerName;
-    bool computer;
+    //bool computer;
     int score;
 
 

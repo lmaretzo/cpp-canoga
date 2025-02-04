@@ -8,6 +8,23 @@
 
 using namespace std;
 
+/* *********************************************************************
+Function Name: getYesNo
+Purpose: Prompts the user with a yes/no question and validates the input.
+Parameters:
+    - prompt: A string that contains the question to ask the user.
+Return Value: A boolean value:
+    - Returns true if the user inputs 'y' (yes).
+    - Returns false if the user inputs 'n' (no).
+Algorithm:
+    1) Display the prompt message.
+    2) Read the user's input.
+    3) Normalize input to lowercase.
+    4) If the input is 'y', return true.
+    5) If the input is 'n', return false.
+    6) If input is invalid, prompt the user again.
+Reference: None
+********************************************************************* */
 bool InputValidator::getYesNo(const string& prompt) {
     char userChoice;
     bool validInput = false;

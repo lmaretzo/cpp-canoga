@@ -2,7 +2,8 @@
 #include "Round.h"
 #include <iostream>
 #include "InputValidator.h"
-
+#include "Human.h"
+#include "Computer.h"
 
 using namespace std;
 
@@ -37,8 +38,8 @@ void Tournament::start()
     initializeBoardSize();
 
     // Create the players using the chosen board size
-    Player human("Human", false, boardSize);
-    Player computer("Computer", true, boardSize);
+    Human human("Human", boardSize);
+    Computer  computer("Computer", boardSize);
 
     bool keepPlaying = true;
     while (keepPlaying)
