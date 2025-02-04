@@ -64,6 +64,20 @@ void Round::play()
 
         player1.addToScore(scoreToAdd);
         cout << player1.getName() << " is awarded " << scoreToAdd << " points.\n"; // Print correct score
+
+        // NEW: Store round outcome data for handicap calculations.
+        /* *********************************************************************
+        Function Name: (Inline Handicap Outcome Storage)
+        Purpose: Store the round winner and winning score.
+        Parameters: None.
+        Return Value: None.
+        Algorithm:
+         1) Set roundWinner to point to player1.
+          2) Store winningScore as scoreToAdd.
+        Reference: None
+        ********************************************************************* */
+        roundWinner = &player1;
+        winningScore = scoreToAdd;
     }
     else if (player2.areAllCovered())
     {
@@ -82,10 +96,35 @@ void Round::play()
 
         player2.addToScore(scoreToAdd);
         cout << player2.getName() << " is awarded " << scoreToAdd << " points.\n"; // Print correct score
+        // NEW: Store round outcome data for handicap calculations.
+        /* *********************************************************************
+        Function Name: (Inline Handicap Outcome Storage)
+        Purpose: Store the round winner and winning score.
+        Parameters: None.
+        Return Value: None.
+        Algorithm:
+         1) Set roundWinner to point to player2.
+         2) Store winningScore as scoreToAdd.
+        Reference: None
+        ********************************************************************* */
+        roundWinner = &player2;
+        winningScore = scoreToAdd;
     }
 
 
 
+    // NEW: Store the first-turn player.
+// (Assuming determineFirstPlayer() already selected the first-turn player.)
+/* *********************************************************************
+Function Name: (Inline First Turn Storage)
+Purpose: Store the player who took the first turn in the round.
+Parameters: None.
+Return Value: None.
+Algorithm:
+    1) Set firstTurnPlayer based on the outcome from determineFirstPlayer().
+Reference: None
+********************************************************************* */
+    firstTurnPlayer = &player1; // or &player2 if applicable, based on your logic.
 
     // Display updated scores at the end of the round
     cout << "\n--- Updated Scores ---\n";
@@ -136,4 +175,43 @@ void Round::determineFirstPlayer()
         cout << "It's a tie! Re-rolling...\n";
         determineFirstPlayer(); // Recursive call for a tie
     }
+}
+
+/* *********************************************************************
+Function Name: getRoundWinner
+Purpose: Returns a reference to the player who won the round.
+Parameters: None.
+Return Value: A reference to the winning Player.
+Algorithm:
+    1) Return the player stored in roundWinner.
+Reference: None
+********************************************************************* */
+Player& Round::getRoundWinner() {
+    return *roundWinner;
+}
+
+/* *********************************************************************
+Function Name: getFirstTurnPlayer
+Purpose: Returns a reference to the player who took the first turn.
+Parameters: None.
+Return Value: A reference to the first-turn Player.
+Algorithm:
+    1) Return the player stored in firstTurnPlayer.
+Reference: None
+********************************************************************* */
+Player& Round::getFirstTurnPlayer() {
+    return *firstTurnPlayer;
+}
+
+/* *********************************************************************
+Function Name: getWinningScore
+Purpose: Returns the winning score of the round.
+Parameters: None.
+Return Value: An integer representing the winning score.
+Algorithm:
+    1) Return the value stored in winningScore.
+Reference: None
+********************************************************************* */
+int Round::getWinningScore() {
+    return winningScore;
 }

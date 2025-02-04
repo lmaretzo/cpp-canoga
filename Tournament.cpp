@@ -46,7 +46,63 @@ void Tournament::start()
     {
         // Create a Round and play it
         Round round(human, computer, dice, boardSize); // Pass boardSize to Round
+
+        // --- NEW: Reapply handicap (if active) before the round starts ---
+        if (getHandicapActive())
+        {
+            // Reapply the advantage square to the appropriate player's board.
+            if (getAdvantagePlayerName() == human.getName())
+                human.coverSquare(getHandicapSquare());
+            else if (getAdvantagePlayerName() == computer.getName())
+                computer.coverSquare(getHandicapSquare());
+        }
+        // ----------------------------------------------------------------
+
         round.play();
+
+        // --- BEGIN HANDICAP CALCULATION BLOCK ---
+        {
+            // Retrieve round outcome data from the Round object.
+            Player& winner = round.getRoundWinner();
+            Player& firstTurn = round.getFirstTurnPlayer();
+            int winScore = round.getWinningScore();
+
+            // Compute the advantage square by summing the digits of the winning score.
+            int advSquare = 0;
+            int temp = winScore;
+            while (temp > 0) {
+                advSquare += temp % 10;
+                temp /= 10;
+            }
+
+            // Determine which player receives the advantage.
+            Player* advantagePlayer = nullptr;
+            if (winner.getName() == firstTurn.getName()) {
+                // Winner took first turn: advantage goes to the opponent.
+                if (winner.getName() == human.getName())
+                    advantagePlayer = &computer;
+                else
+                    advantagePlayer = &human;
+            }
+            else {
+                // Winner did not take first turn: winner retains advantage.
+                advantagePlayer = &winner;
+            }
+
+            // Apply the handicap: cover the advantage square on the advantage player's board.
+            advantagePlayer->coverSquare(advSquare);
+
+
+            // Store the handicap data in the Tournament instance.
+            setHandicapSquare(advSquare);
+            setAdvantagePlayerName(advantagePlayer->getName());
+            setHandicapActive(true);
+
+            // Output a message so the user sees that the handicap has been applied.
+            cout << advantagePlayer->getName() << " has advantage with square "
+                << advSquare << " locked.\n";
+        }
+        // --- END HANDICAP CALCULATION BLOCK ---
 
         // Show scores
         cout << "\nCurrent Scores:\n";
