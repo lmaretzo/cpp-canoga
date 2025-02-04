@@ -239,7 +239,14 @@ bool Turn::coverSquares(int diceSum)
             cout << (isCovering ? "Covered" : "Uncovered") << " squares: ";
             for (int sq : chosen) cout << sq << " ";
             cout << "\n";
+            // NEW: If the player chose to uncover opponent's squares, display the opponent's updated board.
+            if (!isCovering)
+            {
+                cout << "\nUpdated Opponent's Board:\n";
+                opponent.printBoard();
+            }
             return true;
+
         }
         if (skip)
         {
