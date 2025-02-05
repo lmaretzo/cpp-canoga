@@ -8,8 +8,10 @@
 
 using namespace std;
 
-Turn::Turn(Player& activePlayer, Player& opp, Dice& d)
-    : player(activePlayer), opponent(opp), diceRef(d)
+// NEW CODE: Modified constructor to initialize the allowUncover flag.
+Turn::Turn(Player& activePlayer, Player& opp, Dice& d, bool allowUncover)
+    : player(activePlayer), opponent(opp), diceRef(d), allowUncover(allowUncover),
+    lastMoveWasUncover(false)
 {
 }
 
@@ -110,6 +112,16 @@ void Turn::execute()
             break;
         }
 
+        // NEW CODE: If the last move was an uncover move and it cleared the opponent's board, end the turn immediately.
+        if (lastMoveWasUncover && opponent.areAllUncovered())
+        {
+            cout << player.getName() << " has uncovered all of " << opponent.getName() << "'s squares!\n"; // NEW CODE
+            break; // End the turn immediately.
+        }
+
+
+
+
         // 4) Check if player has covered all squares
         if (player.areAllCovered())
         {
@@ -140,6 +152,7 @@ bool Turn::coverSquares(int diceSum)
         // Ask if the player wants to cover or uncover using InputValidator
         isCovering = InputValidator::getYesNo(
             "Do you want to cover your squares? y/n. 'y' to cover your spaces and 'n' to uncover opponent's squares: ");
+        lastMoveWasUncover = !isCovering;
 
         cout << "Squares to " << (isCovering ? "cover" : "uncover") << " (e.g. '1 2' or '3' or '0' to skip): ";
 

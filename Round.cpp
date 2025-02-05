@@ -11,7 +11,8 @@
 using namespace std;
 
 Round::Round(Player& p1, Player& p2, Dice& d, int boardSize)
-    : player1(p1), player2(p2), dice(d), boardSize(boardSize)
+    : player1(p1), player2(p2), dice(d), boardSize(boardSize), 
+    bothPlayersTurnComplete(false) // NEW CODE: Initialize flag to false.
 {
     // Reset both players' squares at start of round
     player1.resetSquares(boardSize);
@@ -24,92 +25,118 @@ Round::~Round()
 
 void Round::play()
 {
-
     determineFirstPlayer();
 
+    //  Track if the first–turn player (always player1 after determineFirstPlayer)
+    // has taken their first turn. On their first turn, uncover moves are disallowed.
+    bool firstTurnForFirstPlayer = true; // 
 
     while (!isRoundOver())
     {
-        // Player1's turn
+        // Player1's turn (first–turn player)
         {
-            Turn turnP1(player1, player2, dice);
+            bool allowUncoverFlag = true;
+            if (firstTurnForFirstPlayer) {
+                allowUncoverFlag = false; // : Restrict uncovering on first turn for first–turn player.
+            }
+            Turn turnP1(player1, player2, dice, allowUncoverFlag); // : Pass the allowUncover flag.
             turnP1.execute();
+            if (firstTurnForFirstPlayer) { // Mark that the first–turn player has now taken their turn.
+                firstTurnForFirstPlayer = false; // 
+            }
             if (isRoundOver()) break;
         }
 
-        // Player2's turn
+        // Player2's turn (always allowed to uncover)
         {
-            Turn turnP2(player2, player1, dice);
+            Turn turnP2(player2, player1, dice, true); // : Always allow uncovering for second–turn player.
             turnP2.execute();
+            // NEW CODE: After player2's first turn, mark that both players have taken a turn.
+            if (!bothPlayersTurnComplete) {
+                bothPlayersTurnComplete = true; // NEW CODE
+            }
             if (isRoundOver()) break;
         }
     }
 
-    // Determine which player has all squares covered, if any
+    //  Updated win–evaluation logic to account for the uncover win condition.
     if (player1.areAllCovered())
     {
         cout << "\n** " << player1.getName() << " covers all squares and wins the round! **\n";
-
-        // NEW: Calculate opponent's uncovered square sum ai assistance
-// FIXED: Properly loop through uncovered squares
         int scoreToAdd = 0;
         vector<int> oppSquares = player2.getSquares();
-        for (size_t i = 0; i < oppSquares.size(); i++) // Use index correctly
+        for (size_t i = 0; i < oppSquares.size(); i++)
         {
-            if (oppSquares[i] == 0) // If uncovered
+            if (oppSquares[i] == 0)
             {
-                scoreToAdd += (i + 1); // Square labels are 1-based
+                scoreToAdd += (i + 1);
             }
         }
-
         player1.addToScore(scoreToAdd);
-        cout << player1.getName() << " is awarded " << scoreToAdd << " points.\n"; // Print correct score
-
-        // NEW: Store round outcome data for handicap calculations.
-        /* *********************************************************************
-        Function Name: (Inline Handicap Outcome Storage)
-        Purpose: Store the round winner and winning score.
-        Parameters: None.
-        Return Value: None.
-        Algorithm:
-         1) Set roundWinner to point to player1.
-          2) Store winningScore as scoreToAdd.
-        Reference: None
-        ********************************************************************* */
+        cout << player1.getName() << " is awarded " << scoreToAdd << " points.\n";
         roundWinner = &player1;
         winningScore = scoreToAdd;
     }
     else if (player2.areAllCovered())
     {
         cout << "\n** " << player2.getName() << " covers all squares and wins the round! **\n";
-
-        // FIXED: Properly loop through uncovered squares
         int scoreToAdd = 0;
         vector<int> oppSquares = player1.getSquares();
-        for (size_t i = 0; i < oppSquares.size(); i++) // Use index correctly
+        for (size_t i = 0; i < oppSquares.size(); i++)
         {
-            if (oppSquares[i] == 0) // If uncovered
+            if (oppSquares[i] == 0)
             {
-                scoreToAdd += (i + 1); // Square labels are 1-based
+                scoreToAdd += (i + 1);
             }
         }
-
         player2.addToScore(scoreToAdd);
-        cout << player2.getName() << " is awarded " << scoreToAdd << " points.\n"; // Print correct score
-        // NEW: Store round outcome data for handicap calculations.
-        /* *********************************************************************
-        Function Name: (Inline Handicap Outcome Storage)
-        Purpose: Store the round winner and winning score.
-        Parameters: None.
-        Return Value: None.
-        Algorithm:
-         1) Set roundWinner to point to player2.
-         2) Store winningScore as scoreToAdd.
-        Reference: None
-        ********************************************************************* */
+        cout << player2.getName() << " is awarded " << scoreToAdd << " points.\n";
         roundWinner = &player2;
         winningScore = scoreToAdd;
     }
+    // Check for uncover win condition.
+
+
+
+    else if (bothPlayersTurnComplete && player1.areAllUncovered())
+    {
+        // If player1’s board is all uncovered then player2 has successfully uncovered them.
+        cout << "\n** " << player2.getName() << " uncovers all of " << player1.getName() << "'s squares and wins the round! **\n";
+        int scoreToAdd = 0;
+        vector<int> player2Squares = player2.getSquares();
+        for (size_t i = 0; i < player2Squares.size(); i++)
+        {
+            if (player2Squares[i] != 0) // Sum player's own covered squares
+            {
+                scoreToAdd += player2Squares[i];
+            }
+        }
+        player2.addToScore(scoreToAdd);
+        cout << player2.getName() << " is awarded " << scoreToAdd << " points.\n";
+        roundWinner = &player2;
+        winningScore = scoreToAdd;
+    }
+    else if (bothPlayersTurnComplete && player2.areAllUncovered())
+    {
+        // If player2’s board is all uncovered then player1 wins by uncovering.
+        cout << "\n** " << player1.getName() << " uncovers all of " << player2.getName() << "'s squares and wins the round! **\n";
+        int scoreToAdd = 0;
+        vector<int> player1Squares = player1.getSquares();
+        for (size_t i = 0; i < player1Squares.size(); i++)
+        {
+            if (player1Squares[i] != 0)
+            {
+                scoreToAdd += player1Squares[i];
+            }
+        }
+        player1.addToScore(scoreToAdd);
+        cout << player1.getName() << " is awarded " << scoreToAdd << " points.\n";
+        roundWinner = &player1;
+        winningScore = scoreToAdd;
+    }
+
+    //  Store the first-turn player (assumed to be player1 after potential swapping).
+    firstTurnPlayer = &player1;
 
 
 
@@ -137,8 +164,10 @@ Reference: None
 
 bool Round::isRoundOver() const
 {
-    // Round ends if either player has all squares covered
     if (player1.areAllCovered() || player2.areAllCovered())
+        return true;
+    // Only check the uncover win condition if both players have taken at least one turn.
+    if (bothPlayersTurnComplete && (player1.areAllUncovered() || player2.areAllUncovered()))
         return true;
     return false;
 }

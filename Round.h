@@ -65,6 +65,9 @@ private:
     Player* firstTurnPlayer;
     int winningScore;
 
+    // NEW CODE: Flag to indicate if both players have taken at least one turn.
+    bool bothPlayersTurnComplete; // NEW CODE
+
     // Helper to check if the round is over
     bool isRoundOver() const;
 
