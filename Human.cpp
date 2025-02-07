@@ -10,7 +10,7 @@
 #include <sstream>
 #include <limits>
 #include <cctype>
-
+#include "InputValidator.h"
 using namespace std;
 
 /* *********************************************************************
@@ -38,64 +38,58 @@ Human::~Human()
 {
 }
 
-// New interactive decision method for the human player.
-MoveDecision Human::decideMove(int diceSum) {
+MoveDecision Human::decideMove(int diceSum, const Player& opponent) {
     MoveDecision decision;
-    // Ask the user whether they want to cover or uncover.
-    char moveType;
-    while (true) {
-        cout << getName() << ", do you want to cover your squares or uncover your opponent's squares? (c/u): ";
-        cin >> moveType;
-        moveType = tolower(moveType);
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        if (moveType == 'c' || moveType == 'u')
-            break;
-        cout << "Invalid input. Please enter 'c' or 'u'.\n";
+    // First, ask if the user wants a hint.
+    bool wantHint = InputValidator::getYesNo("Would you like a hint for your move? (y/n): ");
+    if (wantHint) {
+        MoveDecision hintDecision = Player::decideMove(diceSum, opponent);
+        if (!hintDecision.squares.empty()) {
+            cout << "Hint: Consider using the move: ";
+            cout << (hintDecision.cover ? "cover " : "uncover ");
+            for (int s : hintDecision.squares)
+                cout << s << " ";
+            cout << "\n";
+        }
+        else {
+            cout << "No valid hint available.\n";
+        }
     }
-    decision.cover = (moveType == 'c');
 
-    // Now, prompt for the move.
-    while (true) {
-        cout << getName() << ", enter the squares you want to " << (decision.cover ? "cover" : "uncover") << " (sum must be " << diceSum << "):\n";
-        cout << "Type your move or type 'hint' to see the recommended move: ";
-        string input;
-        getline(cin, input);
+    // Now use InputValidator to ask if the user wants to cover.
+    // (Yes = cover; No = uncover.)
+    bool cover = InputValidator::getYesNo("Do you want to cover your squares? (y for cover, n for uncover): ");
+    decision.cover = cover;
 
-        if (input == "hint") {
-            MoveDecision hintDecision = Player::decideMove(diceSum);
-            if (!hintDecision.squares.empty()) {
-                cout << "Hint: Consider using the following squares: ";
-                for (int s : hintDecision.squares)
-                    cout << s << " ";
-                cout << "\n";
-            }
-            else {
-                cout << "No valid hint available.\n";
-            }
-            continue; // reprompt
-        }
-        if (input.empty()) {
-            cout << "No input provided. Please try again.\n";
-            continue;
-        }
-        stringstream ss(input);
-        vector<int> chosen;
-        int num, total = 0;
-        while (ss >> num) {
-            if (num == 0) {  // If the user enters 0, treat it as a skip.
-                cout << getName() << " chose to skip their turn.\n";
-                decision.squares = vector<int>(); // empty move means skip
-                return decision;
-            }
-            chosen.push_back(num);
-            total += num;
-        }
-        if (total != diceSum) {
-            cout << "Invalid input: the numbers do not add up to " << diceSum
-                << ". Please try again or type 'hint' for assistance.\n";
-            continue;
-        }
-        decision.squares = chosen;
+    // Prompt the user for the move.
+    cout << "Enter your move (e.g. '5 7') for "
+        << (cover ? "cover" : "uncover")
+        << " (the numbers must sum to " << diceSum << "): ";
+    string input;
+    getline(cin, input);
+    if (input.empty()) {
+        cout << "No input provided. Skipping turn.\n";
+        decision.squares.clear();
         return decision;
     }
+    stringstream ss(input);
+    vector<int> chosen;
+    int num, total = 0;
+    while (ss >> num) {
+        if (num == 0) {
+            cout << getName() << " chose to skip their turn.\n";
+            decision.squares.clear();
+            return decision;
+        }
+        chosen.push_back(num);
+        total += num;
+    }
+    if (total != diceSum) {
+        cout << "Invalid move: the numbers do not add up to " << diceSum << ". Skipping turn.\n";
+        decision.squares.clear();
+        return decision;
+    }
+    decision.squares = chosen;
+    return decision;
 }
+

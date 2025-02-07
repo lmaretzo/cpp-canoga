@@ -274,43 +274,36 @@ Reference: This is the default AI strategy.
 //
 // This method implements the default AI strategy for covering moves.
 // It returns a MoveDecision structure.
-MoveDecision Player::decideMove(int diceSum) {
-    // Default strategy for a covering move.
+MoveDecision Player::decideMove(int diceSum, const Player& opponent) {
     MoveDecision decision;
-    decision.cover = true; // Default to covering
-    int boardSize = squares.size();
+    // Default strategy: use covering moves.
+    // Gather available squares from this player's board.
     vector<int> available;
-    for (int i = 0; i < boardSize; i++) {
+    for (int i = 0; i < static_cast<int>(squares.size()); ++i) {
         if (squares[i] == 0)
             available.push_back(i + 1);
     }
     vector<vector<int>> combos = getCombinations(available, diceSum);
-    if (combos.empty()) {
-       // cout << "[" << playerName << "] (Default Strategy) No valid covering move found.\n";
-        decision.squares = vector<int>(); // empty means no move (skip)
-        return decision;
-    }
-    // Heuristic: choose the combination with the highest maximum element.
-    vector<int> best = combos[0];
-    int bestMax = 0;
-    for (int n : best)
-        bestMax = max(bestMax, n);
-    for (auto& combo : combos) {
-        int currentMax = 0;
-        for (int n : combo)
-            currentMax = max(currentMax, n);
-        if (currentMax > bestMax) {
-            best = combo;
-            bestMax = currentMax;
+    if (!combos.empty()) {
+        // Heuristic: choose the combo with the highest maximum element.
+        decision.squares = combos[0];
+        int bestMax = 0;
+        for (int n : decision.squares)
+            bestMax = max(bestMax, n);
+        for (auto& combo : combos) {
+            int currentMax = 0;
+            for (int n : combo)
+                currentMax = max(currentMax, n);
+            if (currentMax > bestMax) {
+                decision.squares = combo;
+                bestMax = currentMax;
+            }
         }
     }
-    //cout << "[" << playerName << "] (Default Strategy - Cover) Recommended move: ";
-    for (int n : best)
-    //    cout << n << " ";
-    cout << "\n";
-    decision.squares = best;
+    // (You could later enhance this method to consider uncover moves.)
     return decision;
 }
+
 
 void Player::offerHint() {
     cout << "[" << playerName << "] HINT: (Not yet implemented)\n";

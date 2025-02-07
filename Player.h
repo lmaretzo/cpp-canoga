@@ -43,7 +43,7 @@ Reference: None
 
 // New structure that holds a move decision.
 struct MoveDecision {
-    bool cover;             // true if the move is to cover; false if to uncover
+    bool cover = true;             // default initializer added
     vector<int> squares;    // the chosen squares (empty if skipping)
 };
 
@@ -81,7 +81,7 @@ public:
     void printBoard() const; // Print the player's current board
 
     // New unified virtual method for decision making.
-    virtual MoveDecision decideMove(int diceSum);
+    virtual MoveDecision decideMove(int diceSum, const Player& opponent);
 
 
 

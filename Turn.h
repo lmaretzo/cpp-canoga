@@ -24,7 +24,6 @@ private:
     bool lastMoveWasUncover; // NEW CODE: Track whether the last move was an uncover move.
 
     // no advanced AI or help yet
-    bool coverSquares(int diceSum);
     bool canCoverAnyCombination(const Player& p, int sum) const;
     bool areSquaresSevenToNCovered(const Player& player) const;
 

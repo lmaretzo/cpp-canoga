@@ -104,7 +104,7 @@ void Turn::execute() {
         }
         // Use the unified decision method.
 // Use the unified decision method.
-        MoveDecision decision = player.decideMove(sum);
+        MoveDecision decision = player.decideMove(sum, opponent);
         lastMoveWasUncover = !decision.cover;  // NEW: Set the flag based on the decision.
         if (decision.squares.empty()) {
             cout << player.getName() << " did not choose any squares. Turn ends.\n";

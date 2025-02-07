@@ -38,13 +38,12 @@ Computer::~Computer()
 {
 }
 
-MoveDecision Computer::decideMove(int diceSum) {
-    // For now, let the computer always choose covering moves using the default strategy.
-    MoveDecision decision = Player::decideMove(diceSum);
-
-    decision.cover = true;  // Force covering for the computer.
-    std::this_thread::sleep_for(std::chrono::milliseconds(3000));
-
+MoveDecision Computer::decideMove(int diceSum, const Player& opponent) {
+    // For now, simply use the default AI strategy from Player.
+    MoveDecision decision = Player::decideMove(diceSum, opponent);
+    decision.cover = true;  // force covering (or use your heuristic)
+    // Insert a delay if desired (we already did that in a previous step).
+    std::this_thread::sleep_for(std::chrono::milliseconds(2300));
     cout << getName() << " (Computer) has chosen squares: ";
     for (int sq : decision.squares)
         cout << sq << " ";

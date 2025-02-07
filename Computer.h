@@ -19,10 +19,6 @@ Class Name: Computer
 Purpose: Represents a computer-controlled player in the Canoga game.
          Inherits from Player and uses the default AI strategy.
 Functions:
-    - Computer(string name, int boardSize): Constructor.
-    - ~Computer(): Destructor.
-    - chooseSquares(int diceSum): Uses the default AI strategy to select squares.
-Reference: Inherits default strategy from Player.
 ********************************************************************* */
 class Computer : public Player {
 public:
@@ -30,7 +26,7 @@ public:
     virtual ~Computer();
 
     // Override chooseSquares to use the default AI strategy.
-    virtual MoveDecision decideMove(int diceSum) override;
+    virtual MoveDecision decideMove(int diceSum, const Player& opponent) override;
 };
 
 #endif
