@@ -41,11 +41,13 @@ Computer::~Computer()
 MoveDecision Computer::decideMove(int diceSum) {
     // For now, let the computer always choose covering moves using the default strategy.
     MoveDecision decision = Player::decideMove(diceSum);
+
     decision.cover = true;  // Force covering for the computer.
+    std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+
     cout << getName() << " (Computer) has chosen squares: ";
     for (int sq : decision.squares)
         cout << sq << " ";
     cout << "\n";
-    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
     return decision;
 }

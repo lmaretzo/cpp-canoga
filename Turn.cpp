@@ -4,6 +4,9 @@
 #include <iostream>
 #include <limits>
 #include <string>
+#include <thread>
+#include <chrono>
+#include "Computer.h"   // NEW: Include Computer.h so that the type is known.
 
 
 using namespace std;
@@ -54,43 +57,30 @@ bool Turn::areSquaresSevenToNCovered(const Player& player) const {
     return true;
 }
 
-//// AI ASSISTANCE begins
-//bool Turn::canCoverAnyCombination(const Player& p, int sum) const {
-//    vector<int> squaresCopy = p.getSquares();
-//    vector<int> uncovered;
-//    for (int i = 0; i < (int)squaresCopy.size(); i++) {
-//        if (squaresCopy[i] == 0)
-//            uncovered.push_back(i + 1);
-//    }
-//    int subsetCount = (1 << uncovered.size());
-//    for (int mask = 1; mask < subsetCount; mask++) {
-//        int total = 0, count = 0;
-//        for (size_t bit = 0; bit < uncovered.size(); bit++) {
-//            if (mask & (1 << bit)) {
-//                total += uncovered[bit];
-//                count++;
-//            }
-//        }
-//        if (total == sum && count >= 1 && count <= 4)
-//            return true;
-//    }
-//    return false;
-//}
-//
-//bool Turn::areSquaresSevenToNCovered(const Player& player) const {
-//    const vector<int>& squares = player.getSquares();
-//    for (int i = 6; i < squares.size(); ++i) {
-//        if (squares[i] == 0)
-//            return false;
-//    }
-//    return true;
-//}
+void printDice(int d1, int d2, int diceCount) {
+    if (diceCount == 1) {
+        cout << "+-----+\n";
+        cout << "|  " << d1 << "  |\n";
+        cout << "+-----+\n";
+    }
+    else { // diceCount == 2
+        cout << "+-----+ " << "+-----+\n";
+        cout << "|  " << d1 << "  | " << "|  " << d2 << "  |\n";
+        cout << "+-----+ " << "+-----+\n";
+    }
+}
 
 void Turn::execute() {
     cout << "\n--- " << player.getName() << "'s TURN ---\n";
     bool stillRolling = true;
     do {
         player.printBoard();
+
+        // NEW: If the active player is Computer, display "Rolling..." and pause.
+            cout << "\nRolling...\n";
+            std::this_thread::sleep_for(std::chrono::milliseconds(2300)); // pause 1 sec
+        
+
         bool allCoveredSevenToN = areSquaresSevenToNCovered(player);
         int diceToRoll = 2;
         if (allCoveredSevenToN) {
@@ -101,8 +91,9 @@ void Turn::execute() {
         }
         pair<int, int> rollVal = diceRef.roll(diceToRoll);
         int sum = rollVal.first + rollVal.second;
-        cout << player.getName() << " rolled " << rollVal.first << " and " << rollVal.second
-            << " (sum = " << sum << ")\n";
+        printDice(rollVal.first, rollVal.second, diceToRoll);
+        cout << "Sum = " << sum << "\n" << "\n";
+
         if (sum == 0) {
             cout << player.getName() << " chose to skip their turn.\n";
             break;

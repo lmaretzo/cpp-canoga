@@ -13,7 +13,8 @@ using namespace std;
 Round::Round(Player& p1, Player& p2, Dice& d, int boardSize)
     : player1(p1), player2(p2), dice(d), boardSize(boardSize),
     bothPlayersTurnComplete(false),
-    roundWinner(nullptr),
+    firstTurnIsHuman(false),            // NEW: initialize to false
+    roundWinner(nullptr),               // NEW: initialize pointers
     firstTurnPlayer(nullptr),
     winningScore(0)
 {
@@ -36,29 +37,21 @@ void Round::play()
 
     while (!isRoundOver())
     {
-        // Player1's turn (first–turn player)
-        {
-            bool allowUncoverFlag = true;
-            if (firstTurnForFirstPlayer) {
-                allowUncoverFlag = false; // : Restrict uncovering on first turn for first–turn player.
-            }
-            Turn turnP1(player1, player2, dice, allowUncoverFlag); // : Pass the allowUncover flag.
-            turnP1.execute();
-            if (firstTurnForFirstPlayer) { // Mark that the first–turn player has now taken their turn.
-                firstTurnForFirstPlayer = false; // 
-            }
+        if (firstTurnIsHuman) {
+            // Human goes first: assume player1 is Human, player2 is Computer.
+            Turn turnFirst(player1, player2, dice, false); // first-turn: no uncovering allowed
+            turnFirst.execute();
             if (isRoundOver()) break;
+            Turn turnSecond(player2, player1, dice, true);
+            turnSecond.execute();
         }
-
-        // Player2's turn (always allowed to uncover)
-        {
-            Turn turnP2(player2, player1, dice, true); // : Always allow uncovering for second–turn player.
-            turnP2.execute();
-            // NEW CODE: After player2's first turn, mark that both players have taken a turn.
-            if (!bothPlayersTurnComplete) {
-                bothPlayersTurnComplete = true; // NEW CODE
-            }
+        else {
+            // Computer goes first: assume player2 is Computer, player1 is Human.
+            Turn turnFirst(player2, player1, dice, false);
+            turnFirst.execute();
             if (isRoundOver()) break;
+            Turn turnSecond(player1, player2, dice, true);
+            turnSecond.execute();
         }
     }
 
@@ -195,12 +188,16 @@ void Round::determineFirstPlayer()
     if (sumP1 > sumP2)
     {
         cout << player1.getName() << " will go first!\n";
+        // Set flag based on player1’s type. (Assume that if name=="Human", then it's Human.)
+        firstTurnIsHuman = (player1.getName() == "Human");
     }
     else if (sumP2 > sumP1)
     {
         cout << player2.getName() << " will go first!\n";
         // Swap players if player 2 should go first
-        swap(player1, player2);
+        firstTurnIsHuman = (player2.getName() == "Human");
+
+        //swap(player1, player2);
     }
     else
     {

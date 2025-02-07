@@ -56,10 +56,8 @@ MoveDecision Human::decideMove(int diceSum) {
 
     // Now, prompt for the move.
     while (true) {
-        cout << getName() << ", enter the squares you want to "
-            << (decision.cover ? "cover" : "uncover")
-            << " (sum must be " << diceSum << "):\n";
-        cout << "Type your move (e.g. '1 2 3') or type 'hint' to see the recommended move: ";
+        cout << getName() << ", enter the squares you want to " << (decision.cover ? "cover" : "uncover") << " (sum must be " << diceSum << "):\n";
+        cout << "Type your move or type 'hint' to see the recommended move: ";
         string input;
         getline(cin, input);
 

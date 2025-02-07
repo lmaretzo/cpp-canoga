@@ -286,7 +286,7 @@ MoveDecision Player::decideMove(int diceSum) {
     }
     vector<vector<int>> combos = getCombinations(available, diceSum);
     if (combos.empty()) {
-        cout << "[" << playerName << "] (Default Strategy) No valid covering move found.\n";
+       // cout << "[" << playerName << "] (Default Strategy) No valid covering move found.\n";
         decision.squares = vector<int>(); // empty means no move (skip)
         return decision;
     }
@@ -304,9 +304,9 @@ MoveDecision Player::decideMove(int diceSum) {
             bestMax = currentMax;
         }
     }
-    cout << "[" << playerName << "] (Default Strategy - Cover) Recommended move: ";
+    //cout << "[" << playerName << "] (Default Strategy - Cover) Recommended move: ";
     for (int n : best)
-        cout << n << " ";
+    //    cout << n << " ";
     cout << "\n";
     decision.squares = best;
     return decision;

@@ -67,6 +67,7 @@ private:
 
     // NEW CODE: Flag to indicate if both players have taken at least one turn.
     bool bothPlayersTurnComplete; // NEW CODE
+    bool firstTurnIsHuman;        // NEW: true if the first-turn player is Human
 
     // Helper to check if the round is over
     bool isRoundOver() const;
