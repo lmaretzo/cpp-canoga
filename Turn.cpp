@@ -54,255 +54,102 @@ bool Turn::areSquaresSevenToNCovered(const Player& player) const {
     return true;
 }
 
-// AI ASSISTANCE begins
-void Turn::execute()
-{
+//// AI ASSISTANCE begins
+//bool Turn::canCoverAnyCombination(const Player& p, int sum) const {
+//    vector<int> squaresCopy = p.getSquares();
+//    vector<int> uncovered;
+//    for (int i = 0; i < (int)squaresCopy.size(); i++) {
+//        if (squaresCopy[i] == 0)
+//            uncovered.push_back(i + 1);
+//    }
+//    int subsetCount = (1 << uncovered.size());
+//    for (int mask = 1; mask < subsetCount; mask++) {
+//        int total = 0, count = 0;
+//        for (size_t bit = 0; bit < uncovered.size(); bit++) {
+//            if (mask & (1 << bit)) {
+//                total += uncovered[bit];
+//                count++;
+//            }
+//        }
+//        if (total == sum && count >= 1 && count <= 4)
+//            return true;
+//    }
+//    return false;
+//}
+//
+//bool Turn::areSquaresSevenToNCovered(const Player& player) const {
+//    const vector<int>& squares = player.getSquares();
+//    for (int i = 6; i < squares.size(); ++i) {
+//        if (squares[i] == 0)
+//            return false;
+//    }
+//    return true;
+//}
 
+void Turn::execute() {
     cout << "\n--- " << player.getName() << "'s TURN ---\n";
-
     bool stillRolling = true;
-    do
-    {
+    do {
         player.printBoard();
-
-
-
-
-                // Check if squares 7 through n are covered
         bool allCoveredSevenToN = areSquaresSevenToNCovered(player);
-        int diceToRoll = 2; // Default: roll two dice
-
+        int diceToRoll = 2;
         if (allCoveredSevenToN) {
-
-            // Use InputValidator for yes/no question
             bool rollOneDie = InputValidator::getYesNo(
                 "All squares 7 through " + to_string(player.getSquares().size()) +
                 " are covered. Do you want to roll one die? (y/n): ");
-
-            diceToRoll = rollOneDie ? 1 : 2; // Set diceToRoll based on user's choice
+            diceToRoll = rollOneDie ? 1 : 2;
         }
-        pair<int, int> rollVal = diceRef.roll(diceToRoll); // Use the Dice class's roll method
-
+        pair<int, int> rollVal = diceRef.roll(diceToRoll);
         int sum = rollVal.first + rollVal.second;
-
-        cout << player.getName() << " rolled "
-            << rollVal.first << " and " << rollVal.second
+        cout << player.getName() << " rolled " << rollVal.first << " and " << rollVal.second
             << " (sum = " << sum << ")\n";
-
         if (sum == 0) {
-            // Handle turn skip
             cout << player.getName() << " chose to skip their turn.\n";
             break;
         }
-
-        // 2) Check if covering is even possible
-        if (!canCoverAnyCombination(player, sum))
-        {
-            cout << "No valid moves for sum = " << sum
-                << ". " << player.getName() << "'s turn ends.\n";
+        if (!canCoverAnyCombination(player, sum)) {
+            cout << "No valid moves for sum = " << sum << ". " << player.getName() << "'s turn ends.\n";
             break;
         }
-
-        // 3) Attempt to cover squares
-        bool success = coverSquares(sum);
-        if (!success)
-        {
-            cout << player.getName()
-                << " did not cover squares. Turn ends.\n";
+        // Use the unified decision method.
+// Use the unified decision method.
+        MoveDecision decision = player.decideMove(sum);
+        lastMoveWasUncover = !decision.cover;  // NEW: Set the flag based on the decision.
+        if (decision.squares.empty()) {
+            cout << player.getName() << " did not choose any squares. Turn ends.\n";
             break;
         }
-
-        // NEW CODE: If the last move was an uncover move and it cleared the opponent's board, end the turn immediately.
-        if (lastMoveWasUncover && opponent.areAllUncovered())
-        {
-            cout << player.getName() << " has uncovered all of " << opponent.getName() << "'s squares!\n"; // NEW CODE
-            break; // End the turn immediately.
-        }
-
-
-
-
-        // 4) Check if player has covered all squares
-        if (player.areAllCovered())
-        {
-            cout << player.getName()
-                << " has covered all squares!\n";
-            break;  // Round logic can handle the actual 'win' 
-        }
-
-        // If we reach here, it means we covered squares successfully
-        // and can roll again. If you want to let the user decide to stop,
-        // you can ask them. For now, we automatically continue rolling.
-    } while (stillRolling);
-}
-
-//AI Assistance ends
-
-bool Turn::coverSquares(int diceSum)
-{
-    cout << player.getName() << ", enter the squares you want to cover or uncover (space-separated), sum must be " << diceSum << ". Enter 0 to skip.\n";
-
-
-    vector<int> chosen;
-    bool isCovering = true; //  Tracks whether the player is covering or uncovering
-    while (true)
-    {
-        chosen.clear();
-
-        // Ask if the player wants to cover or uncover using InputValidator
-        isCovering = InputValidator::getYesNo(
-            "Do you want to cover your squares? y/n. 'y' to cover your spaces and 'n' to uncover opponent's squares: ");
-        lastMoveWasUncover = !isCovering;
-
-        cout << "Squares to " << (isCovering ? "cover" : "uncover") << " (e.g. '1 2' or '3' or '0' to skip): ";
-
-        string line;
-        getline(cin, line);
-
-        //cout << "[DEBUG] Raw input: " << line << "\n"; //debug statement 1/26 5:00pm
-
-
-        if (line.empty())
-        {
-            // if the getline is empty (maybe leftover from a previous input, read again
-            continue;
-        }
-
-        // parse
-        int val;
-        bool skip = false;
-        bool validParse = true;
-        int sumCheck = 0;
-
-        // use a stringstream
-        std::stringstream ss(line);
-
-        while (ss >> val)
-        {
-            if (val == 0) {
-                //  Handle skipping the turn
-                cout << player.getName() << " chose to skip their turn.\n";
-                return false;
-            }
-            if (val < 1 || val > player.getSquares().size())
-            {
-                validParse = false;
-                break;
-            }
-            if (std::find(chosen.begin(), chosen.end(), val) != chosen.end()) {
-                // Duplicate value detected
-                cout << "You cannot use the same square twice. ";
-                validParse = false; // Mark the input as invalid
-                break;
-            }
-
-
-            chosen.push_back(val);
-            sumCheck += val;
-
-            //  Prevent selecting more than 4 squares
-            if (chosen.size() > 4)
-            {
-                cout << "You can only choose up to 4 squares. Try again.\n";
-                validParse = false;
-                break;
-            }
-        }
-
-        if (!validParse || sumCheck != diceSum) // Now allows 4 squares)
-        {
-            cout << "Invalid selection. Make sure the numbers sum to " << diceSum << " and you only pick up to 4 squares.\n";
-            continue;
-        }
-
-
-
-        // Attempt to apply the selected action (covering or uncovering)
         bool allSuccessful = true;
-        for (int sq : chosen)
-        {
+        for (int sq : decision.squares) {
             bool success;
-            if (isCovering)
-            {
-                success = player.coverSquare(sq); // Cover own square
-            }
+            if (decision.cover)
+                success = player.coverSquare(sq);
             else
-            {
-                success = opponent.uncoverSquare(sq); // Uncover opponent's square
-            }
-
-            if (!success)
-            {
-                // If any action fails, revert all previous actions
+                success = opponent.uncoverSquare(sq);
+            if (!success) {
                 allSuccessful = false;
-                for (int revertSq : chosen)
-                {
-                    if (isCovering)
-                        player.uncoverSquare(revertSq);
-                    else
-                        opponent.coverSquare(revertSq);
-                }
-                cout << "Could not " << (isCovering ? "cover" : "uncover") << " squares. Try again.\n";
                 break;
             }
         }
-
-        if (allSuccessful)
-        {
-            cout << (isCovering ? "Covered" : "Uncovered") << " squares: ";
-            for (int sq : chosen) cout << sq << " ";
-            cout << "\n";
-            // NEW: If the player chose to uncover opponent's squares, display the opponent's updated board.
-            if (!isCovering)
-            {
-                cout << "\nUpdated Opponent's Board:\n";
-                opponent.printBoard();
-            }
-            return true;
-
+        if (!allSuccessful) {
+            cout << "Could not apply the chosen move. Turn ends.\n";
+            break;
         }
-        if (skip)
-        {
-            // user chose to skip
-            return false;
+        cout << (decision.cover ? "Covered" : "Uncovered") << " squares: ";
+        for (int sq : decision.squares)
+            cout << sq << " ";
+        cout << "\n";
+        if (!decision.cover) {
+            cout << "\nUpdated Opponent's Board:\n";
+            opponent.printBoard();
         }
-
-        if (sumCheck == diceSum)
-        {
-            // Attempt covering
-            bool allCovered = true;
-            for (int sq : chosen)
-            {
-                bool c = player.coverSquare(sq);
-                if (!c)
-                {
-                    // revert
-                    allCovered = false;
-                    for (int revertSq : chosen)
-                    {
-                        // only uncover if it was successfully covered
-                        // (this ensures partial covers don't remain)
-                        player.uncoverSquare(revertSq);
-                    }
-                    cout << "Could not cover squares. Try again.\n";
-                    break;
-                }
-            }
-
-            if (allCovered)
-            {
-                cout << "Covered squares: ";
-                for (int sq : chosen) cout << sq << " ";
-                cout << "\n";
-                return true;
-            }
+        if (lastMoveWasUncover && opponent.areAllUncovered()) {
+            cout << player.getName() << " has uncovered all of " << opponent.getName() << "'s squares!\n";
+            break;
         }
-        else
-        {
-            cout << "Squares do not sum to " << diceSum << ". Try again.\n";
+        if (player.areAllCovered()) {
+            cout << player.getName() << " has covered all squares!\n";
+            break;
         }
-    }
-
-    // Should never really get here in normal flow
-    return false;
+    } while (stillRolling);
 }

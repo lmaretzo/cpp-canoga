@@ -11,13 +11,16 @@
 using namespace std;
 
 Round::Round(Player& p1, Player& p2, Dice& d, int boardSize)
-    : player1(p1), player2(p2), dice(d), boardSize(boardSize), 
-    bothPlayersTurnComplete(false) // NEW CODE: Initialize flag to false.
+    : player1(p1), player2(p2), dice(d), boardSize(boardSize),
+    bothPlayersTurnComplete(false),
+    roundWinner(nullptr),
+    firstTurnPlayer(nullptr),
+    winningScore(0)
 {
-    // Reset both players' squares at start of round
     player1.resetSquares(boardSize);
     player2.resetSquares(boardSize);
 }
+
 
 Round::~Round()
 {

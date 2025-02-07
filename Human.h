@@ -30,7 +30,7 @@ public:
     virtual ~Human();
 
     // Override the virtual method to prompt for user input.
-    virtual vector<int> chooseSquares(int diceSum) override;
+    virtual MoveDecision decideMove(int diceSum) override;
 };
 
 #endif

@@ -8,6 +8,8 @@
 #include "Player.h"
 #include <iostream>
 #include <sstream>
+#include <limits>
+#include <cctype>
 
 using namespace std;
 
@@ -36,45 +38,66 @@ Human::~Human()
 {
 }
 
-/* *********************************************************************
-Function Name: chooseSquares
-Purpose: Prompts the human player to enter the squares to cover based on the dice sum.
-Parameters:
-    - diceSum: The total of the dice roll.
-Return Value: A vector of integers representing the chosen squares.
-Algorithm:
-    1) Prompt the user for input.
-    2) Parse the input and verify that the sum equals diceSum.
-    3) Offer a hint if the input is invalid.
-Reference: Overrides Player::chooseSquares.
-********************************************************************* */
-vector<int> Human::chooseSquares(int diceSum) {
-    vector<int> chosen;
-    cout << getName() << ", enter the squares you want to cover (sum must be "
-        << diceSum << "): ";
-    string input;
-    getline(cin, input);
-    stringstream ss(input);
-    int num, total = 0;
-    while (ss >> num) {
-        chosen.push_back(num);
-        total += num;
+// New interactive decision method for the human player.
+MoveDecision Human::decideMove(int diceSum) {
+    MoveDecision decision;
+    // Ask the user whether they want to cover or uncover.
+    char moveType;
+    while (true) {
+        cout << getName() << ", do you want to cover your squares or uncover your opponent's squares? (c/u): ";
+        cin >> moveType;
+        moveType = tolower(moveType);
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        if (moveType == 'c' || moveType == 'u')
+            break;
+        cout << "Invalid input. Please enter 'c' or 'u'.\n";
     }
-    if (total != diceSum) {
-        cout << "Invalid input: the numbers do not add up to " << diceSum << ".\n";
-        cout << "Would you like a hint? (enter 'hint' to see the default strategy): ";
-        string hintInput;
-        getline(cin, hintInput);
-        if (hintInput == "hint") {
-            // Call the base class default strategy and display the hint.
-            vector<int> hint = Player::chooseSquares(diceSum);
-            cout << "Hint: Consider using the following squares: ";
-            for (int s : hint)
-                cout << s << " ";
-            cout << "\n";
+    decision.cover = (moveType == 'c');
+
+    // Now, prompt for the move.
+    while (true) {
+        cout << getName() << ", enter the squares you want to "
+            << (decision.cover ? "cover" : "uncover")
+            << " (sum must be " << diceSum << "):\n";
+        cout << "Type your move (e.g. '1 2 3') or type 'hint' to see the recommended move: ";
+        string input;
+        getline(cin, input);
+
+        if (input == "hint") {
+            MoveDecision hintDecision = Player::decideMove(diceSum);
+            if (!hintDecision.squares.empty()) {
+                cout << "Hint: Consider using the following squares: ";
+                for (int s : hintDecision.squares)
+                    cout << s << " ";
+                cout << "\n";
+            }
+            else {
+                cout << "No valid hint available.\n";
+            }
+            continue; // reprompt
         }
-        // Return an empty vector (or you could loop until valid input is provided).
-        return vector<int>();
+        if (input.empty()) {
+            cout << "No input provided. Please try again.\n";
+            continue;
+        }
+        stringstream ss(input);
+        vector<int> chosen;
+        int num, total = 0;
+        while (ss >> num) {
+            if (num == 0) {  // If the user enters 0, treat it as a skip.
+                cout << getName() << " chose to skip their turn.\n";
+                decision.squares = vector<int>(); // empty move means skip
+                return decision;
+            }
+            chosen.push_back(num);
+            total += num;
+        }
+        if (total != diceSum) {
+            cout << "Invalid input: the numbers do not add up to " << diceSum
+                << ". Please try again or type 'hint' for assistance.\n";
+            continue;
+        }
+        decision.squares = chosen;
+        return decision;
     }
-    return chosen;
 }

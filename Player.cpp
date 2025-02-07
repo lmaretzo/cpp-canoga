@@ -9,6 +9,38 @@
 
 using namespace std;
 
+
+
+#include <algorithm>  // for sort, max
+
+// Recursively find all combinations of numbers in 'nums' that sum to 'target'.
+// 'start' is the starting index, 'current' holds the current combination.
+void findCombinations(const vector<int>& nums, int target, int start,
+    vector<int>& current, vector<vector<int>>& result) {
+    if (target == 0 && current.size() >= 1 && current.size() <= 4) {
+        result.push_back(current);
+    }
+    if (current.size() == 4) return; // cannot choose more than 4 squares
+    for (int i = start; i < nums.size(); i++) {
+        if (nums[i] > target)
+            continue;  // skip numbers that are too large
+        current.push_back(nums[i]);
+        findCombinations(nums, target - nums[i], i + 1, current, result);
+        current.pop_back();
+    }
+}
+
+// Given a set of available numbers, return all combinations (of 1 to 4 numbers) that sum to 'target'.
+vector<vector<int>> getCombinations(const vector<int>& available, int target) {
+    vector<int> nums = available;
+    sort(nums.begin(), nums.end());
+    vector<vector<int>> result;
+    vector<int> current;
+    findCombinations(nums, target, 0, current, result);
+    return result;
+}
+
+
 /* *********************************************************************
 Function Name: Player (Default Constructor)
 Purpose: Initializes a Player object with default values.
@@ -225,6 +257,8 @@ void Player::printBoard() const {
     cout << endl;
 }
 
+
+
 /* *********************************************************************
 Function Name: chooseSquares
 Purpose: Default virtual method for choosing squares based on a dice roll.
@@ -234,23 +268,50 @@ Parameters:
 Return Value: A vector of integers representing the chosen squares.
 Reference: This is the default AI strategy.
 ********************************************************************* */
-vector<int> Player::chooseSquares(int diceSum) {
-    vector<int> chosen;
-    cout << "[" << playerName << "] using default AI strategy for dice sum "
-        << diceSum << ".\n";
-    // [Insert default AI strategy logic here]
-    return chosen;
+
+
+// ---------- New Unified Decision Method ----------
+//
+// This method implements the default AI strategy for covering moves.
+// It returns a MoveDecision structure.
+MoveDecision Player::decideMove(int diceSum) {
+    // Default strategy for a covering move.
+    MoveDecision decision;
+    decision.cover = true; // Default to covering
+    int boardSize = squares.size();
+    vector<int> available;
+    for (int i = 0; i < boardSize; i++) {
+        if (squares[i] == 0)
+            available.push_back(i + 1);
+    }
+    vector<vector<int>> combos = getCombinations(available, diceSum);
+    if (combos.empty()) {
+        cout << "[" << playerName << "] (Default Strategy) No valid covering move found.\n";
+        decision.squares = vector<int>(); // empty means no move (skip)
+        return decision;
+    }
+    // Heuristic: choose the combination with the highest maximum element.
+    vector<int> best = combos[0];
+    int bestMax = 0;
+    for (int n : best)
+        bestMax = max(bestMax, n);
+    for (auto& combo : combos) {
+        int currentMax = 0;
+        for (int n : combo)
+            currentMax = max(currentMax, n);
+        if (currentMax > bestMax) {
+            best = combo;
+            bestMax = currentMax;
+        }
+    }
+    cout << "[" << playerName << "] (Default Strategy - Cover) Recommended move: ";
+    for (int n : best)
+        cout << n << " ";
+    cout << "\n";
+    decision.squares = best;
+    return decision;
 }
 
-/* *********************************************************************
-Function Name: offerHint
-Purpose: Placeholder function for AI strategy.
-Parameters: None
-Return Value: None
-Reference: None
-********************************************************************* */
-void Player::offerHint()
-{
-    // Placeholder for future expansions (AI strategy, heuristics, etc.)
+void Player::offerHint() {
     cout << "[" << playerName << "] HINT: (Not yet implemented)\n";
 }

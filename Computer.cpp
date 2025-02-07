@@ -8,6 +8,8 @@
 #include "Player.h"
 #include <iostream>
 #include <vector>
+#include <thread>
+#include <chrono>
 
 using namespace std;
 
@@ -36,19 +38,14 @@ Computer::~Computer()
 {
 }
 
-/* *********************************************************************
-Function Name: chooseSquares
-Purpose: Uses the default AI strategy from the base Player class to choose squares.
-Parameters:
-    - diceSum: The total of the dice roll.
-Return Value: A vector of integers representing the chosen squares.
-Reference: Overrides Player::chooseSquares.
-********************************************************************* */
-vector<int> Computer::chooseSquares(int diceSum) {
-    vector<int> chosen = Player::chooseSquares(diceSum);
+MoveDecision Computer::decideMove(int diceSum) {
+    // For now, let the computer always choose covering moves using the default strategy.
+    MoveDecision decision = Player::decideMove(diceSum);
+    decision.cover = true;  // Force covering for the computer.
     cout << getName() << " (Computer) has chosen squares: ";
-    for (int sq : chosen)
+    for (int sq : decision.squares)
         cout << sq << " ";
     cout << "\n";
-    return chosen;
+    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+    return decision;
 }

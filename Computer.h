@@ -30,7 +30,7 @@ public:
     virtual ~Computer();
 
     // Override chooseSquares to use the default AI strategy.
-    virtual vector<int> chooseSquares(int diceSum) override;
+    virtual MoveDecision decideMove(int diceSum) override;
 };
 
 #endif

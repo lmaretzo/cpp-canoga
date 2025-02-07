@@ -40,6 +40,13 @@ Functions:
     - offerHint(): Placeholder for future strategy logic.
 Reference: None
 ********************************************************************* */
+
+// New structure that holds a move decision.
+struct MoveDecision {
+    bool cover;             // true if the move is to cover; false if to uncover
+    vector<int> squares;    // the chosen squares (empty if skipping)
+};
+
 class Player
 {
 public:
@@ -73,9 +80,9 @@ public:
 
     void printBoard() const; // Print the player's current board
 
-    // NEW: Virtual method for choosing squares based on a dice roll.
-// This method implements the default AI strategy.
-    virtual vector<int> chooseSquares(int diceSum);
+    // New unified virtual method for decision making.
+    virtual MoveDecision decideMove(int diceSum);
+
 
 
     // Placeholder for future "hint" or "strategy" method

@@ -8,9 +8,10 @@
 using namespace std;
 
 Tournament::Tournament()
-    : boardSize(9) // Default board size; updated later in initializeBoardSize
+    : boardSize(9), handicapSquare(0), handicapActive(false)
 {
 }
+
 
 Tournament::~Tournament()
 {
