@@ -365,26 +365,26 @@ int Player::optimalDiceRoll() const {
 
 /* *********************************************************************
 Function Name: decideMove
-Purpose: To determine the move for the player based on the dice roll and
-         the state of the opponent's board. This default AI strategy computes
-         valid cover and uncover combinations and chooses one based on a simple
-         heuristic.
+Purpose: To determine the player's move based on the dice roll and the state
+         of the opponent's board using an advanced heuristic. This method computes
+         valid combinations for both covering and uncovering, then scores each candidate:
+         - For cover moves, the score = (sum of candidate squares) + 2 * (maximum candidate value).
+         - For uncover moves, the score = (sum of candidate squares).
+         The move with the lower effective "risk" (i.e. lower score for uncover moves is better,
+         and a higher score for cover moves is more beneficial) is selected.
 Parameters:
-         diceSum      - an integer representing the total of the dice roll
+         diceSum      - an integer representing the total from the dice roll
          opponent     - a constant reference to the opponent Player object
          allowUncover - a boolean flag indicating whether uncovering is allowed this turn
-Return Value: A MoveDecision structure containing the chosen move (cover/uncover)
-              and the list of squares.
+Return Value: A MoveDecision structure containing the chosen move (cover/uncover) and the list of squares.
 Algorithm:
-         1) For covering: Gather all uncovered squares from the player's board.
-         2) Compute all valid combinations (1 to 4 numbers) that sum to diceSum.
-         3) Choose the combination with the highest maximum value as the cover move.
-         4) For uncovering: Gather all covered squares from the opponent's board.
-         5) Compute all valid combinations that sum to diceSum.
-         6) Choose the combination with the lowest total as the uncover move.
-         7) Compare both moves; if both are valid, choose the one with the lower total (heuristic).
-         8) Return the corresponding MoveDecision.
-Reference: AI ASSISTED
+         1) Compute candidate combinations for covering and uncovering.
+         2) If both candidates are available:
+              a) Compute coverScore = sum(cover candidate) + 2 * max(cover candidate)
+              b) Compute uncoverScore = sum(uncover candidate)
+              c) If uncoverScore is lower than coverScore, choose uncover; otherwise, choose cover.
+         3) If only one candidate is available, return that move.
+Reference: ai assisted
 ********************************************************************* */
 MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowUncover) {
     MoveDecision coverDecision, uncoverDecision;
@@ -400,16 +400,16 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
     vector<vector<int>> coverCombos = getCombinations(myAvailable, diceSum);
     if (!coverCombos.empty()) {
         coverDecision.squares = coverCombos[0];
-        int bestMax = 0;
-        for (int n : coverDecision.squares)
-            bestMax = max(bestMax, n);
         for (auto& combo : coverCombos) {
+            // Choose a candidate that has a higher maximum value
             int currentMax = 0;
             for (int n : combo)
                 currentMax = max(currentMax, n);
+            int bestMax = 0;
+            for (int n : coverDecision.squares)
+                bestMax = max(bestMax, n);
             if (currentMax > bestMax) {
                 coverDecision.squares = combo;
-                bestMax = currentMax;
             }
         }
     }
@@ -421,22 +421,22 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
     vector<int> oppCovered;
     vector<int> oppSquares = opponent.getSquares();
     for (int i = 0; i < static_cast<int>(oppSquares.size()); i++) {
-        if (oppSquares[i] != 0)  // if the opponent's square is covered
+        if (oppSquares[i] != 0)  // Consider only covered squares.
             oppCovered.push_back(i + 1);
     }
     vector<vector<int>> uncoverCombos = getCombinations(oppCovered, diceSum);
     if (!uncoverCombos.empty()) {
         uncoverDecision.squares = uncoverCombos[0];
-        int bestTotal = 0;
-        for (int n : uncoverDecision.squares)
-            bestTotal += n;
         for (auto& combo : uncoverCombos) {
-            int comboTotal = 0;
+            int currentTotal = 0;
             for (int n : combo)
-                comboTotal += n;
-            if (comboTotal < bestTotal) {
+                currentTotal += n;
+            int bestTotal = 0;
+            for (int n : uncoverDecision.squares)
+                bestTotal += n;
+            // Choose the combination with the lower total.
+            if (currentTotal < bestTotal) {
                 uncoverDecision.squares = combo;
-                bestTotal = comboTotal;
             }
         }
     }
@@ -444,45 +444,35 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
         uncoverDecision.squares.clear();
     }
 
-    // --- Debug Output ---
-    cout << "[" << playerName << "] Computed Cover Move: ";
-    if (!coverDecision.squares.empty()) {
-        for (int n : coverDecision.squares)
-            cout << n << " ";
-    }
-    else {
-        cout << "None";
-    }
-    cout << "\n";
-
-    cout << "[" << playerName << "] Computed Uncover Move: ";
-    if (!uncoverDecision.squares.empty()) {
-        for (int n : uncoverDecision.squares)
-            cout << n << " ";
-    }
-    else {
-        cout << "None";
-    }
-    cout << "\n";
-
-    // --- Choose Between Cover and Uncover ---
-    // Use a simple heuristic: compare the total values of the moves.
+    // --- Advanced Heuristic Evaluation ---
+    // If both moves are available, evaluate them with a weighted scoring function.
     if (!coverDecision.squares.empty() && !uncoverDecision.squares.empty()) {
-        int coverTotal = 0, uncoverTotal = 0;
-        for (int n : coverDecision.squares)
+        int coverTotal = 0, uncoverTotal = 0, maxCover = 0;
+        // Calculate cover score components.
+        for (int n : coverDecision.squares) {
             coverTotal += n;
-        for (int n : uncoverDecision.squares)
+            maxCover = max(maxCover, n);
+        }
+        // For uncover, sum the candidate squares.
+        for (int n : uncoverDecision.squares) {
             uncoverTotal += n;
-        // For example, choose to uncover if its total is lower than the cover move’s total.
-        if (uncoverTotal < coverTotal)
+        }
+        // Advanced score: For cover moves, add extra weight to high-value squares.
+        int coverScore = coverTotal + (2 * maxCover);
+        // For uncover moves, the score is just the sum (lower is better).
+        int uncoverScore = uncoverTotal;
+        // Decision: if the uncover score is lower than the cover score, choose uncover.
+        if (uncoverScore < coverScore)
             return uncoverDecision;
         else
             return coverDecision;
     }
+    // If only uncover candidate is available, return it.
     else if (!uncoverDecision.squares.empty()) {
         return uncoverDecision;
     }
     else {
+        // Otherwise, return the cover candidate (even if it might be empty).
         return coverDecision;
     }
 }
