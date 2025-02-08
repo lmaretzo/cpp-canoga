@@ -82,6 +82,9 @@ MoveDecision Human::decideMove(int diceSum, const Player& opponent, bool allowUn
             for (int s : hintDecision.squares)
                 cout << s << " ";
             cout << "\n";
+            if (!hintDecision.explanation.empty()) {
+                cout << "Explanation: " << hintDecision.explanation << "\n";
+            }
         }
         else {
             cout << "No valid hint available.\n";

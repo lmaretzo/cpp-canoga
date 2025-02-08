@@ -25,6 +25,7 @@ Reference: None
 struct MoveDecision {
     bool cover = true;       // Indicates if the move is to cover (true) or uncover (false)
     vector<int> squares;    // Holds the chosen squares for the move
+    string explanation;            // Holds a brief explanation for the move decision
 };
 
 
