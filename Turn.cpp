@@ -1,3 +1,8 @@
+/************************************************************
+ * Name:  Lucas Maretzo
+ * Project:  Canoga
+ * Date:  1/31/2025
+ ************************************************************/
 #include "Turn.h"
 #include "InputValidator.h"
 #include <sstream>
@@ -11,13 +16,42 @@
 
 using namespace std;
 
-// NEW CODE: Modified constructor to initialize the allowUncover flag.
+/* *********************************************************************
+Function Name: Turn (Constructor)
+Purpose: To initialize a Turn object with the active player, the opponent,
+         a reference to the dice object, and a flag indicating whether
+         uncovering is allowed this turn.
+Parameters:
+         activePlayer - a reference to the Player taking this turn (by reference)
+         opp          - a reference to the opponent Player object (by reference)
+         d            - a reference to the Dice object (by reference)
+         allowUncover - a boolean flag that is true if uncovering is allowed, false otherwise
+Return Value: None.
+Algorithm:
+         1) Initialize member variables with the given parameters.
+         2) Set lastMoveWasUncover to false.
+Reference: None
+********************************************************************* */
 Turn::Turn(Player& activePlayer, Player& opp, Dice& d, bool allowUncover)
     : player(activePlayer), opponent(opp), diceRef(d), allowUncover(allowUncover),
     lastMoveWasUncover(false)
 {
 }
 
+/* *********************************************************************
+Function Name: canCoverAnyCombination
+Purpose: To check whether there is any valid combination of uncovered squares
+         on the given player's board that sum to the provided dice sum.
+Parameters:
+         p   - a constant reference to the Player whose board is checked
+         sum - an integer representing the dice sum
+Return Value: A boolean value; true if at least one valid combination exists, false otherwise.
+Algorithm:
+         1) Retrieve the player's squares.
+         2) Build a vector of numbers representing uncovered squares.
+         3) Iterate through all subsets of these numbers to check if any subset sums to 'sum'.
+Reference: AI ASSISTED
+********************************************************************* */
 bool Turn::canCoverAnyCombination(const Player& p, int sum) const
 {
     vector<int> squaresCopy = p.getSquares();
@@ -47,6 +81,20 @@ bool Turn::canCoverAnyCombination(const Player& p, int sum) const
     return false;
 }
 
+
+/* *********************************************************************
+Function Name: areSquaresSevenToNCovered
+Purpose: To determine if squares numbered 7 through N on the player's board
+         are all covered.
+Parameters:
+         player - a constant reference to the Player whose board is checked
+Return Value: A boolean value; true if all squares from 7 to N are covered, false otherwise.
+Algorithm:
+         1) Retrieve the player's squares.
+         2) Starting from index 6 (square 7), check if any square is uncovered (value 0).
+         3) If any such square is found, return false; otherwise, return true.
+Reference: None
+********************************************************************* */
 bool Turn::areSquaresSevenToNCovered(const Player& player) const {
     const vector<int>& squares = player.getSquares();
     for (int i = 6; i < squares.size(); ++i) { // Index 6 = square 7
@@ -57,6 +105,19 @@ bool Turn::areSquaresSevenToNCovered(const Player& player) const {
     return true;
 }
 
+/* *********************************************************************
+Function Name: printDice
+Purpose: To display the dice roll visually using ASCII art.
+Parameters:
+         d1        - an integer representing the value of the first die
+         d2        - an integer representing the value of the second die
+         diceCount - an integer indicating the number of dice rolled (1 or 2)
+Return Value: None.
+Algorithm:
+         1) If one die is rolled, print a single dice box.
+         2) If two dice are rolled, print two dice boxes side by side.
+Reference: None
+********************************************************************* */
 void printDice(int d1, int d2, int diceCount) {
     if (diceCount == 1) {
         cout << "+-----+\n";
@@ -70,6 +131,29 @@ void printDice(int d1, int d2, int diceCount) {
     }
 }
 
+/* *********************************************************************
+Function Name: execute
+Purpose: To execute a single turn for the active player. This function:
+         - Displays the board.
+         - Rolls the dice (or prompts if necessary).
+         - Checks for valid moves.
+         - Calls the player's decideMove method.
+         - Applies the chosen move.
+         - Checks for win conditions.
+Parameters: None.
+Return Value: None.
+Algorithm:
+         1) Print the active player's board.
+         2) Pause and display a rolling message.
+         3) Determine if squares 7 to N are covered and decide whether to roll one or two dice.
+         4) Roll the dice and compute the sum.
+         5) If no valid move exists, end the turn.
+         6) Retrieve the move decision from the active player.
+         7) Apply the move to the appropriate board.
+         8) If the move cannot be applied, end the turn.
+         9) Print the applied move and check for immediate win conditions.
+Reference: AI ASSISTED
+********************************************************************* */
 void Turn::execute() {
     cout << "\n--- " << player.getName() << "'s TURN ---\n";
     bool stillRolling = true;
@@ -162,8 +246,20 @@ void Turn::execute() {
     } while (stillRolling);
 }
 
-// New helper: checks if there is any valid uncover combination on p’s board.
-// (Here p will be the opponent.)
+/* *********************************************************************
+Function Name: canUncoverAnyCombination
+Purpose: To check whether there is any valid combination of covered squares
+         on the given player's board that sum to the provided dice sum (for uncovering).
+Parameters:
+         p   - a constant reference to the Player whose board is checked (the opponent)
+         sum - an integer representing the dice sum
+Return Value: A boolean value; true if at least one valid combination exists, false otherwise.
+Algorithm:
+         1) Retrieve the board from the player.
+         2) Build a vector of numbers representing the covered squares.
+         3) Check every subset of these numbers to see if any sum to 'sum'.
+Reference: None
+********************************************************************* */
 bool Turn::canUncoverAnyCombination(const Player& p, int sum) const {
     vector<int> squaresCopy = p.getSquares();
     vector<int> covered;

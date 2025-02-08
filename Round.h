@@ -65,7 +65,6 @@ private:
     Player* firstTurnPlayer;
     int winningScore;
 
-    // NEW CODE: Flag to indicate if both players have taken at least one turn.
     bool bothPlayersTurnComplete; // NEW CODE
     bool firstTurnIsHuman;        // NEW: true if the first-turn player is Human
 

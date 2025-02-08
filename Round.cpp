@@ -10,23 +10,73 @@
 
 using namespace std;
 
+/* *********************************************************************
+Function Name: Round (Constructor)
+Purpose: To initialize a Round object with two players, a dice object,
+         and a board size. This constructor resets both players’ boards.
+Parameters:
+         p1         - a reference to the first Player object (by reference)
+         p2         - a reference to the second Player object (by reference)
+         d          - a reference to a Dice object (by reference)
+         boardSize  - an integer representing the number of squares on the board
+Return Value: None.
+Algorithm:
+         1) Initialize member variables with the given arguments.
+         2) Set flags (bothPlayersTurnComplete, firstTurnIsHuman) to false.
+         3) Set pointers (roundWinner, firstTurnPlayer) to nullptr.
+         4) Reset the squares for both players using boardSize.
+Reference: None
+********************************************************************* */
 Round::Round(Player& p1, Player& p2, Dice& d, int boardSize)
     : player1(p1), player2(p2), dice(d), boardSize(boardSize),
     bothPlayersTurnComplete(false),
-    firstTurnIsHuman(false),            // NEW: initialize to false
-    roundWinner(nullptr),               // NEW: initialize pointers
-    firstTurnPlayer(nullptr),
-    winningScore(0)
+    firstTurnIsHuman(false),            // Initialize first-turn flag to false.
+    roundWinner(nullptr),               // Initialize roundWinner pointer.
+    firstTurnPlayer(nullptr),           // Initialize firstTurnPlayer pointer.
+    winningScore(0)                     // Initialize winningScore to 0.
 {
+    // Reset both players' boards.
     player1.resetSquares(boardSize);
     player2.resetSquares(boardSize);
 }
 
-
+/* *********************************************************************
+Function Name: ~Round (Destructor)
+Purpose: To clean up resources used by the Round object.
+Parameters: None.
+Return Value: None.
+Algorithm:
+         1) Destructor for Round; no explicit cleanup required.
+Reference: None
+********************************************************************* */
 Round::~Round()
 {
 }
 
+/* *********************************************************************
+Function Name: play
+Purpose: To execute a full round of the Canoga game. This function
+         alternates turns between the two players until a win condition
+         is met (either by covering all squares or uncovering all opponent squares).
+Parameters: None.
+Return Value: None.
+Algorithm:
+         1) Determine the first-turn player by calling determineFirstPlayer().
+         2) Initialize a flag (firstTurnForFirstPlayer) to true.
+         3) Loop until isRoundOver() returns true:
+              a) If firstTurnIsHuman is true:
+                 - Create a Turn for player1 with allowUncover set to false if firstTurnForFirstPlayer is true;
+                   otherwise, allow uncovering.
+                 - Execute the turn.
+                 - Set firstTurnForFirstPlayer to false after player1’s first turn.
+                 - Check for round over.
+                 - Create and execute a Turn for player2 with allowUncover always true.
+              b) Otherwise (if computer goes first):
+                 - Similar logic applies, swapping the roles.
+         4) After the loop, evaluate win conditions (cover win or uncover win) and update scores.
+         5) Store the first-turn player and display updated scores.
+Reference: AI ASSISTED
+********************************************************************* */
 void Round::play()
 {
     determineFirstPlayer();
@@ -168,17 +218,15 @@ void Round::play()
 
 
 
-    // NEW: Store the first-turn player.
-// (Assuming determineFirstPlayer() already selected the first-turn player.)
-/* *********************************************************************
-Function Name: (Inline First Turn Storage)
-Purpose: Store the player who took the first turn in the round.
-Parameters: None.
-Return Value: None.
-Algorithm:
-    1) Set firstTurnPlayer based on the outcome from determineFirstPlayer().
-Reference: None
-********************************************************************* */
+    /* *********************************************************************
+    Function Name: (Inline First Turn Storage)
+    Purpose: To store the player who took the first turn in this round.
+    Parameters: None.
+    Return Value: None.
+    Algorithm:
+             1) Set firstTurnPlayer based on the outcome of determineFirstPlayer().
+    Reference: AI ASSISTED
+    ********************************************************************* */
     firstTurnPlayer = &player1; // or &player2 if applicable, based on your logic.
 
     // Display updated scores at the end of the round
@@ -190,6 +238,18 @@ Reference: None
 
 }
 
+/* *********************************************************************
+Function Name: isRoundOver
+Purpose: To determine if the round has ended.
+Parameters: None.
+Return Value: A boolean value; true if the round is over, false otherwise.
+Algorithm:
+         1) If either player has all squares covered, return true.
+         2) If both players have taken at least one turn and either player's board is all uncovered,
+            return true.
+         3) Otherwise, return false.
+Reference: None
+********************************************************************* */
 bool Round::isRoundOver() const
 {
     if (player1.areAllCovered() || player2.areAllCovered())
@@ -200,6 +260,18 @@ bool Round::isRoundOver() const
     return false;
 }
 
+/* *********************************************************************
+Function Name: determineFirstPlayer
+Purpose: To decide which player takes the first turn by comparing dice rolls.
+Parameters: None.
+Return Value: None.
+Algorithm:
+         1) Both players roll the dice.
+         2) Compute the sum of each roll.
+         3) If one sum is greater than the other, that player is designated to go first.
+         4) If the sums are equal, re-roll until a decision is reached.
+Reference: None
+********************************************************************* */
 void Round::determineFirstPlayer()
 {
     cout << "Rolling dice to determine who goes first...\n";
@@ -220,7 +292,7 @@ void Round::determineFirstPlayer()
     if (sumP1 > sumP2)
     {
         cout << player1.getName() << " will go first!\n";
-        // Set flag based on player1’s type. (Assume that if name=="Human", then it's Human.)
+        // Set flag based on player1’s type. if name=="Human", then it's Human.
         firstTurnIsHuman = (player1.getName() == "Human");
     }
     else if (sumP2 > sumP1)

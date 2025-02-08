@@ -1,7 +1,7 @@
 /************************************************************
  * Name:  Lucas Maretzo
  * Project:  Canoga
- * Date:  (New) Computer Class Implementation
+ * Date:  Computer Class Implementation
  ************************************************************/
 
 #include "Computer.h"
@@ -42,7 +42,7 @@ MoveDecision Computer::decideMove(int diceSum, const Player& opponent, bool allo
     // For now, simply use the default AI strategy from Player.
     MoveDecision decision = Player::decideMove(diceSum, opponent, allowUncover);
 
-    // Insert a delay if desired (we already did that in a previous step).
+    // added a delay
     std::this_thread::sleep_for(std::chrono::milliseconds(2300));
     cout << getName() << " (Computer) has chosen squares: ";
     for (int sq : decision.squares)

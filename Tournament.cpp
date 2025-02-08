@@ -1,3 +1,8 @@
+/************************************************************
+ * Name:  Lucas Maretzo
+ * Project:  Canoga
+ * Date:  1/31/2025
+ ************************************************************/
 #include "Tournament.h"
 #include "Round.h"
 #include <iostream>
@@ -7,17 +12,45 @@
 
 using namespace std;
 
+/* *********************************************************************
+Function Name: Tournament (Constructor)
+Purpose: To initialize a Tournament object with default settings.
+Parameters: None.
+Return Value: None.
+Algorithm:
+         1) Set default board size to 9.
+         2) Initialize handicapSquare to 0 and handicapActive flag to false.
+Reference: None
+********************************************************************* */
 Tournament::Tournament()
     : boardSize(9), handicapSquare(0), handicapActive(false)
 {
 }
 
 
+/* *********************************************************************
+Function Name: ~Tournament (Destructor)
+Purpose: To clean up resources used by the Tournament object.
+Parameters: None.
+Return Value: None.
+Algorithm:
+         1) Destructor; no explicit cleanup required.
+Reference: None
+********************************************************************* */
 Tournament::~Tournament()
 {
 }
 
-// Function to initialize the board size
+/* *********************************************************************
+Function Name: initializeBoardSize
+Purpose: To prompt the user to enter a valid board size (9, 10, or 11).
+Parameters: None.
+Return Value: None.
+Algorithm:
+         1) Prompt the user to input the board size.
+         2) Validate input; if invalid, re-prompt until a valid size is entered.
+Reference: None
+********************************************************************* */
 void Tournament::initializeBoardSize()
 {
     cout << "Enter the board size (9, 10, or 11): ";
@@ -30,6 +63,24 @@ void Tournament::initializeBoardSize()
     }
 }
 
+/* *********************************************************************
+Function Name: start
+Purpose: To run the tournament, playing multiple rounds until the user opts to stop.
+Parameters: None.
+Return Value: None.
+Algorithm:
+         1) Display a welcome message.
+         2) Initialize board size by calling initializeBoardSize.
+         3) Create Human and Computer player objects.
+         4) Loop for each round:
+              a) Create a new Round object and play the round.
+              b) If a handicap is active, apply it to the appropriate player's board.
+              c) Compute and apply handicap based on the previous round's outcome.
+              d) Display current scores.
+              e) Ask the user if they want to play another round.
+         5) After rounds finish, display final scores and determine the tournament winner.
+Reference: AI ASSISTED
+********************************************************************* */
 void Tournament::start()
 {
     cout << "=== Welcome to Basic Canoga Game ===\n";
@@ -129,11 +180,29 @@ void Tournament::start()
     cout << "Thank you for playing!\n";
 }
 
+/* *********************************************************************
+Function Name: enableManualDiceMode
+Purpose: To enable manual dice input mode for testing purposes.
+Parameters: None.
+Return Value: None.
+Algorithm:
+         1) Call dice.enableManualMode() on the dice object.
+Reference: None
+********************************************************************* */
 void Tournament::enableManualDiceMode()
 {
     dice.enableManualMode();
 }
 
+/* *********************************************************************
+Function Name: disableManualDiceMode
+Purpose: To disable manual dice input mode, reverting to random dice rolls.
+Parameters: None.
+Return Value: None.
+Algorithm:
+         1) Call dice.disableManualMode() on the dice object.
+Reference: None
+********************************************************************* */
 void Tournament::disableManualDiceMode()
 {
     dice.disableManualMode();

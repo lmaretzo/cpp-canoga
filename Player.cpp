@@ -13,8 +13,25 @@ using namespace std;
 
 #include <algorithm>  // for sort, max
 
-// Recursively find all combinations of numbers in 'nums' that sum to 'target'.
-// 'start' is the starting index, 'current' holds the current combination.
+/* *********************************************************************
+Function Name: findCombinations
+Purpose: To recursively find all combinations of numbers in 'nums' that sum
+         to 'target'. Only combinations containing between 1 and 4 numbers are considered.
+Parameters:
+         nums    - a constant reference to a vector of integers (available numbers)
+         target  - an integer representing the desired sum
+         start   - an integer index from where to start considering numbers in 'nums'
+         current - a reference to a vector of integers holding the current combination
+         result  - a reference to a vector of vectors, where valid combinations are stored
+Return Value: None.
+Algorithm:
+         1) If target is 0 and current combination size is between 1 and 4, add it to result.
+         2) If current combination size is 4, return without further recursion.
+         3) Iterate over nums starting from 'start'; for each number less than or equal to target,
+            add it to current, recursively call findCombinations with updated target and start,
+            then remove the number from current.
+Reference: None
+********************************************************************* */
 void findCombinations(const vector<int>& nums, int target, int start,
     vector<int>& current, vector<vector<int>>& result) {
     if (target == 0 && current.size() >= 1 && current.size() <= 4) {
@@ -30,7 +47,20 @@ void findCombinations(const vector<int>& nums, int target, int start,
     }
 }
 
-// Given a set of available numbers, return all combinations (of 1 to 4 numbers) that sum to 'target'.
+/* *********************************************************************
+Function Name: getCombinations
+Purpose: To obtain all valid combinations of numbers from the available set that
+         sum up to the target value.
+Parameters:
+         available - a constant reference to a vector of integers representing the available numbers
+         target    - an integer representing the desired sum
+Return Value: A vector of vectors of integers, each inner vector is a valid combination.
+Algorithm:
+         1) Make a copy of available numbers and sort them.
+         2) Use findCombinations to compute all valid combinations.
+         3) Return the computed combinations.
+Reference: None
+********************************************************************* */
 vector<vector<int>> getCombinations(const vector<int>& available, int target) {
     vector<int> nums = available;
     sort(nums.begin(), nums.end());
@@ -61,16 +91,15 @@ Player::Player()
 
 /* *********************************************************************
 Function Name: Player (Parameterized Constructor)
-Purpose: Initializes a Player object with a name, computer flag, and board size.
+Purpose: To initialize a Player object with a specified name and board size.
 Parameters:
-    - name: The name of the player.
-    - isComp: Boolean flag indicating if the player is AI-controlled.
-    - boardSize: The number of squares on the player's board.
-Return Value: None
+         name      - a string representing the player's name (passed by value)
+         boardSize - an integer representing the number of squares on the board
+Return Value: None.
 Algorithm:
-    1) Assign playerName and computer flag.
-    2) Call resetSquares(boardSize) to initialize the board.
-Reference: AI assistance (ChatGPT) was used to refine dynamic board size initialization.
+         1) Set playerName to the given name and score to 0.
+         2) Call resetSquares(boardSize) to initialize the board.
+Reference: AI ASSISTED
 ********************************************************************* */
 Player::Player(const string& name, int boardSize)
     : playerName(name), score(0)
@@ -100,9 +129,11 @@ Player::~Player()
 
 /* *********************************************************************
 Function Name: getName
-Purpose: Returns the player's name.
-Parameters: None
+Purpose: To retrieve the player's name.
+Parameters: None.
 Return Value: A string representing the player's name.
+Algorithm:
+         1) Return the value of playerName.
 Reference: None
 ********************************************************************* */
 string Player::getName() const
@@ -110,25 +141,46 @@ string Player::getName() const
     return playerName;
 }
 
-//bool Player::isComputerPlayer() const
-//{
-//    return computer;
-//}
+/* *********************************************************************
+Function Name: getScore
+Purpose: To retrieve the player's current score.
+Parameters: None.
+Return Value: An integer representing the player's score.
+Algorithm:
+         1) Return the value of score.
+Reference: None
+********************************************************************* */
 
 int Player::getScore() const
 {
     return score;
 }
 
+/* *********************************************************************
+Function Name: setName
+Purpose: To update the player's name.
+Parameters:
+         name - a string representing the new player name (passed by value)
+Return Value: None.
+Algorithm:
+         1) Set the playerName attribute to the provided name.
+Reference: None
+********************************************************************* */
 void Player::setName(const string& name)
 {
     playerName = name;
 }
 
-//void Player::setIsComputer(bool flag)
-//{
-//    computer = flag;
-//}
+/* *********************************************************************
+Function Name: addToScore
+Purpose: To add points to the player's score.
+Parameters:
+         points - an integer representing the points to add
+Return Value: None.
+Algorithm:
+         1) Increment score by the provided points.
+Reference: None
+********************************************************************* */
 
 void Player::addToScore(int points)
 {
@@ -137,14 +189,14 @@ void Player::addToScore(int points)
 
 /* *********************************************************************
 Function Name: coverSquare
-Purpose: Covers a square on the player's board.
+Purpose: To cover a specific square on the player's board.
 Parameters:
-    - squareLabel: The number of the square to cover (1-based index).
-Return Value: Boolean indicating whether the operation was successful.
+         squareLabel - an integer (1-based index) representing the square to cover
+Return Value: A boolean value; true if the square was successfully covered, false otherwise.
 Algorithm:
-    1) Validate that squareLabel is within the board range.
-    2) Check if the square is already covered.
-    3) If uncovered, mark it as covered.
+         1) Check if squareLabel is within range.
+         2) If the square is already covered (non-zero), return false.
+         3) Otherwise, set the square's value to its label and return true.
 Reference: None
 ********************************************************************* */
 bool Player::coverSquare(int squareLabel)
@@ -162,15 +214,15 @@ bool Player::coverSquare(int squareLabel)
 
 /* *********************************************************************
 Function Name: uncoverSquare
-Purpose: Uncovers a square on the opponent's board.
+Purpose: To uncover a specific square on the player's board.
 Parameters:
-    - squareLabel: The number of the square to uncover (1-based index).
-Return Value: Boolean indicating whether the operation was successful.
+         squareLabel - an integer (1-based index) representing the square to uncover
+Return Value: A boolean value; true if the square was successfully uncovered, false otherwise.
 Algorithm:
-    1) Validate that squareLabel is within the board range.
-    2) Check if the square is already uncovered.
-    3) If covered, mark it as uncovered.
-Reference: AI assistance (ChatGPT) was used for optimizing board state validation.
+         1) Check if squareLabel is within range.
+         2) If the square is already uncovered (0), return false.
+         3) Otherwise, set the square's value to 0 (uncover it) and return true.
+Reference: AI ASSISTED
 ********************************************************************* */
 bool Player::uncoverSquare(int squareLabel)
 {
@@ -185,6 +237,17 @@ bool Player::uncoverSquare(int squareLabel)
     return true;
 }
 
+/* *********************************************************************
+Function Name: areAllCovered
+Purpose: To check if all squares on the board are covered.
+Parameters: None.
+Return Value: A boolean value; true if all squares are covered, false otherwise.
+Algorithm:
+         1) Iterate over the squares vector.
+         2) If any square is 0 (uncovered), return false.
+         3) If none are uncovered, return true.
+Reference: None
+********************************************************************* */
 bool Player::areAllCovered() const
 {
     for (int val : squares)
@@ -194,6 +257,18 @@ bool Player::areAllCovered() const
     return true;
 }
 
+
+/* *********************************************************************
+Function Name: areAllUncovered
+Purpose: To check if all squares on the board are uncovered.
+Parameters: None.
+Return Value: A boolean value; true if all squares are uncovered, false otherwise.
+Algorithm:
+         1) Iterate over the squares vector.
+         2) If any square is non-zero (covered), return false.
+         3) If all squares are 0, return true.
+Reference: None
+********************************************************************* */
 bool Player::areAllUncovered() const
 {
     for (int val : squares)
@@ -203,6 +278,15 @@ bool Player::areAllUncovered() const
     return true;
 }
 
+/* *********************************************************************
+Function Name: getSquares
+Purpose: To return a copy of the player's board.
+Parameters: None.
+Return Value: A vector of integers representing the board.
+Algorithm:
+         1) Return a copy of the squares vector.
+Reference: None
+********************************************************************* */
 vector<int> Player::getSquares() const
 {
     return squares; // return a copy
@@ -210,14 +294,14 @@ vector<int> Player::getSquares() const
 
 /* *********************************************************************
 Function Name: printBoard
-Purpose: Displays the player's board state in a visually formatted manner.
-Parameters: None
-Return Value: None
+Purpose: To display the player's board in a formatted manner.
+Parameters: None.
+Return Value: None.
 Algorithm:
-    1) Print the player's name.
-    2) Print a top border dynamically based on board size.
-    3) Print each square, showing its number if uncovered, or 'X' if covered.
-    4) Print a bottom border.
+         1) Print the player's name.
+         2) Dynamically generate a top border.
+         3) Print each square's content (number if uncovered, "X" if covered).
+         4) Dynamically generate a bottom border.
 Reference: None
 ********************************************************************* */
 void Player::printBoard() const {
@@ -258,22 +342,29 @@ void Player::printBoard() const {
 }
 
 
-
 /* *********************************************************************
-Function Name: chooseSquares
-Purpose: Default virtual method for choosing squares based on a dice roll.
-         This method implements the default AI strategy.
+Function Name: decideMove
+Purpose: To determine the move for the player based on the dice roll and
+         the state of the opponent's board. This default AI strategy computes
+         valid cover and uncover combinations and chooses one based on a simple
+         heuristic.
 Parameters:
-    - diceSum: The total from the dice roll.
-Return Value: A vector of integers representing the chosen squares.
-Reference: This is the default AI strategy.
+         diceSum      - an integer representing the total of the dice roll
+         opponent     - a constant reference to the opponent Player object
+         allowUncover - a boolean flag indicating whether uncovering is allowed this turn
+Return Value: A MoveDecision structure containing the chosen move (cover/uncover)
+              and the list of squares.
+Algorithm:
+         1) For covering: Gather all uncovered squares from the player's board.
+         2) Compute all valid combinations (1 to 4 numbers) that sum to diceSum.
+         3) Choose the combination with the highest maximum value as the cover move.
+         4) For uncovering: Gather all covered squares from the opponent's board.
+         5) Compute all valid combinations that sum to diceSum.
+         6) Choose the combination with the lowest total as the uncover move.
+         7) Compare both moves; if both are valid, choose the one with the lower total (heuristic).
+         8) Return the corresponding MoveDecision.
+Reference: AI ASSISTED
 ********************************************************************* */
-
-
-// ---------- New Unified Decision Method ----------
-//
-// This method implements the default AI strategy for covering moves.
-// It returns a MoveDecision structure.
 MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowUncover) {
     MoveDecision coverDecision, uncoverDecision;
     coverDecision.cover = true;   // default for covering
@@ -376,7 +467,15 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
 }
 
 
-
+/* *********************************************************************
+Function Name: offerHint
+Purpose: To provide a hint for the player's move. (Placeholder function.)
+Parameters: None.
+Return Value: None.
+Algorithm:
+         1) Print a message indicating that hint functionality is not yet implemented.
+Reference: None
+********************************************************************* */
 void Player::offerHint() {
     cout << "[" << playerName << "] HINT: (Not yet implemented)\n";
 }
