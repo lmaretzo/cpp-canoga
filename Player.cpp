@@ -275,34 +275,106 @@ Reference: This is the default AI strategy.
 // This method implements the default AI strategy for covering moves.
 // It returns a MoveDecision structure.
 MoveDecision Player::decideMove(int diceSum, const Player& opponent) {
-    MoveDecision decision;
-    // Default strategy: use covering moves.
-    // Gather available squares from this player's board.
-    vector<int> available;
-    for (int i = 0; i < static_cast<int>(squares.size()); ++i) {
+    MoveDecision coverDecision, uncoverDecision;
+    coverDecision.cover = true;   // default for covering
+    uncoverDecision.cover = false; // default for uncovering
+
+    // --- Compute Cover Decision ---
+    vector<int> myAvailable;
+    for (int i = 0; i < static_cast<int>(squares.size()); i++) {
         if (squares[i] == 0)
-            available.push_back(i + 1);
+            myAvailable.push_back(i + 1);
     }
-    vector<vector<int>> combos = getCombinations(available, diceSum);
-    if (!combos.empty()) {
-        // Heuristic: choose the combo with the highest maximum element.
-        decision.squares = combos[0];
+    vector<vector<int>> coverCombos = getCombinations(myAvailable, diceSum);
+    if (!coverCombos.empty()) {
+        coverDecision.squares = coverCombos[0];
         int bestMax = 0;
-        for (int n : decision.squares)
+        for (int n : coverDecision.squares)
             bestMax = max(bestMax, n);
-        for (auto& combo : combos) {
+        for (auto& combo : coverCombos) {
             int currentMax = 0;
             for (int n : combo)
                 currentMax = max(currentMax, n);
             if (currentMax > bestMax) {
-                decision.squares = combo;
+                coverDecision.squares = combo;
                 bestMax = currentMax;
             }
         }
     }
-    // (You could later enhance this method to consider uncover moves.)
-    return decision;
+    else {
+        coverDecision.squares.clear();
+    }
+
+    // --- Compute Uncover Decision ---
+    vector<int> oppCovered;
+    vector<int> oppSquares = opponent.getSquares();
+    for (int i = 0; i < static_cast<int>(oppSquares.size()); i++) {
+        if (oppSquares[i] != 0)  // if the opponent's square is covered
+            oppCovered.push_back(i + 1);
+    }
+    vector<vector<int>> uncoverCombos = getCombinations(oppCovered, diceSum);
+    if (!uncoverCombos.empty()) {
+        uncoverDecision.squares = uncoverCombos[0];
+        int bestTotal = 0;
+        for (int n : uncoverDecision.squares)
+            bestTotal += n;
+        for (auto& combo : uncoverCombos) {
+            int comboTotal = 0;
+            for (int n : combo)
+                comboTotal += n;
+            if (comboTotal < bestTotal) {
+                uncoverDecision.squares = combo;
+                bestTotal = comboTotal;
+            }
+        }
+    }
+    else {
+        uncoverDecision.squares.clear();
+    }
+
+    // --- Debug Output ---
+    cout << "[" << playerName << "] Computed Cover Move: ";
+    if (!coverDecision.squares.empty()) {
+        for (int n : coverDecision.squares)
+            cout << n << " ";
+    }
+    else {
+        cout << "None";
+    }
+    cout << "\n";
+
+    cout << "[" << playerName << "] Computed Uncover Move: ";
+    if (!uncoverDecision.squares.empty()) {
+        for (int n : uncoverDecision.squares)
+            cout << n << " ";
+    }
+    else {
+        cout << "None";
+    }
+    cout << "\n";
+
+    // --- Choose Between Cover and Uncover ---
+    // Use a simple heuristic: compare the total values of the moves.
+    if (!coverDecision.squares.empty() && !uncoverDecision.squares.empty()) {
+        int coverTotal = 0, uncoverTotal = 0;
+        for (int n : coverDecision.squares)
+            coverTotal += n;
+        for (int n : uncoverDecision.squares)
+            uncoverTotal += n;
+        // For example, choose to uncover if its total is lower than the cover move’s total.
+        if (uncoverTotal < coverTotal)
+            return uncoverDecision;
+        else
+            return coverDecision;
+    }
+    else if (!uncoverDecision.squares.empty()) {
+        return uncoverDecision;
+    }
+    else {
+        return coverDecision;
+    }
 }
+
 
 
 void Player::offerHint() {

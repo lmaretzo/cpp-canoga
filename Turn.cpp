@@ -98,10 +98,12 @@ void Turn::execute() {
             cout << player.getName() << " chose to skip their turn.\n";
             break;
         }
-        if (!canCoverAnyCombination(player, sum)) {
-            cout << "No valid moves for sum = " << sum << ". " << player.getName() << "'s turn ends.\n";
+        if (!(canCoverAnyCombination(player, sum) || canUncoverAnyCombination(opponent, sum))) {
+            cout << "No valid moves for sum = " << sum << ". "
+                << player.getName() << "'s turn ends.\n";
             break;
         }
+
         // Use the unified decision method.
 // Use the unified decision method.
         MoveDecision decision = player.decideMove(sum, opponent);
@@ -144,3 +146,30 @@ void Turn::execute() {
         }
     } while (stillRolling);
 }
+
+// New helper: checks if there is any valid uncover combination on p’s board.
+// (Here p will be the opponent.)
+bool Turn::canUncoverAnyCombination(const Player& p, int sum) const {
+    vector<int> squaresCopy = p.getSquares();
+    vector<int> covered;
+    // For uncovering, we want to use the squares that are currently covered.
+    for (int i = 0; i < (int)squaresCopy.size(); i++) {
+        if (squaresCopy[i] != 0)  // note: unlike covering, we check for nonzero!
+            covered.push_back(i + 1);
+    }
+    // Now, check all subsets of these covered squares
+    int subsetCount = (1 << covered.size());
+    for (int mask = 1; mask < subsetCount; mask++) {
+        int total = 0, count = 0;
+        for (size_t bit = 0; bit < covered.size(); bit++) {
+            if (mask & (1 << bit)) {
+                total += covered[bit];
+                count++;
+            }
+        }
+        if (total == sum && count >= 1 && count <= 4)
+            return true; // Found a valid uncover combo
+    }
+    return false;
+}
+

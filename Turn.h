@@ -26,6 +26,8 @@ private:
     // no advanced AI or help yet
     bool canCoverAnyCombination(const Player& p, int sum) const;
     bool areSquaresSevenToNCovered(const Player& player) const;
+    // New helper function declaration for uncovering moves.
+    bool canUncoverAnyCombination(const Player& p, int sum) const;
 
 };
 
