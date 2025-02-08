@@ -38,12 +38,12 @@ Human::~Human()
 {
 }
 
-MoveDecision Human::decideMove(int diceSum, const Player& opponent) {
+MoveDecision Human::decideMove(int diceSum, const Player& opponent, bool allowUncover) {
     MoveDecision decision;
     // First, ask if the user wants a hint.
     bool wantHint = InputValidator::getYesNo("Would you like a hint for your move? (y/n): ");
     if (wantHint) {
-        MoveDecision hintDecision = Player::decideMove(diceSum, opponent);
+        MoveDecision hintDecision = Player::decideMove(diceSum, opponent, allowUncover);
         if (!hintDecision.squares.empty()) {
             cout << "Hint: Consider using the move: ";
             cout << (hintDecision.cover ? "cover " : "uncover ");
@@ -58,7 +58,15 @@ MoveDecision Human::decideMove(int diceSum, const Player& opponent) {
 
     // Now use InputValidator to ask if the user wants to cover.
     // (Yes = cover; No = uncover.)
-    bool cover = InputValidator::getYesNo("Do you want to cover your squares? (y for cover, n for uncover): ");
+    bool cover;
+    // Use the passed flag to force covering if uncovering is not allowed.
+    if (!allowUncover) {
+        cover = true;
+        cout << "Uncovering is not allowed on your first turn. You will cover squares." << "\n";
+    }
+    else {
+        cover = InputValidator::getYesNo("Do you want to cover your squares? (y for cover, n for uncover): ");
+    }
     decision.cover = cover;
 
     // Prompt the user for the move.

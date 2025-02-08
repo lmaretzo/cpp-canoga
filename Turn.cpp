@@ -83,11 +83,20 @@ void Turn::execute() {
 
         bool allCoveredSevenToN = areSquaresSevenToNCovered(player);
         int diceToRoll = 2;
+
         if (allCoveredSevenToN) {
-            bool rollOneDie = InputValidator::getYesNo(
-                "All squares 7 through " + to_string(player.getSquares().size()) +
-                " are covered. Do you want to roll one die? (y/n): ");
-            diceToRoll = rollOneDie ? 1 : 2;
+            // If the active player is the computer, decide automatically
+            if (player.getName() == "Computer") {
+                // Choose to roll one die FOR NOW IT IS DICEROLL=1. MAYBE THERE IS A BETTER STRATEGY
+                diceToRoll = 1;
+            }
+            else {
+                // For a human player, prompt them
+                bool rollOneDie = InputValidator::getYesNo(
+                    "All squares 7 through " + to_string(player.getSquares().size()) +
+                    " are covered. Do you want to roll one die? (y/n): ");
+                diceToRoll = rollOneDie ? 1 : 2;
+            }
         }
         pair<int, int> rollVal = diceRef.roll(diceToRoll);
         int sum = rollVal.first + rollVal.second;
@@ -106,7 +115,7 @@ void Turn::execute() {
 
         // Use the unified decision method.
 // Use the unified decision method.
-        MoveDecision decision = player.decideMove(sum, opponent);
+        MoveDecision decision = player.decideMove(sum, opponent, allowUncover);
         lastMoveWasUncover = !decision.cover;  // NEW: Set the flag based on the decision.
         if (decision.squares.empty()) {
             cout << player.getName() << " did not choose any squares. Turn ends.\n";

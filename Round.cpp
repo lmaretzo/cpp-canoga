@@ -39,11 +39,22 @@ void Round::play()
     {
         if (firstTurnIsHuman) {
             // Human goes first: assume player1 is Human, player2 is Computer.
-            Turn turnFirst(player1, player2, dice, false); // first-turn: no uncovering allowed
+            // Use the firstTurnForFirstPlayer flag:
+            // If it's the first turn for player1, pass 'false' to disallow uncovering.
+            // Otherwise, pass 'true'.
+            Turn turnFirst(player1, player2, dice, firstTurnForFirstPlayer ? false : true);
             turnFirst.execute();
+
+            // Now that player1 has taken a turn, update the flag.
+            if (firstTurnForFirstPlayer) {
+                firstTurnForFirstPlayer = false;
+            }
             if (isRoundOver()) break;
+
+            // Second player's turn always allows uncovering.
             Turn turnSecond(player2, player1, dice, true);
             turnSecond.execute();
+
             if (!bothPlayersTurnComplete) {
                 bothPlayersTurnComplete = true;
             }
@@ -57,6 +68,11 @@ void Round::play()
             // Computer goes first: assume player2 is Computer, player1 is Human.
             Turn turnFirst(player2, player1, dice, false);
             turnFirst.execute();
+
+            if (firstTurnForFirstPlayer) {
+                firstTurnForFirstPlayer = false;
+            }
+
             if (isRoundOver()) break;
             Turn turnSecond(player1, player2, dice, true);
             turnSecond.execute();

@@ -26,7 +26,7 @@ public:
     virtual ~Computer();
 
     // Override chooseSquares to use the default AI strategy.
-    virtual MoveDecision decideMove(int diceSum, const Player& opponent) override;
+    virtual MoveDecision decideMove(int diceSum, const Player& opponent, bool allowUncover) override;
 };
 
 #endif

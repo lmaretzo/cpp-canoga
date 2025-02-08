@@ -81,7 +81,7 @@ public:
     void printBoard() const; // Print the player's current board
 
     // New unified virtual method for decision making.
-    virtual MoveDecision decideMove(int diceSum, const Player& opponent);
+    virtual MoveDecision decideMove(int diceSum, const Player& opponent, bool allowUncover);
 
 
 

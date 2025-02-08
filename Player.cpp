@@ -274,7 +274,7 @@ Reference: This is the default AI strategy.
 //
 // This method implements the default AI strategy for covering moves.
 // It returns a MoveDecision structure.
-MoveDecision Player::decideMove(int diceSum, const Player& opponent) {
+MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowUncover) {
     MoveDecision coverDecision, uncoverDecision;
     coverDecision.cover = true;   // default for covering
     uncoverDecision.cover = false; // default for uncovering
