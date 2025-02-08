@@ -94,7 +94,7 @@ void Round::play()
 
 
 
-    else if (player1.areAllUncovered())
+    else if (bothPlayersTurnComplete && player1.areAllUncovered())
     {
         // If player1’s board is all uncovered then player2 has successfully uncovered them.
         cout << "\n** " << player2.getName() << " uncovers all of " << player1.getName() << "'s squares and wins the round! **\n";
@@ -112,7 +112,7 @@ void Round::play()
         roundWinner = &player2;
         winningScore = scoreToAdd;
     }
-    else if (player2.areAllUncovered())
+    else if (bothPlayersTurnComplete && player2.areAllUncovered())
     {
         // If player2’s board is all uncovered then player1 wins by uncovering.
         cout << "\n** " << player1.getName() << " uncovers all of " << player2.getName() << "'s squares and wins the round! **\n";

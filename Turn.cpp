@@ -136,7 +136,7 @@ void Turn::execute() {
             cout << "\nUpdated Opponent's Board:\n";
             opponent.printBoard();
         }
-        if (lastMoveWasUncover && opponent.areAllUncovered()) {
+        if (allowUncover && lastMoveWasUncover && opponent.areAllUncovered()) {
             cout << player.getName() << " has uncovered all of " << opponent.getName() << "'s squares!\n";
             break;
         }
