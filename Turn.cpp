@@ -162,26 +162,32 @@ void Turn::execute() {
 
         // NEW: If the active player is Computer, display "Rolling..." and pause.
             cout << "\nRolling...\n";
-            std::this_thread::sleep_for(std::chrono::milliseconds(2300)); // pause 1 sec
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // pause 1 sec
         
-
-        bool allCoveredSevenToN = areSquaresSevenToNCovered(player);
-        int diceToRoll = 2;
-
-        if (allCoveredSevenToN) {
-            // If the active player is the computer, decide automatically
-            if (player.getName() == "Computer") {
-                // Choose to roll one die FOR NOW IT IS DICEROLL=1. MAYBE THERE IS A BETTER STRATEGY
-                diceToRoll = 1;
+            bool allCoveredSevenToN = areSquaresSevenToNCovered(player);
+            int diceToRoll = 2;  // Default: roll two dice.
+            if (allCoveredSevenToN) {
+                // Compute the optimal dice roll using the new function in the Player class.
+                int optimal = player.optimalDiceRoll();
+                if (player.getName() == "Computer") {
+                    // For computer players, automatically use the optimal dice roll.
+                    diceToRoll = optimal;
+                }
+                else {
+                    // For human players, first ask if they want a hint regarding the optimal dice roll.
+                    bool wantHint = InputValidator::getYesNo("Would you like a hint for the optimal dice roll? (y/n): ");
+                    if (wantHint) {
+                        // Display the hint.
+                        cout << "Hint: Based on your board, the optimal dice roll is "
+                            << optimal << " die" << (optimal == 1 ? "" : "s") << ".\n";
+                    }
+                    // Then prompt the user to choose whether to roll one die.
+                    bool rollOneDie = InputValidator::getYesNo("Do you want to roll one die? (y/n): ");
+                    diceToRoll = rollOneDie ? 1 : 2;
+                }
             }
-            else {
-                // For a human player, prompt them
-                bool rollOneDie = InputValidator::getYesNo(
-                    "All squares 7 through " + to_string(player.getSquares().size()) +
-                    " are covered. Do you want to roll one die? (y/n): ");
-                diceToRoll = rollOneDie ? 1 : 2;
-            }
-        }
+
+
         pair<int, int> rollVal = diceRef.roll(diceToRoll);
         int sum = rollVal.first + rollVal.second;
         printDice(rollVal.first, rollVal.second, diceToRoll);

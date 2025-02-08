@@ -181,6 +181,24 @@ public:
     void printBoard() const; // Print the player's current board
 
     /* *********************************************************************
+    Function Name: optimalDiceRoll
+    Purpose: To compute the optimal number of dice (1 or 2) to roll when squares
+             7 through N are already covered. This heuristic evaluates the first six
+             squares by counting the number of uncovered squares and computing their average value.
+    Parameters: None.
+    Return Value: An integer; returns 1 if one die is optimal, or 2 if two dice are optimal.
+    Algorithm:
+             1) Iterate over the first six squares (or all squares if board size < 6).
+             2) Count the number of uncovered squares and compute the total of their positions.
+             3) Compute the average uncovered value.
+             4) If the average is above a chosen threshold (e.g., 4.0) or if few squares are uncovered,
+                return 1; otherwise, return 2.
+    Reference: ai assist
+    ********************************************************************* */
+    int optimalDiceRoll() const;
+
+
+    /* *********************************************************************
     Function Name: decideMove
     Purpose: To determine the player's move based on the dice roll and the opponent's board state.
     Parameters:

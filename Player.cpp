@@ -341,6 +341,27 @@ void Player::printBoard() const {
     cout << endl;
 }
 
+int Player::optimalDiceRoll() const {
+    int countUncovered = 0;
+    int totalValue = 0;
+    // Iterate over the first six squares (or the full board if it has fewer than six squares).
+    for (int i = 0; i < 6 && i < squares.size(); i++) {
+        if (squares[i] == 0) { // Uncovered square.
+            countUncovered++;
+            totalValue += (i + 1); // Use square label (i+1) as its value.
+        }
+    }
+    // If no squares are uncovered, default to one die.
+    if (countUncovered == 0)
+        return 1;
+
+    double average = static_cast<double>(totalValue) / countUncovered;
+    // Example heuristic: If the average uncovered value is high or very few squares remain uncovered, choose one die.
+    if (average > 4.0 || countUncovered <= 2)
+        return 1;
+    else
+        return 2;
+}
 
 /* *********************************************************************
 Function Name: decideMove
