@@ -44,6 +44,14 @@ void Round::play()
             if (isRoundOver()) break;
             Turn turnSecond(player2, player1, dice, true);
             turnSecond.execute();
+            if (!bothPlayersTurnComplete) {
+                bothPlayersTurnComplete = true;
+            }
+            // NEW: Immediately check for a win by uncovering
+            if (bothPlayersTurnComplete && (player1.areAllUncovered() || player2.areAllUncovered())) {
+                break;
+            }
+
         }
         else {
             // Computer goes first: assume player2 is Computer, player1 is Human.
@@ -52,6 +60,14 @@ void Round::play()
             if (isRoundOver()) break;
             Turn turnSecond(player1, player2, dice, true);
             turnSecond.execute();
+            if (!bothPlayersTurnComplete) {
+                bothPlayersTurnComplete = true;
+            }
+            // NEW: Immediately check for a win by uncovering
+            if (player1.areAllUncovered() || player2.areAllUncovered()) {
+                break;
+            }
+
         }
     }
 

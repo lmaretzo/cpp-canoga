@@ -132,6 +132,12 @@ void Turn::execute() {
         for (int sq : decision.squares)
             cout << sq << " ";
         cout << "\n";
+        // ***** NEW CHECK: Immediately end the turn if the opponent is all uncovered
+        if (lastMoveWasUncover && opponent.areAllUncovered()) {
+            cout << player.getName() << " has uncovered all of "
+                << opponent.getName() << "'s squares and wins the round!\n";
+            return; // End turn immediately
+        }
         if (!decision.cover) {
             cout << "\nUpdated Opponent's Board:\n";
             opponent.printBoard();
