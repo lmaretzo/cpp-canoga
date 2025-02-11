@@ -162,7 +162,7 @@ void Turn::execute() {
 
         // NEW: If the active player is Computer, display "Rolling..." and pause.
             cout << "\nRolling...\n";
-            std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // pause 1 sec
+            std::this_thread::sleep_for(std::chrono::milliseconds(1500)); // pause 1 sec
         
             bool allCoveredSevenToN = areSquaresSevenToNCovered(player);
             int diceToRoll = 2;  // Default: roll two dice.
