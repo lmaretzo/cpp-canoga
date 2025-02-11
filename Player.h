@@ -181,6 +181,18 @@ public:
     ********************************************************************* */
     void printBoard() const; // Print the player's current board
 
+
+    /* *********************************************************************
+    Function Name: isBoardModified
+    Purpose: To check if the board has been modified from its initial state.
+    Parameters: None.
+    Return Value: true if at least one square is covered, false otherwise.
+    Algorithm:
+     1) Return the value of boardModified.
+    Reference: None
+    ********************************************************************* */
+    bool isBoardModified() const;
+
     /* *********************************************************************
     Function Name: optimalDiceRoll
     Purpose: To compute the optimal number of dice (1 or 2) to roll when squares
@@ -249,6 +261,12 @@ private:
 
 
     vector<int> squares;   // Represents the player's board; 0 indicates uncovered, non-zero indicates covered.
+
+    /* *********************************************************************
+    Data Member: boardModified
+    Purpose: Indicates whether the board has been modified during the round.
+    ********************************************************************* */
+    bool boardModified;
 };
 
 #endif

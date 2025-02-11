@@ -231,15 +231,20 @@ bool Tournament::loadGame(const std::string& filename) {
 
 /* *********************************************************************
 Function Name: start
-Purpose: To run the tournament, playing multiple rounds until the user opts to stop.
+Purpose: To run the tournament, playing multiple rounds until the user opts
+         to stop. When a saved game is resumed, the very first round uses the
+         loaded board state; subsequent rounds clear the board.
 Parameters: None.
 Return Value: None.
 Algorithm:
     1) Display a welcome message.
     2) If no saved game was loaded, initialize board size and reset the players’ boards.
-       Otherwise, resume the saved game state.
-    3) Create new rounds and play them. If resuming, do not reset the board state.
-    4) Apply handicap, update scores, and display results as before.
+       Otherwise, resume with the loaded state.
+    3) Set a flag (resetBoardsForRound) that is false for the first round if resuming,
+       then true for all subsequent rounds.
+    4) In each round, construct a Round with the given reset flag.
+    5) After the first round (if resumed), update the flag so that future rounds reinitialize.
+    6) Play the round, apply handicap, update scores, and then ask if the user wishes to continue.
 Reference: None
 ********************************************************************* */
 void Tournament::start()
@@ -247,6 +252,7 @@ void Tournament::start()
     cout << "=== Welcome to Canoga ===\n";
 
     // If no saved game was loaded, perform new game initialization.
+    // Otherwise, resume the saved game.
     if (!gameLoaded)
     {
         initializeBoardSize();
@@ -258,24 +264,42 @@ void Tournament::start()
     else
     {
         cout << "Resuming saved game...\n";
-        // Optionally, update boardSize from loaded data:
+        // Optionally, update boardSize from loaded human board:
         if (!human->getSquares().empty())
             boardSize = human->getSquares().size();
     }
 
-
-    // Set the reset flag for the very first round.
-    bool resetBoardsForRound = !gameLoaded; // If resuming, do NOT reset for first round.
+    // When resuming a saved game, we want the first round to keep the loaded state.
+    // We'll use a flag "firstResumedRound" that is true if gameLoaded was true.
+    bool firstResumedRound = gameLoaded;
+    // And we determine the reset flag for the round: if resuming, do NOT reset for the first round.
+    // For a new game, we always reset.
+    bool resetBoardsForRound = !gameLoaded;
 
     bool keepPlaying = true;
     while (keepPlaying)
     {
-        // Create a Round object.
-        // In the Round constructor (see below) we will not reset the board
-        // if we are resuming a saved game.
-        // For new games, the board is reset.
-      // bool resetBoards = !gameLoaded;
+        // For the first round after loading, if firstResumedRound is true, then
+        // we want resetBoardsForRound to be false (to preserve the loaded board state).
+        // For subsequent rounds, we want it true.
+        if (firstResumedRound)
+        {
+            resetBoardsForRound = false;
+        }
+        else
+        {
+            resetBoardsForRound = true;
+        }
+
+        // Create a new Round object.
+        // The Round constructor will call resetSquares() on both players only if resetBoardsForRound is true.
         Round round(*human, *computer, dice, boardSize, resetBoardsForRound);
+
+        // After playing the first resumed round, update the flag.
+        if (firstResumedRound)
+        {
+            firstResumedRound = false; // For subsequent rounds, we will reset the boards.
+        }
 
         // --- Reapply handicap (if active) before the round starts ---
         if (getHandicapActive())

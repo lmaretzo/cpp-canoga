@@ -6,6 +6,7 @@
 
 #include "Player.h"
 #include <iostream> // for debugging or printing in hint method
+#include <algorithm>
 
 using namespace std;
 
@@ -87,6 +88,7 @@ Player::Player()
     : playerName("Unknown"), score(0), squares(9, 0)
 {
     // squares default to uncovered (all zero).
+    boardModified = false;  // NEW: Initialize boardModified in the default constructor.
 }
 
 /* *********************************************************************
@@ -105,6 +107,7 @@ Player::Player(const string& name, int boardSize)
     : playerName(name), score(0)
 {
         resetSquares(boardSize);
+        boardModified = false; // Ensure board is marked unmodified.
 }
 
 /* *********************************************************************
@@ -120,6 +123,7 @@ Reference: None
 void Player::resetSquares(int boardSize)
 {
     squares.assign(boardSize, 0); // Reset squares dynamically based on the board size
+    boardModified = false; // Mark the board as unmodified.
 }
 
 Player::~Player()
@@ -155,6 +159,12 @@ int Player::getScore() const
 {
     return score;
 }
+
+//comment later
+bool Player::isBoardModified() const {
+    return boardModified;
+}
+
 
 /* *********************************************************************
 Function Name: setName
@@ -209,6 +219,7 @@ bool Player::coverSquare(int squareLabel)
         return false;
     }
     squares[idx] = squareLabel; // now covered
+    boardModified = true; // Mark the board as modified.
     return true;
 }
 
@@ -234,6 +245,7 @@ bool Player::uncoverSquare(int squareLabel)
         return false;
     }
     squares[idx] = 0; // now uncovered
+    boardModified = true; // Mark the board as modified.
     return true;
 }
 
@@ -294,6 +306,15 @@ vector<int> Player::getSquares() const
 
 void Player::setSquares(const std::vector<int>& newSquares) {
     squares = newSquares;
+    // Check if any square is nonzero; if so, mark boardModified as true.
+    bool modified = false;
+    for (int s : newSquares) {
+        if (s != 0) {
+            modified = true;
+            break;
+        }
+    }
+    boardModified = modified;
 }
 
 void Player::setScore(int newScore) {

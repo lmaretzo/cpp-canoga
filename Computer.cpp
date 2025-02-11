@@ -43,7 +43,7 @@ MoveDecision Computer::decideMove(int diceSum, const Player& opponent, bool allo
     MoveDecision decision = Player::decideMove(diceSum, opponent, allowUncover);
 
     // added a delay
-    std::this_thread::sleep_for(std::chrono::milliseconds(6000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     cout << getName() << " (Computer) has chosen squares: ";
     for (int sq : decision.squares)
         cout << sq << " ";

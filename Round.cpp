@@ -254,14 +254,16 @@ Reference: None
 ********************************************************************* */
 bool Round::isRoundOver() const
 {
+    // If a player's board is fully covered, that is a win.
     if (player1.areAllCovered() || player2.areAllCovered())
         return true;
-    // Only check the uncover win condition if both players have taken at least one turn.
-    if (bothPlayersTurnComplete && (player1.areAllUncovered() || player2.areAllUncovered()))
+    // For an "uncover" win, check only if at least one move has modified the board.
+    if (bothPlayersTurnComplete &&
+        ((player1.isBoardModified() && player1.areAllUncovered()) ||
+            (player2.isBoardModified() && player2.areAllUncovered())))
         return true;
     return false;
 }
-
 /* *********************************************************************
 Function Name: determineFirstPlayer
 Purpose: To decide which player takes the first turn by comparing dice rolls.
