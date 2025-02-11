@@ -292,6 +292,15 @@ vector<int> Player::getSquares() const
     return squares; // return a copy
 }
 
+void Player::setSquares(const std::vector<int>& newSquares) {
+    squares = newSquares;
+}
+
+void Player::setScore(int newScore) {
+    score = newScore;
+}
+
+
 /* *********************************************************************
 Function Name: printBoard
 Purpose: To display the player's board in a formatted manner.

@@ -9,6 +9,9 @@
 #include "InputValidator.h"
 #include "Human.h"
 #include "Computer.h"
+#include <fstream>
+#include <sstream>
+#include <cstdlib>   // for std::stoi
 
 using namespace std;
 
@@ -23,7 +26,9 @@ Algorithm:
 Reference: None
 ********************************************************************* */
 Tournament::Tournament()
-    : boardSize(9), handicapSquare(0), handicapActive(false)
+    : boardSize(9), handicapSquare(0), handicapActive(false), nextTurn("Human"),      
+    firstTurnIsHuman(false),    // NEW: Initialize firstTurnIsHuman to false.
+    gameLoaded(false)           // NEW: Initialize gameLoaded to false.
 {
 }
 
@@ -63,6 +68,135 @@ void Tournament::initializeBoardSize()
     }
 }
 
+// This function is used when starting a new game.
+void Tournament::newGameInitialization()
+{
+    cout << "=== Welcome to Basic Canoga Game ===\n";
+    cout << "We will play a few rounds until you decide to stop.\n";
+    initializeBoardSize();
+    // (Any other initialization code for a new game can go here.)
+}
+
+
+// Save the current game state to a file.
+bool Tournament::saveGame(const std::string& filename) {
+    std::ofstream out(filename);
+    if (!out.is_open()) {
+        std::cerr << "Error: Could not open file for saving game.\n";
+        return false;
+    }
+    // Save Computer state:
+    out << "Computer:" << std::endl;
+    out << "   Squares:";
+    for (int s : computer.getSquares()) {
+        out << " " << s;
+    }
+    out << std::endl;
+    out << "   Score: " << computer.getScore() << std::endl << std::endl;
+
+    // Save Human state:
+    out << "Human:" << std::endl;
+    out << "   Squares:";
+    for (int s : human.getSquares()) {
+        out << " " << s;
+    }
+    out << std::endl;
+    out << "   Score: " << human.getScore() << std::endl << std::endl;
+
+    // Save round/turn info.
+    out << "First Turn: " << (firstTurnIsHuman ? "Human" : "Computer") << std::endl;
+    out << "Next Turn: " << nextTurn << std::endl;
+
+    out.close();
+    return true;
+}
+
+
+
+bool Tournament::loadGame(const std::string& filename) {
+    std::ifstream in(filename);
+    if (!in.is_open()) {
+        std::cerr << "Error: Could not open file for loading game.\n";
+        return false;
+    }
+    std::string line;
+    size_t pos = 0;
+    int num;
+
+    // --- Load Computer state ---
+    std::getline(in, line);  // Should be "Computer:"
+    if (line.find("Computer:") == std::string::npos) {
+        std::cerr << "Error: Expected 'Computer:' header.\n";
+        return false;
+    }
+    computer.setName("Computer");  // *** NEW: Set the computer's name ***
+
+    std::getline(in, line);  // Should be "   Squares: ..."
+    pos = line.find("Squares:");
+    if (pos == std::string::npos) return false;
+    std::istringstream issComp(line.substr(pos + 8));
+    std::vector<int> compSquares;
+    while (issComp >> num) {
+        compSquares.push_back(num);
+    }
+    computer.setSquares(compSquares);
+
+    std::getline(in, line);  // Should be "   Score: <score>"
+    pos = line.find("Score:");
+    if (pos == std::string::npos) return false;
+    int compScore = std::stoi(line.substr(pos + 6));
+    computer.setScore(compScore);
+
+    std::getline(in, line);  // Empty line
+
+    // --- Load Human state ---
+    std::getline(in, line);  // Should be "Human:"
+    if (line.find("Human:") == std::string::npos) {
+        std::cerr << "Error: Expected 'Human:' header.\n";
+        return false;
+    }
+    human.setName("Human");  // *** NEW: Set the human's name ***
+
+    std::getline(in, line);  // "   Squares: ..."
+    pos = line.find("Squares:");
+    if (pos == std::string::npos) return false;
+    std::istringstream issHuman(line.substr(pos + 8));
+    std::vector<int> humanSquares;
+    while (issHuman >> num) {
+        humanSquares.push_back(num);
+    }
+    human.setSquares(humanSquares);
+
+    std::getline(in, line);  // "   Score: <score>"
+    pos = line.find("Score:");
+    if (pos == std::string::npos) return false;
+    int humanScore = std::stoi(line.substr(pos + 6));
+    human.setScore(humanScore);
+
+    std::getline(in, line);  // Empty line
+
+    // --- Load Round/Turn info ---
+    std::getline(in, line);  // "First Turn: <player>"
+    pos = line.find("First Turn:");
+    if (pos == std::string::npos) return false;
+    std::string firstTurnStr = line.substr(pos + 11);
+    firstTurnStr.erase(0, firstTurnStr.find_first_not_of(" \t"));
+    firstTurnIsHuman = (firstTurnStr == "Human");
+
+    std::getline(in, line);  // "Next Turn: <player>"
+    pos = line.find("Next Turn:");
+    if (pos == std::string::npos) return false;
+    nextTurn = line.substr(pos + 10);
+    nextTurn.erase(0, nextTurn.find_first_not_of(" \t"));
+
+    in.close();
+    std::cout << "Game loaded successfully from " << filename << ".\n";
+
+    // *** NEW: Mark that a game was loaded so that start() uses these members ***
+    gameLoaded = true;
+
+    return true;
+}
 /* *********************************************************************
 Function Name: start
 Purpose: To run the tournament, playing multiple rounds until the user opts to stop.
@@ -83,102 +217,102 @@ Reference: AI ASSISTED
 ********************************************************************* */
 void Tournament::start()
 {
-    cout << "=== Welcome to Basic Canoga Game ===\n";
-    cout << "We will play a few rounds until you decide to stop.\n";
 
-    // Initialize board size based on user input
-    initializeBoardSize();
+        cout << "=== Welcome to Canoga ===\n";
 
-    // Create the players using the chosen board size
-    Human human("Human", boardSize);
-    Computer  computer("Computer", boardSize);
+        // Initialize board size based on user input
+        initializeBoardSize();
 
-    bool keepPlaying = true;
-    while (keepPlaying)
-    {
-        // Create a Round and play it
-        Round round(human, computer, dice, boardSize); // Pass boardSize to Round
+        // Create the players using the chosen board size
+        Human human("Human", boardSize);
+        Computer  computer("Computer", boardSize);
 
-        // --- NEW: Reapply handicap (if active) before the round starts ---
-        if (getHandicapActive())
+        bool keepPlaying = true;
+        while (keepPlaying)
         {
-            // Reapply the advantage square to the appropriate player's board.
-            if (getAdvantagePlayerName() == human.getName())
-                human.coverSquare(getHandicapSquare());
-            else if (getAdvantagePlayerName() == computer.getName())
-                computer.coverSquare(getHandicapSquare());
+            // Create a Round and play it
+            Round round(human, computer, dice, boardSize); // Pass boardSize to Round
+
+            // --- NEW: Reapply handicap (if active) before the round starts ---
+            if (getHandicapActive())
+            {
+                // Reapply the advantage square to the appropriate player's board.
+                if (getAdvantagePlayerName() == human.getName())
+                    human.coverSquare(getHandicapSquare());
+                else if (getAdvantagePlayerName() == computer.getName())
+                    computer.coverSquare(getHandicapSquare());
+            }
+            // ----------------------------------------------------------------
+
+            round.play();
+
+            // --- BEGIN HANDICAP CALCULATION BLOCK ---
+            {
+                // Retrieve round outcome data from the Round object.
+                Player& winner = round.getRoundWinner();
+                Player& firstTurn = round.getFirstTurnPlayer();
+                int winScore = round.getWinningScore();
+
+                // Compute the advantage square by summing the digits of the winning score.
+                int advSquare = 0;
+                int temp = winScore;
+                while (temp > 0) {
+                    advSquare += temp % 10;
+                    temp /= 10;
+                }
+
+                // Determine which player receives the advantage.
+                Player* advantagePlayer = nullptr;
+                if (winner.getName() == firstTurn.getName()) {
+                    // Winner took first turn: advantage goes to the opponent.
+                    if (winner.getName() == human.getName())
+                        advantagePlayer = &computer;
+                    else
+                        advantagePlayer = &human;
+                }
+                else {
+                    // Winner did not take first turn: winner retains advantage.
+                    advantagePlayer = &winner;
+                }
+
+                // Apply the handicap: cover the advantage square on the advantage player's board.
+                advantagePlayer->coverSquare(advSquare);
+
+
+                // Store the handicap data in the Tournament instance.
+                setHandicapSquare(advSquare);
+                setAdvantagePlayerName(advantagePlayer->getName());
+                setHandicapActive(true);
+
+                // Output a message so the user sees that the handicap has been applied.
+                cout << advantagePlayer->getName() << " has advantage with square "
+                    << advSquare << " locked.\n";
+            }
+            // --- END HANDICAP CALCULATION BLOCK ---
+
+            // Show scores
+            cout << "\nCurrent Scores:\n";
+            cout << human.getName() << ": " << human.getScore() << "\n";
+            cout << computer.getName() << ": " << computer.getScore() << "\n";
+
+            // Ask the user if they want to play another round
+            keepPlaying = InputValidator::getYesNo("\nPlay another round? (y/n): ");
         }
-        // ----------------------------------------------------------------
 
-        round.play();
-
-        // --- BEGIN HANDICAP CALCULATION BLOCK ---
-        {
-            // Retrieve round outcome data from the Round object.
-            Player& winner = round.getRoundWinner();
-            Player& firstTurn = round.getFirstTurnPlayer();
-            int winScore = round.getWinningScore();
-
-            // Compute the advantage square by summing the digits of the winning score.
-            int advSquare = 0;
-            int temp = winScore;
-            while (temp > 0) {
-                advSquare += temp % 10;
-                temp /= 10;
-            }
-
-            // Determine which player receives the advantage.
-            Player* advantagePlayer = nullptr;
-            if (winner.getName() == firstTurn.getName()) {
-                // Winner took first turn: advantage goes to the opponent.
-                if (winner.getName() == human.getName())
-                    advantagePlayer = &computer;
-                else
-                    advantagePlayer = &human;
-            }
-            else {
-                // Winner did not take first turn: winner retains advantage.
-                advantagePlayer = &winner;
-            }
-
-            // Apply the handicap: cover the advantage square on the advantage player's board.
-            advantagePlayer->coverSquare(advSquare);
-
-
-            // Store the handicap data in the Tournament instance.
-            setHandicapSquare(advSquare);
-            setAdvantagePlayerName(advantagePlayer->getName());
-            setHandicapActive(true);
-
-            // Output a message so the user sees that the handicap has been applied.
-            cout << advantagePlayer->getName() << " has advantage with square "
-                << advSquare << " locked.\n";
-        }
-        // --- END HANDICAP CALCULATION BLOCK ---
-
-        // Show scores
-        cout << "\nCurrent Scores:\n";
+        // Display final scores and determine the winner
+        cout << "\n=== Final Scores ===\n";
         cout << human.getName() << ": " << human.getScore() << "\n";
         cout << computer.getName() << ": " << computer.getScore() << "\n";
 
-        // Ask the user if they want to play another round
-        keepPlaying = InputValidator::getYesNo("\nPlay another round? (y/n): ");
+        if (human.getScore() > computer.getScore())
+            cout << "=> Human wins the tournament!\n";
+        else if (computer.getScore() > human.getScore())
+            cout << "=> Computer wins the tournament!\n";
+        else
+            cout << "=> It's a draw!\n";
+
+        cout << "Thank you for playing!\n";
     }
-
-    // Display final scores and determine the winner
-    cout << "\n=== Final Scores ===\n";
-    cout << human.getName() << ": " << human.getScore() << "\n";
-    cout << computer.getName() << ": " << computer.getScore() << "\n";
-
-    if (human.getScore() > computer.getScore())
-        cout << "=> Human wins the tournament!\n";
-    else if (computer.getScore() > human.getScore())
-        cout << "=> Computer wins the tournament!\n";
-    else
-        cout << "=> It's a draw!\n";
-
-    cout << "Thank you for playing!\n";
-}
 
 /* *********************************************************************
 Function Name: enableManualDiceMode
@@ -207,3 +341,4 @@ void Tournament::disableManualDiceMode()
 {
     dice.disableManualMode();
 }
+

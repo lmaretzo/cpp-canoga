@@ -235,6 +235,10 @@ public:
     ********************************************************************* */
     void resetSquares(int boardSize); // Pass the board size to resetSquares
 
+    // Add these in Player.h inside the Player class declaration:
+    void setSquares(const std::vector<int>& newSquares);
+    void setScore(int newScore);
+
 
 
 
