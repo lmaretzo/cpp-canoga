@@ -10,34 +10,36 @@
 
 using namespace std;
 
+
 /* *********************************************************************
 Function Name: Round (Constructor)
 Purpose: To initialize a Round object with two players, a dice object,
-         and a board size. This constructor resets both players’ boards.
+         and a board size. Resets both players’ boards if resetBoards is true.
 Parameters:
-         p1         - a reference to the first Player object (by reference)
-         p2         - a reference to the second Player object (by reference)
-         d          - a reference to a Dice object (by reference)
-         boardSize  - an integer representing the number of squares on the board
+         p1         - reference to the first Player
+         p2         - reference to the second Player
+         d          - reference to the Dice object
+         boardSize  - number of squares on the board
+         resetBoards- if true, resets the players’ boards; if false, leaves them unchanged
 Return Value: None.
 Algorithm:
-         1) Initialize member variables with the given arguments.
-         2) Set flags (bothPlayersTurnComplete, firstTurnIsHuman) to false.
-         3) Set pointers (roundWinner, firstTurnPlayer) to nullptr.
-         4) Reset the squares for both players using boardSize.
+         1) Initialize member variables.
+         2) If resetBoards is true, call resetSquares(boardSize) on both players.
 Reference: None
 ********************************************************************* */
-Round::Round(Player& p1, Player& p2, Dice& d, int boardSize)
+Round::Round(Player& p1, Player& p2, Dice& d, int boardSize, bool resetBoards)
     : player1(p1), player2(p2), dice(d), boardSize(boardSize),
     bothPlayersTurnComplete(false),
-    firstTurnIsHuman(false),            // Initialize first-turn flag to false.
-    roundWinner(nullptr),               // Initialize roundWinner pointer.
-    firstTurnPlayer(nullptr),           // Initialize firstTurnPlayer pointer.
-    winningScore(0)                     // Initialize winningScore to 0.
+    firstTurnIsHuman(false),
+    roundWinner(nullptr),
+    firstTurnPlayer(nullptr),
+    winningScore(0)
 {
-    // Reset both players' boards.
-    player1.resetSquares(boardSize);
-    player2.resetSquares(boardSize);
+    if (resetBoards)
+    {
+        player1.resetSquares(boardSize);
+        player2.resetSquares(boardSize);
+    }
 }
 
 /* *********************************************************************
