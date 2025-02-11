@@ -14,25 +14,22 @@ int main() {
     
     // Prompt user to resume a saved game.
     if (InputValidator::getYesNo("Do you want to resume a saved game? (y/n): ")) {
-        cout << "Enter the filename to load: ";
-       string filename;
-       getline(cin, filename);
-        if (tour.loadGame(filename)) {
-            cout << "Game loaded successfully!\n";
-            // If you want to print debug info, call the debug getters or a debug method.
-            cout << "Computer board: ";
-            tour.getComputer().printBoard();
-            cout << "Human board: ";
-            tour.getHuman().printBoard();
-            cout << "First Turn: " << (tour.getFirstTurnIsHuman() ? "Human" : "Computer") << "\n";
-            cout << "Next Turn: " << tour.getNextTurn() << "\n";
-            cout << "\nCurrent Scores:" << endl;
-            cout << "Human: " << tour.getHuman().getScore() << endl;
-            cout << "Computer: " << tour.getComputer().getScore() << endl;
-
-        }
-        else {
-            cout << "Failed to load game. Starting a new game...\n";
+        bool loaded = false; // flag to check if loading succeeded
+        while (!loaded) {
+            cout << "Enter the filename to load: ";
+            string filename;
+            getline(cin, filename);
+            // Attempt to load the game.
+            if (tour.loadGame(filename)) {
+                loaded = true;
+            }
+            else {
+                // If loading failed, ask the user if they want to try again.
+                if (!InputValidator::getYesNo("Error loading file. Would you like to try again? (y/n): ")) {
+                    cout << "Failed to load game. Starting a new game...\n";
+                    break;
+                }
+            }
         }
     }
 

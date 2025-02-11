@@ -138,7 +138,11 @@ Algorithm:
     2) Load the computer’s board state and score.
     3) Load the human’s board state and score.
     4) Load round/turn info.
-Reference: None
+    5) Close the file.
+    6) Mark that a game was loaded.
+    7) Optionally update boardSize.
+    8) Display the loaded game state (board, turn info, scores).
+Reference: ai
 ********************************************************************* */
 bool Tournament::loadGame(const std::string& filename) {
     std::ifstream in(filename);
@@ -158,7 +162,7 @@ bool Tournament::loadGame(const std::string& filename) {
     }
     computer->setName("Computer");  // Set the computer's name
 
-    std::getline(in, line);  // "   Squares: ..."
+    std::getline(in, line);  // should be "   Squares: ..."
     pos = line.find("Squares:");
     if (pos == std::string::npos) return false;
     std::istringstream issComp(line.substr(pos + 8));
@@ -166,9 +170,21 @@ bool Tournament::loadGame(const std::string& filename) {
     while (issComp >> num) {
         compSquares.push_back(num);
     }
+    // Invert the computer board:
+    // File convention: 0 means covered, nonzero means uncovered.
+    // Internal convention: 0 means open (uncovered) and nonzero means covered.
+    // So for each square, if the saved value is 0, set it to (i+1); else set it to 0.
+    for (size_t i = 0; i < compSquares.size(); i++) {
+        if (compSquares[i] == 0) {
+            compSquares[i] = static_cast<int>(i) + 1;  // Mark as covered.
+        }
+        else {
+            compSquares[i] = 0;                        // Mark as open.
+        }
+    }
     computer->setSquares(compSquares);
 
-    std::getline(in, line);  // "   Score: <score>"
+    std::getline(in, line);  // should be "   Score: <score>"
     pos = line.find("Score:");
     if (pos == std::string::npos) return false;
     int compScore = std::stoi(line.substr(pos + 6));
@@ -191,6 +207,30 @@ bool Tournament::loadGame(const std::string& filename) {
     std::vector<int> humanSquares;
     while (issHuman >> num) {
         humanSquares.push_back(num);
+    }
+    // *** Error Handling: Check human board size ***
+    if (humanSquares.size() < 9 || humanSquares.size() > 11) {
+        std::cerr << "Error: Invalid board size for Human (" << humanSquares.size()
+            << "). Must be between 9 and 11.\n";
+        return false;
+    }
+    // *** Error Handling: Ensure both boards have the same size ***
+    if (humanSquares.size() != compSquares.size()) {
+        std::cerr << "Error: Computer board size (" << compSquares.size()
+            << ") and Human board size (" << humanSquares.size()
+            << ") do not match.\n";
+        return false;
+    }
+
+
+    // Invert the human board using the same convention:
+    for (size_t i = 0; i < humanSquares.size(); i++) {
+        if (humanSquares[i] == 0) {
+            humanSquares[i] = static_cast<int>(i) + 1;  // Mark as covered.
+        }
+        else {
+            humanSquares[i] = 0;                        // Mark as open.
+        }
     }
     human->setSquares(humanSquares);
 
@@ -217,7 +257,7 @@ bool Tournament::loadGame(const std::string& filename) {
     nextTurn.erase(0, nextTurn.find_first_not_of(" \t"));
 
     in.close();
-    std::cout << "Game loaded successfully from " << filename << ".\n";
+    std::cout << "Game loaded successfully from " << filename << ".\n"; // correct 
 
     // Mark that a game was loaded so that start() uses the loaded state.
     gameLoaded = true;
@@ -225,6 +265,15 @@ bool Tournament::loadGame(const std::string& filename) {
     // Optionally, update boardSize from the loaded human squares:
     if (!humanSquares.empty())
         boardSize = humanSquares.size();
+
+    // Display the loaded game state 
+    getComputer().printBoard();
+    getHuman().printBoard();
+    std::cout << "First Turn: " << (getFirstTurnIsHuman() ? "Human" : "Computer") << "\n";
+    std::cout << "Next Turn: " << getNextTurn() << "\n";
+    std::cout << "\nCurrent Scores:" << std::endl;
+    std::cout << "Human: " << getHuman().getScore() << std::endl;
+    std::cout << "Computer: " << getComputer().getScore() << std::endl;
 
     return true;
 }
