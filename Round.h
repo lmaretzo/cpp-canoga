@@ -12,6 +12,7 @@
 
 // forward declarations
 class Turn;
+class Tournament;
 
 using namespace std;
 
@@ -34,7 +35,7 @@ public:
          2) If resetBoards is true, call resetSquares(boardSize) on both players.
     Reference: None
     ********************************************************************* */
-    Round(Player& p1, Player& p2, Dice& d, int boardSize, bool resetBoards = true);
+    Round(Player& p1, Player& p2, Dice& d, int boardSize, bool resetBoards = true, Tournament* tPtr = nullptr);
     ~Round();
 
     // Conduct a single round
@@ -89,6 +90,7 @@ private:
 
     void determineFirstPlayer();
 
+    Tournament* tournamentPtr;  // New member for Tournament pointer.
 };
 
 #endif

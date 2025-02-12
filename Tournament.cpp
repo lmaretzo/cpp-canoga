@@ -12,6 +12,8 @@
 #include <fstream>
 #include <sstream>
 #include <cstdlib>   // for std::stoi
+#include <cerrno>    // For errno
+#include <windows.h>   // for saving debugging
 
 using namespace std;
 
@@ -80,51 +82,47 @@ void Tournament::newGameInitialization()
 }
 
 
-/* *********************************************************************
-Function Name: saveGame
-Purpose: To save the current game state (players’ boards, scores, and turn info) to a file.
-Parameters:
-    filename - the file to save the game state.
-Return Value: true if successful, false otherwise.
-Algorithm:
-    1) Open the file.
-    2) Write the computer’s state.
-    3) Write the human’s state.
-    4) Write round/turn info.
-Reference: None
-********************************************************************* */
 bool Tournament::saveGame(const std::string& filename) {
-    std::ofstream out(filename);
+    std::cout << "Inside saveGame, attempting to open file at: " << filename << std::endl;
+
+    // Open the file in output mode (truncating any existing content)
+    std::ofstream out(filename.c_str(), std::ios::out | std::ios::trunc);
     if (!out.is_open()) {
-        std::cerr << "Error: Could not open file for saving game.\n";
+        std::cerr << "Error: Could not open file for saving game: " << filename << std::endl;
         return false;
     }
-    // Save Computer state:
+
+    // Write the computer's state.
+    // File format: if a square is covered (internally nonzero), output 0; if open (internally 0), output (i+1).
     out << "Computer:" << std::endl;
     out << "   Squares:";
-    for (int s : computer->getSquares()) {
-        out << " " << s;
+    std::vector<int> compSquares = computer->getSquares();
+    for (size_t i = 0; i < compSquares.size(); i++) {
+        int fileVal = (compSquares[i] != 0) ? 0 : static_cast<int>(i) + 1;
+        out << " " << fileVal;
     }
     out << std::endl;
     out << "   Score: " << computer->getScore() << std::endl << std::endl;
 
-    // Save Human state:
+    // Write the human's state.
     out << "Human:" << std::endl;
     out << "   Squares:";
-    for (int s : human->getSquares()) {
-        out << " " << s;
+    std::vector<int> humanSquares = human->getSquares();
+    for (size_t i = 0; i < humanSquares.size(); i++) {
+        int fileVal = (humanSquares[i] != 0) ? 0 : static_cast<int>(i) + 1;
+        out << " " << fileVal;
     }
     out << std::endl;
     out << "   Score: " << human->getScore() << std::endl << std::endl;
 
-    // Save round/turn info.
+    // Write the round/turn information.
     out << "First Turn: " << (firstTurnIsHuman ? "Human" : "Computer") << std::endl;
     out << "Next Turn: " << nextTurn << std::endl;
 
     out.close();
+    std::cout << "Game saved successfully to " << filename << std::endl;
     return true;
 }
-
 
 
 /* *********************************************************************
@@ -342,7 +340,7 @@ void Tournament::start()
 
         // Create a new Round object.
         // The Round constructor will call resetSquares() on both players only if resetBoardsForRound is true.
-        Round round(*human, *computer, dice, boardSize, resetBoardsForRound);
+        Round round(*human, *computer, dice, boardSize, resetBoardsForRound, this);
 
         // After playing the first resumed round, update the flag.
         if (firstResumedRound)

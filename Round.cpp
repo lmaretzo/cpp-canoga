@@ -7,6 +7,7 @@
 #include "Round.h"
 #include "Turn.h"
 #include <iostream>
+#include "Tournament.h"
 
 using namespace std;
 
@@ -27,13 +28,14 @@ Algorithm:
          2) If resetBoards is true, call resetSquares(boardSize) on both players.
 Reference: None
 ********************************************************************* */
-Round::Round(Player& p1, Player& p2, Dice& d, int boardSize, bool resetBoards)
+Round::Round(Player& p1, Player& p2, Dice& d, int boardSize, bool resetBoards, Tournament* tPtr)
     : player1(p1), player2(p2), dice(d), boardSize(boardSize),
     bothPlayersTurnComplete(false),
     firstTurnIsHuman(false),
     roundWinner(nullptr),
     firstTurnPlayer(nullptr),
-    winningScore(0)
+    winningScore(0),
+    tournamentPtr(tPtr)  // Store the Tournament pointer.
 {
     if (resetBoards)
     {
@@ -94,7 +96,7 @@ void Round::play()
             // Use the firstTurnForFirstPlayer flag:
             // If it's the first turn for player1, pass 'false' to disallow uncovering.
             // Otherwise, pass 'true'.
-            Turn turnFirst(player1, player2, dice, firstTurnForFirstPlayer ? false : true);
+            Turn turnFirst(player1, player2, dice, firstTurnForFirstPlayer ? false : true, tournamentPtr);
             turnFirst.execute();
 
             // Now that player1 has taken a turn, update the flag.
@@ -104,13 +106,13 @@ void Round::play()
             if (isRoundOver()) break;
 
             // Second player's turn always allows uncovering.
-            Turn turnSecond(player2, player1, dice, true);
+            Turn turnSecond(player2, player1, dice, true, tournamentPtr);
             turnSecond.execute();
 
             if (!bothPlayersTurnComplete) {
                 bothPlayersTurnComplete = true;
             }
-            // NEW: Immediately check for a win by uncovering
+            //: Immediately check for a win by uncovering
             if (bothPlayersTurnComplete && (player1.areAllUncovered() || player2.areAllUncovered())) {
                 break;
             }
@@ -118,7 +120,7 @@ void Round::play()
         }
         else {
             // Computer goes first: assume player2 is Computer, player1 is Human.
-            Turn turnFirst(player2, player1, dice, false);
+            Turn turnFirst(player2, player1, dice, false, tournamentPtr);
             turnFirst.execute();
 
             if (firstTurnForFirstPlayer) {
@@ -126,7 +128,7 @@ void Round::play()
             }
 
             if (isRoundOver()) break;
-            Turn turnSecond(player1, player2, dice, true);
+            Turn turnSecond(player1, player2, dice, true, tournamentPtr);
             turnSecond.execute();
             if (!bothPlayersTurnComplete) {
                 bothPlayersTurnComplete = true;

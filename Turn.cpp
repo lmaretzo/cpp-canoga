@@ -12,7 +12,7 @@
 #include <thread>
 #include <chrono>
 #include "Computer.h"   // NEW: Include Computer.h so that the type is known.
-
+#include "Tournament.h"
 
 using namespace std;
 
@@ -32,9 +32,9 @@ Algorithm:
          2) Set lastMoveWasUncover to false.
 Reference: None
 ********************************************************************* */
-Turn::Turn(Player& activePlayer, Player& opp, Dice& d, bool allowUncover)
+Turn::Turn(Player& activePlayer, Player& opp, Dice& d, bool allowUncover, Tournament* tPtr)
     : player(activePlayer), opponent(opp), diceRef(d), allowUncover(allowUncover),
-    lastMoveWasUncover(false)
+    lastMoveWasUncover(false), tournamentPtr(tPtr)
 {
 }
 
@@ -250,6 +250,27 @@ void Turn::execute() {
             break;
         }
     } while (stillRolling);
+
+    if (player.getName() == "Human") {
+        // Prompt the human whether they want to save and quit.
+        if (InputValidator::getYesNo("Would you like to save and quit? (y/n): ")) {
+            std::string filename;
+            cout << "Enter filename to save game: ";
+            cin >> filename;
+
+            // Here, we need to call Tournament::saveGame(). One way to do this is
+            // to have the Tournament instance passed into the Turn (or accessible via a callback/global).
+            // For example, if you have a Tournament pointer (tournamentPtr):
+            if (tournamentPtr != nullptr && tournamentPtr->saveGame(filename)) {
+                cout << "Game saved successfully. Exiting...\n";
+                exit(0); // or otherwise break out of the main game loop.
+            }
+            else {
+                cout << "Error saving game. Resuming turn/game...\n";
+            }
+        }
+    }
+
 }
 
 /* *********************************************************************
