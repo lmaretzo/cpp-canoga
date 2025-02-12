@@ -1,4 +1,4 @@
-/************************************************************
+ï»¿/************************************************************
  * Name:  Lucas Maretzo
  * Project:  Canoga
  * Date:  1/31/2025
@@ -133,8 +133,8 @@ Parameters:
 Return Value: true if successful, false otherwise.
 Algorithm:
     1) Open the file.
-    2) Load the computer’s board state and score.
-    3) Load the human’s board state and score.
+    2) Load the computerï¿½s board state and score.
+    3) Load the humanï¿½s board state and score.
     4) Load round/turn info.
     5) Close the file.
     6) Mark that a game was loaded.
@@ -285,7 +285,7 @@ Parameters: None.
 Return Value: None.
 Algorithm:
     1) Display a welcome message.
-    2) If no saved game was loaded, initialize board size and reset the players’ boards.
+    2) If no saved game was loaded, initialize board size and reset the playersï¿½ boards.
        Otherwise, resume with the loaded state.
     3) Set a flag (resetBoardsForRound) that is false for the first round if resuming,
        then true for all subsequent rounds.
@@ -297,6 +297,8 @@ Reference: None
 void Tournament::start()
 {
     cout << "=== Welcome to Canoga ===\n";
+
+    bool newFirstTurnIsHuman = false;
 
     // If no saved game was loaded, perform new game initialization.
     // Otherwise, resume the saved game.
@@ -314,6 +316,10 @@ void Tournament::start()
         // Optionally, update boardSize from loaded human board:
         if (!human->getSquares().empty())
             boardSize = human->getSquares().size();
+
+        // Do NOT overwrite firstTurnIsHuman here (it remains the loaded value for handicap)
+        // Instead, set the local newFirstTurnIsHuman based on the loaded "Next Turn" value:
+        newFirstTurnIsHuman = (nextTurn == "Human");
     }
 
     // When resuming a saved game, we want the first round to keep the loaded state.
@@ -338,11 +344,10 @@ void Tournament::start()
             resetBoardsForRound = true;
         }
 
+        bool roundFirstTurn = firstTurnIsHuman;
         // Create a new Round object.
         // The Round constructor will call resetSquares() on both players only if resetBoardsForRound is true.
-        Round round(*human, *computer, dice, boardSize, resetBoardsForRound, this);
-
-        // After playing the first resumed round, update the flag.
+        Round round(*human, *computer, dice, boardSize, resetBoardsForRound, this, roundFirstTurn, nextTurn, gameLoaded);
         if (firstResumedRound)
         {
             firstResumedRound = false; // For subsequent rounds, we will reset the boards.
@@ -447,4 +452,3 @@ void Tournament::disableManualDiceMode()
 {
     dice.disableManualMode();
 }
-

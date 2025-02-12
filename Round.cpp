@@ -1,4 +1,4 @@
-/************************************************************
+ï»¿/************************************************************
  * Name:  Lucas Maretzo
  * Project:  Canoga
  * Date:  1/31/2025
@@ -15,27 +15,29 @@ using namespace std;
 /* *********************************************************************
 Function Name: Round (Constructor)
 Purpose: To initialize a Round object with two players, a dice object,
-         and a board size. Resets both players’ boards if resetBoards is true.
+         and a board size. Resets both playersï¿½ boards if resetBoards is true.
 Parameters:
          p1         - reference to the first Player
          p2         - reference to the second Player
          d          - reference to the Dice object
          boardSize  - number of squares on the board
-         resetBoards- if true, resets the players’ boards; if false, leaves them unchanged
+         resetBoards- if true, resets the playersï¿½ boards; if false, leaves them unchanged
 Return Value: None.
 Algorithm:
          1) Initialize member variables.
          2) If resetBoards is true, call resetSquares(boardSize) on both players.
 Reference: None
 ********************************************************************* */
-Round::Round(Player& p1, Player& p2, Dice& d, int boardSize, bool resetBoards, Tournament* tPtr)
+Round::Round(Player& p1, Player& p2, Dice& d, int boardSize, bool resetBoards, Tournament* tPtr,
+    bool loadedFirstTurnIsHuman, const std::string& loadedNextTurn, bool skipFirstTurnRoll)
     : player1(p1), player2(p2), dice(d), boardSize(boardSize),
     bothPlayersTurnComplete(false),
-    firstTurnIsHuman(false),
+    firstTurnIsHuman(loadedFirstTurnIsHuman),  // Use the loaded value!
     roundWinner(nullptr),
     firstTurnPlayer(nullptr),
     winningScore(0),
-    tournamentPtr(tPtr)  // Store the Tournament pointer.
+    tournamentPtr(tPtr),  // Store the Tournament pointer.
+    skipFirstTurnRoll(skipFirstTurnRoll)  // Set the member variable from the parameter.
 {
     if (resetBoards)
     {
@@ -72,7 +74,7 @@ Algorithm:
                  - Create a Turn for player1 with allowUncover set to false if firstTurnForFirstPlayer is true;
                    otherwise, allow uncovering.
                  - Execute the turn.
-                 - Set firstTurnForFirstPlayer to false after player1’s first turn.
+                 - Set firstTurnForFirstPlayer to false after player1ï¿½s first turn.
                  - Check for round over.
                  - Create and execute a Turn for player2 with allowUncover always true.
               b) Otherwise (if computer goes first):
@@ -83,9 +85,11 @@ Reference: AI ASSISTED
 ********************************************************************* */
 void Round::play()
 {
-    determineFirstPlayer();
+    if (!skipFirstTurnRoll) {
+        determineFirstPlayer();
+    }
 
-    //  Track if the first–turn player (always player1 after determineFirstPlayer)
+    //  Track if the firstï¿½turn player (always player1 after determineFirstPlayer)
     // has taken their first turn. On their first turn, uncover moves are disallowed.
     bool firstTurnForFirstPlayer = true; // 
 
@@ -141,7 +145,7 @@ void Round::play()
         }
     }
 
-    //  Updated win–evaluation logic to account for the uncover win condition.
+    //  Updated winï¿½evaluation logic to account for the uncover win condition.
     if (player1.areAllCovered())
     {
         cout << "\n** " << player1.getName() << " covers all squares and wins the round! **\n";
@@ -182,7 +186,7 @@ void Round::play()
 
     else if (bothPlayersTurnComplete && player1.areAllUncovered())
     {
-        // If player1’s board is all uncovered then player2 has successfully uncovered them.
+        // If player1ï¿½s board is all uncovered then player2 has successfully uncovered them.
         cout << "\n** " << player2.getName() << " uncovers all of " << player1.getName() << "'s squares and wins the round! **\n";
         int scoreToAdd = 0;
         vector<int> player2Squares = player2.getSquares();
@@ -200,7 +204,7 @@ void Round::play()
     }
     else if (bothPlayersTurnComplete && player2.areAllUncovered())
     {
-        // If player2’s board is all uncovered then player1 wins by uncovering.
+        // If player2ï¿½s board is all uncovered then player1 wins by uncovering.
         cout << "\n** " << player1.getName() << " uncovers all of " << player2.getName() << "'s squares and wins the round! **\n";
         int scoreToAdd = 0;
         vector<int> player1Squares = player1.getSquares();
@@ -298,7 +302,7 @@ void Round::determineFirstPlayer()
     if (sumP1 > sumP2)
     {
         cout << player1.getName() << " will go first!\n";
-        // Set flag based on player1’s type. if name=="Human", then it's Human.
+        // Set flag based on player1ï¿½s type. if name=="Human", then it's Human.
         firstTurnIsHuman = (player1.getName() == "Human");
     }
     else if (sumP2 > sumP1)

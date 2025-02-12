@@ -12,17 +12,17 @@ int main() {
 
 
     Tournament tour;
-    
+
     // Enable manual dice mode based on user input.
     if (InputValidator::getYesNo("Enable manual dice mode for testing? (y/n): ")) {
         tour.enableManualDiceMode(); // Enable manual mode in the tournament.
     }
-    
+
     // Prompt user to resume a saved game.
     if (InputValidator::getYesNo("Do you want to resume a saved game? (y/n): ")) {
         bool loaded = false; // flag to check if loading succeeded
         while (!loaded) {
-            cout << "Enter the filename to load: ";
+            cout << R"(Enter file path with filename ex: C:\Users\savedGame.txt to load game: )";
             string filename;
             getline(cin, filename);
             // Attempt to load the game.

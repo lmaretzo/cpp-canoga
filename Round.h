@@ -1,4 +1,4 @@
-/************************************************************
+ï»¿/************************************************************
  * Name:  Lucas Maretzo
  * Project:  Canoga
  * Date:  1/31/2025
@@ -10,7 +10,7 @@
 #include "Player.h"
 #include "Dice.h"
 
-// forward declarations
+ // forward declarations
 class Turn;
 class Tournament;
 
@@ -22,20 +22,21 @@ public:
     /* *********************************************************************
     Function Name: Round (Constructor)
     Purpose: To initialize a Round object with two players, a dice object, and a board size.
-             An additional flag indicates whether to reset the players’ boards.
+             An additional flag indicates whether to reset the playersï¿½ boards.
     Parameters:
          p1         - reference to the first Player
          p2         - reference to the second Player
          d          - reference to the Dice object
          boardSize  - number of squares on the board
-         resetBoards- if true, reset the players’ boards; if false, leave the board state intact
+         resetBoards- if true, reset the playersï¿½ boards; if false, leave the board state intact
     Return Value: None.
     Algorithm:
          1) Initialize member variables.
          2) If resetBoards is true, call resetSquares(boardSize) on both players.
     Reference: None
     ********************************************************************* */
-    Round(Player& p1, Player& p2, Dice& d, int boardSize, bool resetBoards = true, Tournament* tPtr = nullptr);
+    Round(Player& p1, Player& p2, Dice& d, int boardSize, bool resetBoards = true, Tournament* tPtr = nullptr,
+        bool loadedFirstTurnIsHuman = false, const std::string& loadedNextTurn = "", bool skipFirstTurnRoll = false);
     ~Round();
 
     // Conduct a single round
@@ -72,6 +73,8 @@ public:
     ********************************************************************* */
     int getWinningScore();
 
+
+
 private:
     Player& player1;
     Player& player2;
@@ -91,6 +94,9 @@ private:
     void determineFirstPlayer();
 
     Tournament* tournamentPtr;  // New member for Tournament pointer.
+
+    bool skipFirstTurnRoll;
+    std::string loadedNextTurn; // New: stores the loaded "Next Turn" info.
 };
 
 #endif

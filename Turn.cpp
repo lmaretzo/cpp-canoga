@@ -161,31 +161,31 @@ void Turn::execute() {
         player.printBoard();
 
         // NEW: If the active player is Computer, display "Rolling..." and pause.
-            cout << "\nRolling...\n";
-            std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // pause 1 sec
-        
-            bool allCoveredSevenToN = areSquaresSevenToNCovered(player);
-            int diceToRoll = 2;  // Default: roll two dice.
-            if (allCoveredSevenToN) {
-                // Compute the optimal dice roll using the new function in the Player class.
-                int optimal = player.optimalDiceRoll();
-                if (player.getName() == "Computer") {
-                    // For computer players, automatically use the optimal dice roll.
-                    diceToRoll = optimal;
-                }
-                else {
-                    // For human players, first ask if they want a hint regarding the optimal dice roll.
-                    bool wantHint = InputValidator::getYesNo("Would you like a hint for the optimal dice roll? (y/n): ");
-                    if (wantHint) {
-                        // Display the hint.
-                        cout << "Hint: Based on your board, the optimal dice roll is "
-                            << optimal << " die" << (optimal == 1 ? "" : "s") << ".\n";
-                    }
-                    // Then prompt the user to choose whether to roll one die.
-                    bool rollOneDie = InputValidator::getYesNo("Do you want to roll one die? (y/n): ");
-                    diceToRoll = rollOneDie ? 1 : 2;
-                }
+        cout << "\nRolling...\n";
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // pause 1 sec
+
+        bool allCoveredSevenToN = areSquaresSevenToNCovered(player);
+        int diceToRoll = 2;  // Default: roll two dice.
+        if (allCoveredSevenToN) {
+            // Compute the optimal dice roll using the new function in the Player class.
+            int optimal = player.optimalDiceRoll();
+            if (player.getName() == "Computer") {
+                // For computer players, automatically use the optimal dice roll.
+                diceToRoll = optimal;
             }
+            else {
+                // For human players, first ask if they want a hint regarding the optimal dice roll.
+                bool wantHint = InputValidator::getYesNo("Would you like a hint for the optimal dice roll? (y/n): ");
+                if (wantHint) {
+                    // Display the hint.
+                    cout << "Hint: Based on your board, the optimal dice roll is "
+                        << optimal << " die" << (optimal == 1 ? "" : "s") << ".\n";
+                }
+                // Then prompt the user to choose whether to roll one die.
+                bool rollOneDie = InputValidator::getYesNo("Do you want to roll one die? (y/n): ");
+                diceToRoll = rollOneDie ? 1 : 2;
+            }
+        }
 
 
         pair<int, int> rollVal = diceRef.roll(diceToRoll);
@@ -255,7 +255,8 @@ void Turn::execute() {
         // Prompt the human whether they want to save and quit.
         if (InputValidator::getYesNo("Would you like to save and quit? (y/n): ")) {
             std::string filename;
-            cout << "Enter filename to save game: ";
+            cout << R"(Enter file path with filename ex: C:\Users\savedGame.txt to save game: )";
+
             cin >> filename;
 
             // Here, we need to call Tournament::saveGame(). One way to do this is
@@ -310,4 +311,3 @@ bool Turn::canUncoverAnyCombination(const Player& p, int sum) const {
     }
     return false;
 }
-
