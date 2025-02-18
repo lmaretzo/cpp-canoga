@@ -454,6 +454,12 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
             oppCovered.push_back(i + 1);
     }
     vector<vector<int>> uncoverCombos = getCombinations(oppCovered, diceSum);
+    // *** ADD THIS CHECK: If uncovering is not allowed, wipe out combos. ***
+
+    if (!allowUncover) {
+        uncoverCombos.clear();
+    }
+
     if (!uncoverCombos.empty()) {
         uncoverDecision.squares = uncoverCombos[0];
         // Choose the candidate with the lower total.
