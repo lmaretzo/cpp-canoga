@@ -260,15 +260,11 @@ bool Round::isRoundOver() const
 
 /* *********************************************************************
 Function Name: determineFirstPlayer
-Purpose: Rolls dice for each player and decides who goes first.
-Parameters: None.
-Return Value: None.
-Algorithm:
-    1) Both players roll dice.
-    2) Compare sums.
-    3) If tie, reroll.
-    4) If player2 wins, swap player1/player2 pointers.
-Reference: None
+Purpose: Rolls dice for each player and decides who goes first, then
+         updates the Tournament object immediately so mid-round saves
+         reflect the correct "first turn" data.
+Parameters: None
+Return Value: None
 ********************************************************************* */
 void Round::determineFirstPlayer()
 {
@@ -285,22 +281,35 @@ void Round::determineFirstPlayer()
     cout << player2->getName() << " rolled " << rollP2.first
         << " and " << rollP2.second << " (sum = " << sumP2 << ")\n";
 
+    // Handle tie (recursive re-roll)
+    if (sumP1 == sumP2)
+    {
+        cout << "It's a tie! Re-rolling...\n";
+        determineFirstPlayer();
+        return;
+    }
+
+    // Non-tie: pick a winner
     if (sumP1 > sumP2)
     {
         cout << player1->getName() << " will go first!\n";
         firstTurnIsHuman = (player1->getName() == "Human");
     }
-    else if (sumP2 > sumP1)
+    else  // sumP2 > sumP1
     {
         cout << player2->getName() << " will go first!\n";
         firstTurnIsHuman = (player2->getName() == "Human");
-        // Now we swap pointers instead of slicing objects
+        // swap so player1 always remains the "first" pointer
         std::swap(player1, player2);
     }
-    else
+
+    // *******************************************************
+    //  Immediately update the tournament so mid-round save
+    if (tournamentPtr)
     {
-        cout << "It's a tie! Re-rolling...\n";
-        determineFirstPlayer(); // Recursive
+        tournamentPtr->setFirstTurnIsHuman(firstTurnIsHuman);
+        // i do NOT call setNextTurn here,
+        // because that might be decided later elsewhere.
     }
 }
 

@@ -51,6 +51,9 @@ public:
     void setHandicapActive(bool b) { handicapActive = b; }
     void setAdvantagePlayerName(const std::string& name) { advantagePlayerName = name; }
 
+    void setFirstTurnIsHuman(bool val) { firstTurnIsHuman = val; }
+    void setNextTurn(const std::string& val) { nextTurn = val; }
+
     // Serialization functions:
     bool saveGame(const std::string& filename);
     bool loadGame(const std::string& filename);

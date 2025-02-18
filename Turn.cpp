@@ -262,7 +262,15 @@ void Turn::execute() {
             break;
         }
     } while (stillRolling);
-
+    if (tournamentPtr != nullptr)
+    {
+        // The opponent is now up next (unless the round is over).
+        // So if opponent is "Human", the next turn is "Human"; otherwise "Computer".
+        if (opponent.getName() == "Human")
+            tournamentPtr->setNextTurn("Human");
+        else
+            tournamentPtr->setNextTurn("Computer");
+    }
     if (player.getName() == "Human") {
         // Prompt the human whether they want to save and quit.
         if (InputValidator::getYesNo("Would you like to save and quit? (y/n): ")) {

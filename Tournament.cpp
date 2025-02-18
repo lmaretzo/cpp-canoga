@@ -353,6 +353,10 @@ void Tournament::start()
             firstResumedRound = false; // For subsequent rounds, we will reset the boards.
         }
 
+
+
+
+
         // --- Reapply handicap (if active) before the round starts ---
         if (getHandicapActive())
         {
@@ -363,7 +367,11 @@ void Tournament::start()
         }
         // ----------------------------------------------------------------
 
+
+
+
         round.play();
+
 
         // --- BEGIN HANDICAP CALCULATION BLOCK ---
         {
