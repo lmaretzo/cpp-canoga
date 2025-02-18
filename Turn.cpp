@@ -36,6 +36,7 @@ Turn::Turn(Player& activePlayer, Player& opp, Dice& d, bool allowUncover, Tourna
     : player(activePlayer), opponent(opp), diceRef(d), allowUncover(allowUncover),
     lastMoveWasUncover(false), tournamentPtr(tPtr)
 {
+
 }
 
 /* *********************************************************************
@@ -155,6 +156,8 @@ Algorithm:
 Reference: AI ASSISTED
 ********************************************************************* */
 void Turn::execute() {
+    cout << "Debug: At start of execute(), player = " << player.getName() << endl;
+
     cout << "\n--- " << player.getName() << "'s TURN ---\n";
     bool stillRolling = true;
     do {
@@ -205,8 +208,17 @@ void Turn::execute() {
 
         // Use the unified decision method.
 // Use the unified decision method.
-        MoveDecision decision = player.decideMove(sum, opponent, allowUncover);
-        lastMoveWasUncover = !decision.cover;  // NEW: Set the flag based on the decision.
+        MoveDecision decision;
+        cout << "Debug: Before decideMove(), player = " << player.getName() << endl;
+        cout << "Debug: player is of type " << typeid(player).name() << endl;
+        if (dynamic_cast<Computer*>(&player)) {
+            cout << player.getName() << " (AI) is making a move...\n";
+            decision = static_cast<Computer*>(&player)->decideMove(sum, opponent, allowUncover);
+        }
+        else {
+            decision = player.decideMove(sum, opponent, allowUncover);
+        }
+        lastMoveWasUncover = !decision.cover;  // Set the flag based on the decision.
         if (decision.squares.empty()) {
             cout << player.getName() << " did not choose any squares. Turn ends.\n";
             break;

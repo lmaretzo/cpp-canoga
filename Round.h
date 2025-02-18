@@ -76,8 +76,8 @@ public:
 
 
 private:
-    Player& player1;
-    Player& player2;
+    Player* player1;
+    Player* player2;
     Dice& dice;
     int boardSize;
 
