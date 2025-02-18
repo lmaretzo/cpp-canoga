@@ -454,7 +454,7 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
             oppCovered.push_back(i + 1);
     }
     vector<vector<int>> uncoverCombos = getCombinations(oppCovered, diceSum);
-    // *** ADD THIS CHECK: If uncovering is not allowed, wipe out combos. ***
+    // *** ADD THIS CHECK: If uncovering is not allowed, wipe out combos. meant for computer
 
     if (!allowUncover) {
         uncoverCombos.clear();
