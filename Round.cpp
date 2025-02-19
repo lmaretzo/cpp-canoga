@@ -365,6 +365,10 @@ Return Value: None
 ********************************************************************* */
 void Round::determineFirstPlayer()
 {
+    cin.clear();
+    // Discard leftover characters (including newline) up to the next newline
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
     cout << "Rolling dice to determine who goes first...\n";
 
     auto rollP1 = dice.roll();

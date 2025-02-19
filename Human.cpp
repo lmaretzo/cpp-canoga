@@ -104,35 +104,62 @@ MoveDecision Human::decideMove(int diceSum, const Player& opponent, bool allowUn
     }
     decision.cover = cover;
 
-    // Prompt the user for the move.
-    cout << "Enter your move (e.g. '5 7') for "
-        << (cover ? "cover" : "uncover")
-        << " (the numbers must sum to " << diceSum << "): ";
-    string input;
-    getline(cin, input);
-    if (input.empty()) {
-        cout << "No input provided. Skipping turn.\n";
-        decision.squares.clear();
-        return decision;
-    }
-    stringstream ss(input);
-    vector<int> chosen;
-    int num, total = 0;
-    while (ss >> num) {
-        if (num == 0) {
-            cout << getName() << " chose to skip their turn.\n";
+
+    while (true)
+    {
+        cout << "Enter your move (e.g. '5 7') for "
+            << (decision.cover ? "cover" : "uncover")
+            << " (the numbers must sum to " << diceSum << ", or 0 to skip): ";
+
+        // Read the entire line
+        string input;
+        getline(cin, input);
+
+        if (input.empty())
+        {
+            cout << "No input provided. Skipping turn.\n";
             decision.squares.clear();
             return decision;
         }
-        chosen.push_back(num);
-        total += num;
+
+        // Parse the squares
+        stringstream ss(input);
+        vector<int> chosen;
+        int num, total = 0;
+        bool skip = false;
+
+        while (ss >> num)
+        {
+            if (num == 0)
+            {
+                // skip signal
+                cout << getName() << " chose to skip their turn.\n";
+                decision.squares.clear();
+                return decision;
+            }
+            chosen.push_back(num);
+            total += num;
+        }
+
+        if (chosen.empty())
+        {
+            // If user typed some non-integer or blank, we end up here
+            cout << "No valid squares entered. Please try again.\n";
+            continue; // re-prompt
+        }
+
+        if (total != diceSum)
+        {
+            cout << "Invalid input: the numbers you entered sum to " << total
+                << ", but they must sum to " << diceSum << ". Please try again.\n";
+            // re-prompt without skipping
+            continue;
+        }
+
+        // If we reach here, sum matches diceSum
+        decision.squares = chosen;
+        break;
     }
-    if (total != diceSum) {
-        cout << "Invalid move: the numbers do not add up to " << diceSum << ". Skipping turn.\n";
-        decision.squares.clear();
-        return decision;
-    }
-    decision.squares = chosen;
+
     return decision;
 }
-

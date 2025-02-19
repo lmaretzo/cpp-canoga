@@ -9,6 +9,8 @@
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
+#include <string>        // for std::string, std::getline
+#include <sstream>       // for std::stringstream
 
 using namespace std;
 /* *********************************************************************
@@ -96,54 +98,115 @@ pair<int, int> Dice::roll() const
 
 /* *********************************************************************
 Function Name: rollCustom
-Purpose: Rolls a user-defined number of dice. Supports both manual and random mode.
+Purpose: Handles both manual and random dice rolling, based on mode.
+         Allows typing a single '0' to skip, even if two dice are expected.
 Parameters:
-    diceCount - an integer indicating how many dice to roll.
-Return Value: A pair of integers representing the dice values.
+    - diceCount: how many dice (1 or 2).
+Return Value: (d1, d2) for valid inputs; or (0,0) if user skips.
 Algorithm:
-    1) If manualMode is enabled, prompt the user for dice values.
-    2) Validate user input to ensure numbers are within 1-6 (or 0 to skip).
-    3) If manualMode is disabled, generate random dice rolls.
-Reference: The logic for manual input validation was AI-assisted
+    1) If !manualMode, return random rolls.
+    2) Otherwise:
+       a) Enter a loop that prompts the user.
+       b) Read an entire line with std::getline.
+       c) If the line is empty, tell them to retry (no "invalid" message).
+       d) Tokenize into integers:
+          - If exactly one token == 0, skip.
+          - Else if exactly diceCount tokens: check each is in [1..6].
+            If valid, return it; if any 0 or out of range => skip or error.
+          - Otherwise, "Invalid number of inputs" => re-prompt.
+Reference: None
 ********************************************************************* */
 pair<int, int> Dice::rollCustom(int diceCount) const
 {
-    if (manualMode)
+    if (!manualMode)
     {
-        cout << "Enter " << diceCount << " dice value(s) (1-6): ";
+        // Normal random rolling
+        return (diceCount == 1) ? make_pair(rollOne(), 0) : rollTwo();
+    }
 
-        int d1 = 0, d2 = 0;
-        // Input validation for the first die
-        while (!(cin >> d1) || (d1 != 0 && (d1 < 1 || d1 > 6)))
+    while (true)
+    {
+        cout << "Enter " << diceCount
+            << " dice value(s) (1-6) or '0' to skip: ";
+
+        // Read a full line
+        string line;
+        if (!getline(cin, line)) // if the stream fails, clear & continue
         {
-            cin.clear(); // Clear the error flag
-            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Discard invalid input
-            cout << "Invalid input for die 1. Enter a value between 1 and 6, or 0 to skip: ";
+            cin.clear();
+            continue;
         }
-        if (d1 == 0)
+
+        // If the user typed absolutely nothing
+        if (line.empty())
+        {
+            cout << "No input. Please enter numbers 1..6 or '0' to skip.\n";
+            continue;
+        }
+
+        // Parse the line into integers
+        stringstream ss(line);
+        vector<int> tokens;
+        int val;
+        while (ss >> val)
+        {
+            tokens.push_back(val);
+        }
+
+        // 1) If user typed exactly one token == 0, skip
+        if (tokens.size() == 1 && tokens[0] == 0)
         {
             cout << "Skipping roll.\n";
             return { 0, 0 };
         }
-        // Input validation for the second die (if rolling two dice)
-        if (diceCount == 2)
-        {
-            while (!(cin >> d2) || d2 < 1 || d2 > 6)
-            {
-                cin.clear();
-                cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                cout << "Invalid input for die 2. Enter a value between 1 and 6: ";
-            }
-       }
 
-        return { d1, diceCount == 2 ? d2 : 0 };
+        // 2) If user typed exactly diceCount tokens, validate them
+        if (tokens.size() == static_cast<size_t>(diceCount))
+        {
+            bool allValid = true;
+            // Check each token is in [1..6]
+            for (int d : tokens)
+            {
+                if (d < 1 || d > 6)
+                {
+                    allValid = false;
+                    break;
+                }
+            }
+
+            if (allValid)
+            {
+                // Return them properly
+                if (diceCount == 1)
+                {
+                    return { tokens[0], 0 };
+                }
+                else
+                {
+                    return { tokens[0], tokens[1] };
+                }
+            }
+            else
+            {
+                // Maybe they typed "6 0" or "7" or something
+                cout << "Invalid dice values; must be in [1..6]. Use single '0' to skip.\n";
+                continue; // re-prompt
+            }
+        }
+        else
+        {
+            // e.g. typed "3 4 5" for diceCount=2, or typed "3" for diceCount=2
+            cout << "Invalid number of inputs. Please enter exactly "
+                << diceCount << " value(s), or single '0' to skip.\n";
+            continue; // re-prompt
+        }
     }
-    else
-    {
-        // Random dice rolling
-        return (diceCount == 1) ? make_pair(rollOne(), 0) : rollTwo();
-    }
+
+    // Should never reach here
+    return { 0, 0 };
 }
+
+
 
 /* *********************************************************************
 Function Name: rollOne
