@@ -13,7 +13,9 @@
 #include <sstream>
 #include <cstdlib>   // for std::stoi
 #include <cerrno>    // For errno
+#define NOMINMAX            // Disable Windows' macro versions of min/max
 #include <windows.h>   // for saving debugging
+
 
 using namespace std;
 
@@ -413,6 +415,25 @@ void Tournament::start()
         cout << "\nCurrent Scores:\n";
         cout << human->getName() << ": " << human->getScore() << "\n";
         cout << computer->getName() << ": " << computer->getScore() << "\n";
+
+        bool wantToSave = InputValidator::getYesNo("Would you like to save the game now? (y/n): ");
+        if (wantToSave) {
+            // Ask user for path (same prompt as before)
+            cout << R"(Enter file path with filename ex: C:\Users\savedGame.txt to save: )";
+            std::string filename;
+
+            // MATCH the old code: read a single token
+            cin >> filename; // Instead of getline
+
+            // Now call saveGame exactly the same as the old code
+            if (saveGame(filename)) {
+                cout << "Game saved successfully!\n";
+            }
+            else {
+                cout << "Error saving game. Continuing without saving.\n";
+            }
+        }
+
 
         // Ask the user if they want to play another round.
         keepPlaying = InputValidator::getYesNo("\nPlay another round? (y/n): ");

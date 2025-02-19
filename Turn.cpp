@@ -160,6 +160,8 @@ void Turn::execute() {
 
     cout << "\n--- " << player.getName() << "'s TURN ---\n";
     bool stillRolling = true;
+    bool roundEnded = false;  // <-- track if the player ended the round
+
     do {
         player.printBoard();
 
@@ -259,6 +261,8 @@ void Turn::execute() {
         }
         if (player.areAllCovered()) {
             cout << player.getName() << " has covered all squares!\n";
+            roundEnded = true;
+
             break;
         }
     } while (stillRolling);
@@ -271,20 +275,18 @@ void Turn::execute() {
         else
             tournamentPtr->setNextTurn("Computer");
     }
-    if (player.getName() == "Human") {
-        // Prompt the human whether they want to save and quit.
+    // Only ask to save if:
+    // (1) It's the human, AND
+    // (2) The round did NOT just end on this turn.
+    if (!roundEnded && player.getName() == "Human") {
         if (InputValidator::getYesNo("Would you like to save and quit? (y/n): ")) {
             std::string filename;
             cout << R"(Enter file path with filename ex: C:\Users\savedGame.txt to save game: )";
-
             cin >> filename;
 
-            // Here, we need to call Tournament::saveGame(). One way to do this is
-            // to have the Tournament instance passed into the Turn (or accessible via a callback/global).
-            // For example, if you have a Tournament pointer (tournamentPtr):
             if (tournamentPtr != nullptr && tournamentPtr->saveGame(filename)) {
                 cout << "Game saved successfully. Exiting...\n";
-                exit(0); // or otherwise break out of the main game loop.
+                exit(0);
             }
             else {
                 cout << "Error saving game. Resuming turn/game...\n";
