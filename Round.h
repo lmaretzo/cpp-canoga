@@ -35,8 +35,17 @@ public:
          2) If resetBoards is true, call resetSquares(boardSize) on both players.
     Reference: None
     ********************************************************************* */
-    Round(Player& p1, Player& p2, Dice& d, int boardSize, bool resetBoards = true, Tournament* tPtr = nullptr,
-        bool loadedFirstTurnIsHuman = false, const std::string& loadedNextTurn = "", bool skipFirstTurnRoll = false);
+    Round(
+        Player& p1, 
+        Player& p2, 
+        Dice& d, 
+        int boardSize, 
+        bool resetBoards = true, 
+        Tournament* tPtr = nullptr,
+        bool loadedFirstTurnIsHuman = false, 
+        const std::string& nextTurnStr = "", // <-- RENAMED param
+        bool skipFirstTurnRoll = false);
+
     ~Round();
 
     // Conduct a single round

@@ -28,11 +28,17 @@ Algorithm:
          2) If resetBoards is true, call resetSquares(boardSize) on both players.
 Reference: None
 ********************************************************************* */
-Round::Round(Player& p1, Player& p2, Dice& d, int boardSize,
-    bool resetBoards, Tournament* tPtr,
+Round::Round(
+    Player& p1, 
+    Player& p2, 
+    Dice& d, 
+    int boardSize,
+    bool resetBoards, 
+    Tournament* tPtr,
     bool loadedFirstTurnIsHuman,
-    const std::string& loadedNextTurn,
-    bool skipFirstTurnRoll)
+    const std::string& nextTurnStr,  // <-- renamed from loadedNextTurn
+    bool skipFirstTurnRoll
+)
     : player1(&p1),
     player2(&p2),
     dice(d),
@@ -43,13 +49,30 @@ Round::Round(Player& p1, Player& p2, Dice& d, int boardSize,
     firstTurnPlayer(nullptr),
     winningScore(0),
     tournamentPtr(tPtr),
-    skipFirstTurnRoll(skipFirstTurnRoll)
+    skipFirstTurnRoll(skipFirstTurnRoll),
+    loadedNextTurn(nextTurnStr)  // <-- THIS ASSIGNS THE MEMBER
+
+
 {
     if (resetBoards)
     {
         player1->resetSquares(boardSize);
         player2->resetSquares(boardSize);
     }
+
+    // Ensure firstTurnPlayer is correctly assigned
+    if (firstTurnIsHuman)
+    {
+        firstTurnPlayer = player1;  // Set to Human if they went first
+    }
+    else
+    {
+        firstTurnPlayer = player2;  // Set to Computer if they went first
+    }
+
+    // Debugging Output to Ensure firstTurnPlayer is Assigned
+    std::cout << "[DEBUG] firstTurnPlayer assigned: "
+        << (firstTurnPlayer ? firstTurnPlayer->getName() : "nullptr") << std::endl;
 }
 
 /* *********************************************************************
@@ -83,70 +106,144 @@ Reference: AI ASSISTED
 ********************************************************************* */
 void Round::play()
 {
+    // If this is a brand-new round (no load mid-round), pick first turn by rolling dice:
     if (!skipFirstTurnRoll) {
         determineFirstPlayer();
     }
 
-    // Track whether the first-turn player has taken their first turn.
+    // Tracks whether the first-turn player has had their initial turn
     bool firstTurnForFirstPlayer = true;
 
+    // If we loaded a mid-round game, use loadedNextTurn to see who is up first:
+    bool isHumanNext = (loadedNextTurn == "Human");
+
+    // Keep taking turns until the round is over:
     while (!isRoundOver())
     {
-        if (firstTurnIsHuman) {
-            // If the human is first, then *player1 is the human, *player2 is the computer.
-            Player& firstPlayer = *player1;   // Dereference pointer
-            Player& secondPlayer = *player2;  // Dereference pointer
+        // ─────────────────────────────────────────────────────────
+        // 1) BRAND-NEW ROUND (NOT SKIPPING FIRST TURN ROLL)
+        // ─────────────────────────────────────────────────────────
+        if (!skipFirstTurnRoll)
+        {
+            // === The code below is your ORIGINAL logic ===
+            if (firstTurnIsHuman) {
+                // First player's turn (Human)
+                Turn turnFirst(*player1, *player2, dice,
+                    (firstTurnForFirstPlayer ? false : true),
+                    tournamentPtr);
+                turnFirst.execute();
+                if (firstTurnForFirstPlayer) {
+                    firstTurnForFirstPlayer = false;
+                }
+                if (isRoundOver()) break;
 
-            // The first player's turn: uncover is disallowed if it's their first turn
-            Turn turnFirst(firstPlayer,
-                secondPlayer,
-                dice,
-                firstTurnForFirstPlayer ? false : true,
-                tournamentPtr);
-            turnFirst.execute();
-            if (firstTurnForFirstPlayer) {
-                firstTurnForFirstPlayer = false;
+                // Second player's turn (Computer), uncover always allowed
+                Turn turnSecond(*player2, *player1, dice, true, tournamentPtr);
+                turnSecond.execute();
+
+                if (!bothPlayersTurnComplete) {
+                    bothPlayersTurnComplete = true;
+                }
+                if (bothPlayersTurnComplete &&
+                    (player1->areAllUncovered() || player2->areAllUncovered()))
+                {
+                    break;
+                }
             }
+            else {
+                // First player's turn (Computer)
+                Turn turnFirst(*player1, *player2, dice,
+                    (firstTurnForFirstPlayer ? false : true),
+                    tournamentPtr);
+                turnFirst.execute();
+                if (firstTurnForFirstPlayer) {
+                    firstTurnForFirstPlayer = false;
+                }
+                if (isRoundOver()) break;
 
-            if (isRoundOver()) break;
+                // Second player's turn (Human)
+                Turn turnSecond(*player2, *player1, dice, true, tournamentPtr);
+                turnSecond.execute();
 
-            // Second player's turn always allows uncovering
-            Turn turnSecond(*player2, *player1, dice, true, tournamentPtr);
-            turnSecond.execute();
-
-            if (!bothPlayersTurnComplete) {
-                bothPlayersTurnComplete = true;
-            }
-            // Immediately check for uncover-based wins
-            if (bothPlayersTurnComplete &&
-                (player1->areAllUncovered() || player2->areAllUncovered()))
-            {
-                break;
+                if (!bothPlayersTurnComplete) {
+                    bothPlayersTurnComplete = true;
+                }
+                if (bothPlayersTurnComplete &&
+                    (player1->areAllUncovered() || player2->areAllUncovered()))
+                {
+                    break;
+                }
             }
         }
-        else {
-            // ----  FIXED: now do TWO turns here too!  ----
+        // ─────────────────────────────────────────────────────────
+        // 2) LOADED A MID-ROUND GAME (SKIPPING FIRST TURN ROLL)
+        // ─────────────────────────────────────────────────────────
+        else
+        {
+            if (isHumanNext)
+            {
+                // If "Next Turn" is Human, the human goes first in this cycle
+                Player& humanRef = (player1->getName() == "Human") ? *player1 : *player2;
+                Player& compRef = (player1->getName() == "Human") ? *player2 : *player1;
 
-            // (1) The "first" player's turn (computer)
-            Turn turnFirst(*player1, *player2, dice, firstTurnForFirstPlayer ? false : true, tournamentPtr);
-            turnFirst.execute();
-            if (firstTurnForFirstPlayer) firstTurnForFirstPlayer = false;
-            if (isRoundOver()) break;
+                // Human's turn
+                Turn turnFirst(humanRef, compRef, dice,
+                    (firstTurnForFirstPlayer ? false : true),
+                    tournamentPtr);
+                turnFirst.execute();
+                if (firstTurnForFirstPlayer) {
+                    firstTurnForFirstPlayer = false;
+                }
+                if (isRoundOver()) break;
 
-            // (2) Then the "second" player's turn (human)
-            Turn turnSecond(*player2, *player1, dice, true, tournamentPtr);
-            turnSecond.execute();
+                // Then computer's turn
+                Turn turnSecond(compRef, humanRef, dice, true, tournamentPtr);
+                turnSecond.execute();
 
-            // NOW we can say both players have completed a turn
-            if (!bothPlayersTurnComplete) {
-                bothPlayersTurnComplete = true;
+                if (!bothPlayersTurnComplete) {
+                    bothPlayersTurnComplete = true;
+                }
+                if (bothPlayersTurnComplete &&
+                    (player1->areAllUncovered() || player2->areAllUncovered()))
+                {
+                    break;
+                }
             }
-            // Check uncovered condition
-            if (bothPlayersTurnComplete && (player1->areAllUncovered() || player2->areAllUncovered())) {
-                break;
+            else
+            {
+                // If "Next Turn" is Computer, the computer goes first in this cycle
+                Player& compRef = (player1->getName() == "Computer") ? *player1 : *player2;
+                Player& humanRef = (player1->getName() == "Computer") ? *player2 : *player1;
+
+                // Computer's turn
+                Turn turnFirst(compRef, humanRef, dice,
+                    (firstTurnForFirstPlayer ? false : true),
+                    tournamentPtr);
+                turnFirst.execute();
+                if (firstTurnForFirstPlayer) {
+                    firstTurnForFirstPlayer = false;
+                }
+                if (isRoundOver()) break;
+
+                // Then human's turn
+                Turn turnSecond(humanRef, compRef, dice, true, tournamentPtr);
+                turnSecond.execute();
+
+                if (!bothPlayersTurnComplete) {
+                    bothPlayersTurnComplete = true;
+                }
+                if (bothPlayersTurnComplete &&
+                    (player1->areAllUncovered() || player2->areAllUncovered()))
+                {
+                    break;
+                }
             }
+            // Toggle for the next iteration of the loop
+            isHumanNext = !isHumanNext;
         }
     }
+
+
 
     // --- Evaluate final round outcomes: ---
     if (player1->areAllCovered()) {
@@ -220,7 +317,7 @@ void Round::play()
     }
 
     // Store the first-turn player
-    firstTurnPlayer = player1; // or player2, if that ended up first. (You can refine.)
+    //firstTurnPlayer = player1; // or player2, if that ended up first. (You can refine.)
 
     // Display updated scores
     cout << "\n--- Updated Scores ---\n";
@@ -294,14 +391,23 @@ void Round::determineFirstPlayer()
     {
         cout << player1->getName() << " will go first!\n";
         firstTurnIsHuman = (player1->getName() == "Human");
+        firstTurnPlayer = player1; // Now assigned correctly
+
     }
     else  // sumP2 > sumP1
     {
         cout << player2->getName() << " will go first!\n";
         firstTurnIsHuman = (player2->getName() == "Human");
+
         // swap so player1 always remains the "first" pointer
         std::swap(player1, player2);
+
+        firstTurnPlayer = player1;
+
+
     }
+    std::cout << "[DEBUG] First turn player is: " << firstTurnPlayer->getName() << std::endl;
+
 
     // *******************************************************
     //  Immediately update the tournament so mid-round save
