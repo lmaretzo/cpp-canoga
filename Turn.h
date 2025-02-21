@@ -21,17 +21,16 @@ private:
     Player& opponent;
     Dice& diceRef;
 
-    bool allowUncover; // NEW CODE
+    bool allowUncover;
 
-    bool lastMoveWasUncover; // NEW CODE: Track whether the last move was an uncover move.
+    bool lastMoveWasUncover; // Track whether the last move was an uncover move.
 
-    // no advanced AI or help yet
     bool canCoverAnyCombination(const Player& p, int sum) const;
     bool areSquaresSevenToNCovered(const Player& player) const;
     // New helper function declaration for uncovering moves.
     bool canUncoverAnyCombination(const Player& p, int sum) const;
 
-    Tournament* tournamentPtr;   // New member to hold the Tournament pointer.
+    Tournament* tournamentPtr;   // member to hold the Tournament pointer.
 };
 
 #endif

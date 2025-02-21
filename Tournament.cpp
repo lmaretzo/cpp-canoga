@@ -13,8 +13,8 @@
 #include <sstream>
 #include <cstdlib>   // for std::stoi
 #include <cerrno>    // For errno
-#define NOMINMAX            // Disable Windows' macro versions of min/max
-#include <windows.h>   // for saving debugging
+#define NOMINMAX     // Disable Windows' macro versions of min/max
+#include <windows.h> // for saving debugging
 
 
 using namespace std;
@@ -74,13 +74,22 @@ void Tournament::initializeBoardSize()
     }
 }
 
-// This function is used when starting a new game.
+/* *********************************************************************
+Function Name: newGameInitialization
+Purpose: To set up a new game, including board size selection.
+Parameters: None.
+Return Value: None.
+Algorithm:
+    1) Display a welcome message.
+    2) Call initializeBoardSize() to get the board size from the user.
+    3) Perform any additional initialization for a new game.
+Reference: None
+********************************************************************* */
 void Tournament::newGameInitialization()
 {
     cout << "=== Welcome to Basic Canoga Game ===\n";
     cout << "We will play a few rounds until you decide to stop.\n";
     initializeBoardSize();
-    // (Any other initialization code for a new game can go here.)
 }
 
 
@@ -142,7 +151,7 @@ Algorithm:
     6) Mark that a game was loaded.
     7) Optionally update boardSize.
     8) Display the loaded game state (board, turn info, scores).
-Reference: ai
+Reference: AI
 ********************************************************************* */
 bool Tournament::loadGame(const std::string& filename) {
     std::ifstream in(filename);
@@ -155,7 +164,8 @@ bool Tournament::loadGame(const std::string& filename) {
     int num;
 
     // --- Load Computer state ---
-    std::getline(in, line);  // should be "Computer:"
+    // should be "Computer:"
+    std::getline(in, line);  
     if (line.find("Computer:") == std::string::npos) {
         std::cerr << "Error: Expected 'Computer:' header.\n";
         return false;
@@ -294,7 +304,7 @@ Algorithm:
     4) In each round, construct a Round with the given reset flag.
     5) After the first round (if resumed), update the flag so that future rounds reinitialize.
     6) Play the round, apply handicap, update scores, and then ask if the user wishes to continue.
-Reference: None
+Reference: AI
 ********************************************************************* */
 void Tournament::start()
 {
@@ -355,10 +365,6 @@ void Tournament::start()
             firstResumedRound = false; // For subsequent rounds, we will reset the boards.
         }
 
-
-
-
-
         // --- Reapply handicap (if active) before the round starts ---
         if (getHandicapActive())
         {
@@ -367,15 +373,9 @@ void Tournament::start()
             else if (getAdvantagePlayerName() == computer->getName())
                 computer->coverSquare(getHandicapSquare());
         }
-        // ----------------------------------------------------------------
-
-
-
 
         round.play();
 
-
-        // --- BEGIN HANDICAP CALCULATION BLOCK ---
         {
             Player& winner = round.getRoundWinner();
             Player& firstTurn = round.getFirstTurnPlayer();
@@ -409,7 +409,6 @@ void Tournament::start()
             cout << advantagePlayer->getName() << " has advantage with square "
                 << advSquare << " locked.\n";
         }
-        // --- END HANDICAP CALCULATION BLOCK ---
 
         // Show current scores.
         cout << "\nCurrent Scores:\n";
@@ -418,11 +417,11 @@ void Tournament::start()
 
         bool wantToSave = InputValidator::getYesNo("Would you like to save the game now? (y/n): ");
         if (wantToSave) {
-            // Ask user for path (same prompt as before)
+            // Ask user for path
             cout << R"(Enter file path with filename ex: C:\Users\savedGame.txt to save: )";
             std::string filename;
 
-            // MATCH the old code: read a single token
+            // read a single token
             cin >> filename; // Instead of getline
 
             // Now call saveGame exactly the same as the old code
@@ -433,7 +432,6 @@ void Tournament::start()
                 cout << "Error saving game. Continuing without saving.\n";
             }
         }
-
 
         // Ask the user if they want to play another round.
         keepPlaying = InputValidator::getYesNo("\nPlay another round? (y/n): ");

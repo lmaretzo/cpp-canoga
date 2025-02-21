@@ -36,7 +36,7 @@ Round::Round(
     bool resetBoards, 
     Tournament* tPtr,
     bool loadedFirstTurnIsHuman,
-    const std::string& nextTurnStr,  // <-- renamed from loadedNextTurn
+    const std::string& nextTurnStr,
     bool skipFirstTurnRoll
 )
     : player1(&p1),
@@ -50,7 +50,7 @@ Round::Round(
     winningScore(0),
     tournamentPtr(tPtr),
     skipFirstTurnRoll(skipFirstTurnRoll),
-    loadedNextTurn(nextTurnStr)  // <-- THIS ASSIGNS THE MEMBER
+    loadedNextTurn(nextTurnStr) 
 
 
 {
@@ -71,7 +71,7 @@ Round::Round(
     }
 
     // Debugging Output to Ensure firstTurnPlayer is Assigned
-    std::cout << "[DEBUG] firstTurnPlayer assigned: "
+    std::cout << "[DEBUG: firstTurnPlayer assigned]: "
         << (firstTurnPlayer ? firstTurnPlayer->getName() : "nullptr") << std::endl;
 }
 
@@ -125,7 +125,7 @@ void Round::play()
         // ─────────────────────────────────────────────────────────
         if (!skipFirstTurnRoll)
         {
-            // === The code below is your ORIGINAL logic ===
+            // === The code below is ORIGINAL logic ===
             if (firstTurnIsHuman) {
                 // First player's turn (Human)
                 Turn turnFirst(*player1, *player2, dice,
@@ -316,8 +316,6 @@ void Round::play()
         winningScore = scoreToAdd;
     }
 
-    // Store the first-turn player
-    //firstTurnPlayer = player1; // or player2, if that ended up first. (You can refine.)
 
     // Display updated scores
     cout << "\n--- Updated Scores ---\n";
@@ -343,7 +341,7 @@ bool Round::isRoundOver() const
     if (player1->areAllCovered() || player2->areAllCovered())
         return true;
 
-    // For an "uncover" win, check only if both players have had a turn
+    // For an uncover win, check only if both players have had a turn
     if (bothPlayersTurnComplete)
     {
         if ((player1->isBoardModified() && player1->areAllUncovered()) ||
@@ -366,6 +364,7 @@ Return Value: None
 void Round::determineFirstPlayer()
 {
     cin.clear();
+
     // Discard leftover characters (including newline) up to the next newline
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
@@ -382,7 +381,7 @@ void Round::determineFirstPlayer()
     cout << player2->getName() << " rolled " << rollP2.first
         << " and " << rollP2.second << " (sum = " << sumP2 << ")\n";
 
-    // Handle tie (recursive re-roll)
+    // Handle tie as a recursive re-roll
     if (sumP1 == sumP2)
     {
         cout << "It's a tie! Re-rolling...\n";
@@ -410,7 +409,7 @@ void Round::determineFirstPlayer()
 
 
     }
-    std::cout << "[DEBUG] First turn player is: " << firstTurnPlayer->getName() << std::endl;
+    std::cout << "DEBUG First turn player is: " << firstTurnPlayer->getName() << std::endl;
 
 
     // *******************************************************
@@ -453,11 +452,11 @@ Player& Round::getFirstTurnPlayer()
 
 /* *********************************************************************
 Function Name: getWinningScore
-Purpose: Returns the winning score of the round.
+Purpose: Returns the winning score from the round (sum of the opponent's uncovered squares).
 Parameters: None.
 Return Value: An integer representing the winning score.
 Algorithm:
-    1) Return winningScore.
+    1) Return the value of the winningScore member variable.
 Reference: None
 ********************************************************************* */
 int Round::getWinningScore()

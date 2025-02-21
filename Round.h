@@ -43,7 +43,7 @@ public:
         bool resetBoards = true, 
         Tournament* tPtr = nullptr,
         bool loadedFirstTurnIsHuman = false, 
-        const std::string& nextTurnStr = "", // <-- RENAMED param
+        const std::string& nextTurnStr = "", // RENAMED param
         bool skipFirstTurnRoll = false);
 
     ~Round();
@@ -94,8 +94,8 @@ private:
     Player* firstTurnPlayer;
     int winningScore;
 
-    bool bothPlayersTurnComplete; // NEW CODE
-    bool firstTurnIsHuman;        // NEW: true if the first-turn player is Human
+    bool bothPlayersTurnComplete; 
+    bool firstTurnIsHuman;        //true if the first-turn player is Human
 
     // Helper to check if the round is over
     bool isRoundOver() const;
@@ -105,7 +105,7 @@ private:
     Tournament* tournamentPtr;  // New member for Tournament pointer.
 
     bool skipFirstTurnRoll;
-    std::string loadedNextTurn; // New: stores the loaded "Next Turn" info.
+    std::string loadedNextTurn; // stores the loaded "Next Turn" info.
 };
 
 #endif

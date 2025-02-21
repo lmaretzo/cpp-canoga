@@ -304,6 +304,18 @@ vector<int> Player::getSquares() const
     return squares; // return a copy
 }
 
+/* *********************************************************************
+Function Name: setSquares
+Purpose: To update the player's board state and track modifications.
+Parameters:
+    - newSquares: A vector of integers representing the new board state.
+Return Value: None.
+Algorithm:
+    1) Assign newSquares to the player's squares vector.
+    2) Check if any square is covered (nonzero), and set boardModified accordingly.
+Reference: None
+********************************************************************* */
+
 void Player::setSquares(const std::vector<int>& newSquares) {
     squares = newSquares;
     // Check if any square is nonzero; if so, mark boardModified as true.
@@ -316,6 +328,17 @@ void Player::setSquares(const std::vector<int>& newSquares) {
     }
     boardModified = modified;
 }
+
+/* *********************************************************************
+Function Name: setScore
+Purpose: To update the player's score.
+Parameters:
+    - newScore: An integer representing the new score.
+Return Value: None.
+Algorithm:
+    1) Assign the provided value to the score variable.
+Reference: None
+********************************************************************* */
 
 void Player::setScore(int newScore) {
     score = newScore;
@@ -413,14 +436,14 @@ Algorithm:
          3) If uncoverScore is lower than coverScore, choose uncover; otherwise, choose cover.
          4) Store an explanation string reflecting the computed scores and rationale.
          5) If only one type of move is available, return it (without extra explanation if desired).
-Reference: None
+Reference: AI Assisted
 ********************************************************************* */
 MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowUncover) {
     MoveDecision coverDecision, uncoverDecision;
     coverDecision.cover = true;   // default for covering
     uncoverDecision.cover = false; // default for uncovering
 
-    // --- Compute Cover Decision ---
+    // Compute Cover Decision
     vector<int> myAvailable;
     for (int i = 0; i < static_cast<int>(squares.size()); i++) {
         if (squares[i] == 0)
@@ -446,7 +469,7 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
         coverDecision.squares.clear();
     }
 
-    // --- Compute Uncover Decision ---
+    // Compute Uncover Decision
     vector<int> oppCovered;
     vector<int> oppSquares = opponent.getSquares();
     for (int i = 0; i < static_cast<int>(oppSquares.size()); i++) {
@@ -454,14 +477,15 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
             oppCovered.push_back(i + 1);
     }
     vector<vector<int>> uncoverCombos = getCombinations(oppCovered, diceSum);
-    // *** ADD THIS CHECK: If uncovering is not allowed, wipe out combos. meant for computer
 
+    // If uncovering is not allowed, wipe out combos. meant for computer
     if (!allowUncover) {
         uncoverCombos.clear();
     }
 
     if (!uncoverCombos.empty()) {
         uncoverDecision.squares = uncoverCombos[0];
+
         // Choose the candidate with the lower total.
         for (auto& combo : uncoverCombos) {
             int currentTotal = 0;
@@ -479,7 +503,7 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
         uncoverDecision.squares.clear();
     }
 
-    // --- Advanced Heuristic Evaluation ---
+    // Heuristic Evaluation
     if (!coverDecision.squares.empty() && !uncoverDecision.squares.empty()) {
         int coverTotal = 0, uncoverTotal = 0, maxCover = 0;
         for (int n : coverDecision.squares) {
@@ -490,12 +514,12 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
             uncoverTotal += n;
         }
         // Calculate scores:
-        // For covering, a higher score is beneficial; we add extra weight to high-value squares.
+        // For covering, a higher score is beneficial so adding extra weight to high-value squares.
         int coverScore = coverTotal + (2 * maxCover);
         // For uncovering, a lower total is preferable.
         int uncoverScore = uncoverTotal;
 
-        // Also compute the maximum value in the uncover candidate.
+        // compute the maximum value in the uncover candidate.
         int maxUncover = 0;
         for (int n : uncoverDecision.squares) {
             maxUncover = max(maxUncover, n);
@@ -549,9 +573,10 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
         }
         return MoveDecision{ false, uncoverDecision.squares, explanation };
     }
+
     // Otherwise, only a cover move is available.
     else {
-        // We assume coverDecision.squares is not empty if this branch is reached.
+        // assuming coverDecision.squares is not empty if this branch is reached.
         int maxCover = 0;
         for (int n : coverDecision.squares) {
             maxCover = max(maxCover, n);
@@ -574,7 +599,7 @@ Parameters: None.
 Return Value: None.
 Algorithm:
          1) Print a message indicating that hint functionality is not yet implemented.
-Reference: None
+Reference: AI recommended
 ********************************************************************* */
 void Player::offerHint() {
     cout << "[" << playerName << "] HINT: (Not yet implemented)\n";

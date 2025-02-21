@@ -1,7 +1,7 @@
 /************************************************************
  * Name:  Lucas Maretzo
  * Project:  Canoga
- * Date:  (New) Human Class Header
+ * Date:  Human Class Header
  ************************************************************/
 
 #pragma once
@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 
-using namespace std; //changes
+using namespace std;
 
 /* *********************************************************************
 Class Name: Human
@@ -68,7 +68,7 @@ public:
              4) Prompt the user to enter the squares for the move.
              5) Validate that the chosen squares sum to diceSum.
              6) Return the constructed MoveDecision.
-    Reference: None
+    Reference: AI Assisted
     ********************************************************************* */
     virtual MoveDecision decideMove(int diceSum, const Player& opponent, bool allowUncover) override;
 };

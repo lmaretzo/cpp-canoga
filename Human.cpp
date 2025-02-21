@@ -91,7 +91,7 @@ MoveDecision Human::decideMove(int diceSum, const Player& opponent, bool allowUn
         }
     }
 
-    // Now use InputValidator to ask if the user wants to cover.
+    // Now using InputValidator to ask if the user wants to cover.
     // (Yes = cover; No = uncover.)
     bool cover;
     // Use the passed flag to force covering if uncovering is not allowed.

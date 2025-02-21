@@ -11,7 +11,7 @@
 #include <string>
 #include <thread>
 #include <chrono>
-#include "Computer.h"   // NEW: Include Computer.h so that the type is known.
+#include "Computer.h"   // Include Computer.h so that the type is known.
 #include "Tournament.h"
 
 using namespace std;
@@ -160,14 +160,14 @@ void Turn::execute() {
 
     cout << "\n--- " << player.getName() << "'s TURN ---\n";
     bool stillRolling = true;
-    bool roundEnded = false;  // <-- track if the player ended the round
+    bool roundEnded = false;  // track if the player ended the round
 
     do {
         player.printBoard();
 
-        // NEW: If the active player is Computer, display "Rolling..." and pause.
+        // If the active player is Computer, display "Rolling..." and pause.
         cout << "\nRolling...\n";
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // pause 1 sec
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // pause for sec
 
         bool allCoveredSevenToN = areSquaresSevenToNCovered(player);
         int diceToRoll = 2;  // Default: roll two dice.
@@ -209,7 +209,6 @@ void Turn::execute() {
         }
 
         // Use the unified decision method.
-// Use the unified decision method.
         MoveDecision decision;
         cout << "Debug: Before decideMove(), player = " << player.getName() << endl;
         cout << "Debug: player is of type " << typeid(player).name() << endl;
@@ -245,7 +244,7 @@ void Turn::execute() {
         for (int sq : decision.squares)
             cout << sq << " ";
         cout << "\n";
-        // ***** NEW CHECK: Immediately end the turn if the opponent is all uncovered
+        // Immediately end the turn if the opponent is all uncovered
         if (lastMoveWasUncover && opponent.areAllUncovered()) {
             cout << player.getName() << " has uncovered all of "
                 << opponent.getName() << "'s squares and wins the round!\n";
@@ -313,12 +312,12 @@ Reference: None
 bool Turn::canUncoverAnyCombination(const Player& p, int sum) const {
     vector<int> squaresCopy = p.getSquares();
     vector<int> covered;
-    // For uncovering, we want to use the squares that are currently covered.
+    // For uncovering, use the squares that are currently covered.
     for (int i = 0; i < (int)squaresCopy.size(); i++) {
-        if (squaresCopy[i] != 0)  // note: unlike covering, we check for nonzero!
+        if (squaresCopy[i] != 0)  // unlike covering, check for nonzero
             covered.push_back(i + 1);
     }
-    // Now, check all subsets of these covered squares
+    // check all subsets of these covered squares
     int subsetCount = (1 << covered.size());
     for (int mask = 1; mask < subsetCount; mask++) {
         int total = 0, count = 0;
