@@ -156,7 +156,6 @@ Algorithm:
 Reference: AI ASSISTED
 ********************************************************************* */
 void Turn::execute() {
-    cout << "Debug: At start of execute(), player = " << player.getName() << endl;
 
     cout << "\n--- " << player.getName() << "'s TURN ---\n";
     bool stillRolling = true;
@@ -219,8 +218,6 @@ void Turn::execute() {
 
         // Use the unified decision method.
         MoveDecision decision;
-        cout << "Debug: Before decideMove(), player = " << player.getName() << endl;
-        cout << "Debug: player is of type " << typeid(player).name() << endl;
         if (dynamic_cast<Computer*>(&player)) {
             cout << player.getName() << " (AI) is making a move...\n";
             decision = static_cast<Computer*>(&player)->decideMove(sum, opponent, allowUncover);

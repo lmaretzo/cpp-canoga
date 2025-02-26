@@ -75,9 +75,7 @@ Round::Round(
         firstTurnPlayer = player2;  // Set to Computer if they went first
     }
 
-    // Debugging Output to Ensure firstTurnPlayer is Assigned
-    std::cout << "[DEBUG: firstTurnPlayer assigned]: "
-        << (firstTurnPlayer ? firstTurnPlayer->getName() : "nullptr") << std::endl;
+
 }
 
 /* *********************************************************************
@@ -374,7 +372,6 @@ void Round::determineFirstPlayer()
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
     cout << "Rolling dice to determine who goes first...\n";
-
     auto rollP1 = dice.roll();
     auto rollP2 = dice.roll();
 
@@ -414,7 +411,6 @@ void Round::determineFirstPlayer()
 
 
     }
-    std::cout << "DEBUG First turn player is: " << firstTurnPlayer->getName() << std::endl;
 
 
     // *******************************************************
