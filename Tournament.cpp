@@ -350,6 +350,7 @@ void Tournament::start()
         if (firstResumedRound)
         {
             resetBoardsForRound = false;
+
         }
         else
         {
@@ -360,6 +361,8 @@ void Tournament::start()
         // Create a new Round object.
         // The Round constructor will call resetSquares() on both players only if resetBoardsForRound is true.
         Round round(*human, *computer, dice, boardSize, resetBoardsForRound, this, roundFirstTurn, nextTurn, gameLoaded);
+        gameLoaded = false; // Ensure next rounds behave normally
+
         if (firstResumedRound)
         {
             firstResumedRound = false; // For subsequent rounds, we will reset the boards.
