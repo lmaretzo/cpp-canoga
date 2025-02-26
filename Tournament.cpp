@@ -415,7 +415,7 @@ void Tournament::start()
         cout << human->getName() << ": " << human->getScore() << "\n";
         cout << computer->getName() << ": " << computer->getScore() << "\n";
 
-        bool wantToSave = InputValidator::getYesNo("Would you like to save the game now? (y/n): ");
+        bool wantToSave = getYesNo("Would you like to save the game now? (y/n): ");
         if (wantToSave) {
             // Ask user for path
             cout << R"(Enter file path with filename ex: C:\Users\savedGame.txt to save: )";
@@ -434,7 +434,7 @@ void Tournament::start()
         }
 
         // Ask the user if they want to play another round.
-        keepPlaying = InputValidator::getYesNo("\nPlay another round? (y/n): ");
+        keepPlaying = getYesNo("\nPlay another round? (y/n): ");
     }
 
     // Display final scores and determine the tournament winner.

@@ -73,7 +73,7 @@ Reference: AI ASSISTED
 MoveDecision Human::decideMove(int diceSum, const Player& opponent, bool allowUncover) {
     MoveDecision decision;
     // First, ask if the user wants a hint.
-    bool wantHint = InputValidator::getYesNo("Would you like a hint for your move? (y/n): ");
+    bool wantHint = getYesNo("Would you like a hint for your move? (y/n): ");
     if (wantHint) {
         MoveDecision hintDecision = Player::decideMove(diceSum, opponent, allowUncover);
         if (!hintDecision.squares.empty()) {
@@ -100,7 +100,7 @@ MoveDecision Human::decideMove(int diceSum, const Player& opponent, bool allowUn
         cout << "Uncovering is not allowed on your first turn. You will cover squares." << "\n";
     }
     else {
-        cover = InputValidator::getYesNo("Do you want to cover your squares? (y for cover, n for uncover): ");
+        cover = getYesNo("Do you want to cover your squares? (y for cover, n for uncover): ");
     }
     decision.cover = cover;
 
