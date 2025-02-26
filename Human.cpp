@@ -94,15 +94,27 @@ MoveDecision Human::decideMove(int diceSum, const Player& opponent, bool allowUn
     // Now using InputValidator to ask if the user wants to cover.
     // (Yes = cover; No = uncover.)
     bool cover;
-    // Use the passed flag to force covering if uncovering is not allowed.
-    if (!allowUncover) {
+
+    // Check if the opponent has any covered squares
+    bool opponentHasCoveredSquares = false;
+    vector<int> opponentSquares = opponent.getSquares();
+    for (int sq : opponentSquares) {
+        if (sq != 0) { // Opponent has covered at least one square
+            opponentHasCoveredSquares = true;
+            break;
+        }
+    }
+
+    // If the opponent has no covered squares, force covering
+    if (!opponentHasCoveredSquares) {
         cover = true;
-        cout << "Uncovering is not allowed on your first turn. You will cover squares." << "\n";
+        cout << "Uncovering is not allowed because the opponent has no covered squares. You must cover your own squares." << "\n";
     }
     else {
         cover = getYesNo("Do you want to cover your squares? (y for cover, n for uncover): ");
     }
     decision.cover = cover;
+
 
 
     while (true)
