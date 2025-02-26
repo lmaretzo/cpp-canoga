@@ -60,6 +60,11 @@ Round::Round(
         player2->resetSquares(boardSize);
     }
 
+    // Reset the "has had turn" flags for both players
+    player1->setHasHadTurnInRound(false);
+    player2->setHasHadTurnInRound(false);
+
+
     // Ensure firstTurnPlayer is correctly assigned
     if (firstTurnIsHuman)
     {

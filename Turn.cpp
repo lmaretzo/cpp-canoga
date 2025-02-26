@@ -163,6 +163,8 @@ void Turn::execute() {
     bool roundEnded = false;  // track if the player ended the round
 
     do {
+        player.setHasHadTurnInRound(true);
+
         player.printBoard();
 
         // If the active player is Computer, display "Rolling..." and pause.
@@ -230,11 +232,24 @@ void Turn::execute() {
             if (decision.cover)
                 success = player.coverSquare(sq);
             else
-                success = opponent.uncoverSquare(sq);
+                // CHANGED: Pass tournament pointer to uncoverSquare
+                success = opponent.uncoverSquare(sq, tournamentPtr);
+
             if (!success) {
+                // NEW: Add specific message for handicap protection
+                if (!decision.cover && tournamentPtr &&
+                    tournamentPtr->getHandicapActive() &&
+                    sq == tournamentPtr->getHandicapSquare() &&
+                    opponent.getName() == tournamentPtr->getAdvantagePlayerName() &&
+                    !opponent.getHasHadTurnInRound()) {
+
+                    cout << "Cannot uncover handicap square " << sq
+                        << " until " << opponent.getName() << " has had a turn.\n";
+                }
                 allSuccessful = false;
                 break;
             }
+
         }
         if (!allSuccessful) {
             cout << "Could not apply the chosen move. Turn ends.\n";
@@ -244,6 +259,8 @@ void Turn::execute() {
         for (int sq : decision.squares)
             cout << sq << " ";
         cout << "\n";
+
+
         // Immediately end the turn if the opponent is all uncovered
         if (lastMoveWasUncover && opponent.areAllUncovered()) {
             cout << player.getName() << " has uncovered all of "

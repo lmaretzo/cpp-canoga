@@ -12,6 +12,8 @@
 #include <string>
 #include <vector>
 
+class Tournament;
+
 using namespace std;
 
 /* *********************************************************************
@@ -38,7 +40,7 @@ public:
     Algorithm: Calls the base class constructor to initialize player attributes.
     Reference: None
     ********************************************************************* */
-    Human(const string& name, int boardSize);
+    Human(const string& name, int boardSize, Tournament* tournament = nullptr);
 
     /* *********************************************************************
     Function Name: ~Human (Destructor)
@@ -71,6 +73,9 @@ public:
     Reference: AI Assisted
     ********************************************************************* */
     virtual MoveDecision decideMove(int diceSum, const Player& opponent, bool allowUncover) override;
+
+    Tournament* tournamentPtr; 
+
 };
 
 #endif

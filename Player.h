@@ -11,6 +11,9 @@
 #include <string>
 #include <vector>
 
+ // Forward declaration
+class Tournament;
+
 using namespace std;
 
 /* *********************************************************************
@@ -139,7 +142,7 @@ public:
     Algorithm: If the specified square is covered (non-zero), mark it as uncovered by setting its value to 0.
     Reference: None
     ********************************************************************* */
-    bool uncoverSquare(int squareLabel); 
+    bool uncoverSquare(int squareLabel, const Tournament* tournamentPtr = nullptr);
 
     /* *********************************************************************
     Function Name: areAllCovered
@@ -251,6 +254,59 @@ public:
     void setSquares(const std::vector<int>& newSquares);
     void setScore(int newScore);
 
+    /* *********************************************************************
+    Function Name: setHasHadTurnInRound
+    Purpose: Sets the flag indicating whether the player has had a turn in the current round.
+    Parameters:
+             value - a boolean value (true if player has had a turn, false otherwise)
+    Return Value: None.
+    Algorithm:
+             1) Set the hasHadTurnInRound attribute to the provided value.
+    Reference: None
+    ********************************************************************* */
+    void setHasHadTurnInRound(bool value);
+
+    /* *********************************************************************
+    Function Name: getHasHadTurnInRound
+    Purpose: Gets the flag indicating whether the player has had a turn in the current round.
+    Parameters: None.
+    Return Value: A boolean value (true if player has had a turn, false otherwise).
+    Algorithm:
+             1) Return the value of hasHadTurnInRound.
+    Reference: None
+    ********************************************************************* */
+    bool getHasHadTurnInRound() const;
+
+    /* *********************************************************************
+    Function Name: canUncoverSquare
+    Purpose: Checks if a specific square on the player's board can be uncovered,
+             considering handicap protection rules.
+    Parameters:
+             squareLabel - an integer (1-based index) representing the square to check
+             tournamentPtr - a pointer to the Tournament object for handicap info
+    Return Value: A boolean value; true if the square can be uncovered, false otherwise.
+    Algorithm:
+             1) Check if the square is out of range or already uncovered.
+             2) Check if the square is protected by handicap rules.
+             3) Return true only if the square is covered and not protected.
+    Reference: None
+    ********************************************************************* */
+    bool canUncoverSquare(int squareLabel, const Tournament* tournamentPtr = nullptr) const;
+
+    /* *********************************************************************
+Function Name: getCombinations
+Purpose: To obtain all valid combinations of numbers that sum to a target value.
+Parameters:
+         available - a constant reference to a vector of integers representing the available numbers
+         target    - an integer representing the desired sum
+Return Value: A vector of vectors of integers, each inner vector is a valid combination.
+Algorithm:
+         1) Make a copy of available numbers and sort them.
+         2) Use findCombinations to compute all valid combinations.
+         3) Return the computed combinations.
+Reference: None
+********************************************************************* */
+    static vector<vector<int>> getCombinations(const vector<int>& available, int target);
 
 
 
@@ -267,6 +323,23 @@ private:
     Purpose: Indicates whether the board has been modified during the round.
     ********************************************************************* */
     bool boardModified;
+    bool hasHadTurnInRound; // Track if player has had a turn in the current round
+
+    /* *********************************************************************
+Function Name: findCombinations
+Purpose: Helper method for getCombinations that recursively finds combinations.
+Parameters:
+         nums    - available numbers
+         target  - desired sum
+         start   - starting index
+         current - current combination
+         result  - storage for valid combinations
+Return Value: None.
+Reference: None
+********************************************************************* */
+    static void findCombinations(const vector<int>& nums, int target, int start,
+        vector<int>& current, vector<vector<int>>& result);
+
 };
 
 #endif

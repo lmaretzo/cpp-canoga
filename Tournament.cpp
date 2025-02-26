@@ -33,7 +33,7 @@ Tournament::Tournament()
     : boardSize(9), handicapSquare(0), handicapActive(false), nextTurn("Human"),
     firstTurnIsHuman(false), gameLoaded(false)
 {
-    human = new Human("Human", boardSize);      // Allocate human player.
+    human = new Human("Human", boardSize, this);      // Allocate human player.
     computer = new Computer("Computer", boardSize);  // Allocate computer player.
 }
 

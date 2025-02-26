@@ -11,6 +11,7 @@
 #include <limits>
 #include <cctype>
 #include "InputValidator.h"
+#include "Tournament.h" 
 using namespace std;
 
 /* *********************************************************************
@@ -24,8 +25,8 @@ Algorithm:
          1) Call the base class (Player) constructor with the provided name and board size.
 Reference: None
 ********************************************************************* */
-Human::Human(const string& name, int boardSize)
-    : Player(name, boardSize)
+Human::Human(const string& name, int boardSize, Tournament* tournament)
+    : Player(name, boardSize), tournamentPtr(tournament)
 {
     // No additional initialization required.
 }
@@ -72,6 +73,12 @@ Reference: AI ASSISTED
 
 MoveDecision Human::decideMove(int diceSum, const Player& opponent, bool allowUncover) {
     MoveDecision decision;
+
+
+
+
+
+
     // First, ask if the user wants a hint.
     bool wantHint = getYesNo("Would you like a hint for your move? (y/n): ");
     if (wantHint) {
@@ -105,16 +112,51 @@ MoveDecision Human::decideMove(int diceSum, const Player& opponent, bool allowUn
         }
     }
 
-    // If the opponent has no covered squares, force covering
+    // Force covering in these cases:
+    bool forceCovering = false;
+    string reasonMessage = "";
+
+    // Case 1: No covered squares on opponent's board
     if (!opponentHasCoveredSquares) {
+        forceCovering = true;
+        reasonMessage = "Uncovering is not allowed because the opponent has no covered squares.";
+    }
+    // Case 2: Handicap protection rule
+    else if (tournamentPtr && tournamentPtr->getHandicapActive() &&
+        opponent.getName() == tournamentPtr->getAdvantagePlayerName() &&
+        !opponent.getHasHadTurnInRound()) {
+        forceCovering = true;
+        reasonMessage = "Uncovering is not allowed because " + opponent.getName() +
+            " has the handicap advantage and hasn't had a turn yet.";
+    }
+    // Case 3: No valid uncover combinations (using existing gameplay logic)
+    else {
+        // Get opponent's covered squares (reusing the logic from Player::decideMove)
+        vector<int> oppCovered;
+        vector<int> oppSquares = opponent.getSquares();
+        for (int i = 0; i < static_cast<int>(oppSquares.size()); i++) {
+            if (oppSquares[i] != 0)  // Only consider covered squares
+                oppCovered.push_back(i + 1);
+        }
+
+        // Use the existing getCombinations function to check for valid uncover options
+        vector<vector<int>> uncoverCombos = getCombinations(oppCovered, diceSum);
+
+        if (uncoverCombos.empty()) {
+            forceCovering = true;
+            reasonMessage = "Uncovering is not allowed because there are no valid combinations that sum to " + std::to_string(diceSum) + ".";
+        }
+    }
+
+
+    if (forceCovering) {
         cover = true;
-        cout << "Uncovering is not allowed because the opponent has no covered squares. You must cover your own squares." << "\n";
+        cout << reasonMessage << " You must cover your own squares." << endl;
     }
     else {
         cover = getYesNo("Do you want to cover your squares? (y for cover, n for uncover): ");
     }
     decision.cover = cover;
-
 
 
     while (true)

@@ -7,6 +7,7 @@
 #include "Player.h"
 #include <iostream> // for debugging or printing in hint method
 #include <algorithm>
+#include "Tournament.h"
 
 using namespace std;
 
@@ -33,7 +34,7 @@ Algorithm:
             then remove the number from current.
 Reference: None
 ********************************************************************* */
-void findCombinations(const vector<int>& nums, int target, int start,
+void Player::findCombinations(const vector<int>& nums, int target, int start,
     vector<int>& current, vector<vector<int>>& result) {
     if (target == 0 && current.size() >= 1 && current.size() <= 4) {
         result.push_back(current);
@@ -62,7 +63,7 @@ Algorithm:
          3) Return the computed combinations.
 Reference: None
 ********************************************************************* */
-vector<vector<int>> getCombinations(const vector<int>& available, int target) {
+vector<vector<int>> Player::getCombinations(const vector<int>& available, int target) {
     vector<int> nums = available;
     sort(nums.begin(), nums.end());
     vector<vector<int>> result;
@@ -85,7 +86,8 @@ Algorithm:
 Reference: None 
 ********************************************************************* */
 Player::Player()
-    : playerName("Unknown"), score(0), squares(9, 0)
+    : playerName("Unknown"), score(0), squares(9, 0), hasHadTurnInRound(false)
+
 {
     // squares default to uncovered (all zero).
     boardModified = false;  // NEW: Initialize boardModified in the default constructor.
@@ -104,7 +106,8 @@ Algorithm:
 Reference: AI ASSISTED
 ********************************************************************* */
 Player::Player(const string& name, int boardSize)
-    : playerName(name), score(0)
+    : playerName(name), score(0), hasHadTurnInRound(false)
+
 {
         resetSquares(boardSize);
         boardModified = false; // Ensure board is marked unmodified.
@@ -235,7 +238,7 @@ Algorithm:
          3) Otherwise, set the square's value to 0 (uncover it) and return true.
 Reference: AI ASSISTED
 ********************************************************************* */
-bool Player::uncoverSquare(int squareLabel)
+bool Player::uncoverSquare(int squareLabel, const Tournament* tournamentPtr)
 {
     if (squareLabel < 1 || squareLabel > squares.size()) return false;
     int idx = squareLabel - 1;
@@ -416,6 +419,74 @@ int Player::optimalDiceRoll() const {
         return 2;
 }
 
+
+
+
+/* *********************************************************************
+Function Name: setHasHadTurnInRound
+Purpose: Sets the flag indicating whether the player has had a turn in the current round.
+Parameters:
+         value - a boolean value (true if player has had a turn, false otherwise)
+Return Value: None.
+Algorithm:
+         1) Set the hasHadTurnInRound attribute to the provided value.
+Reference: None
+********************************************************************* */
+void Player::setHasHadTurnInRound(bool value) {
+    hasHadTurnInRound = value;
+}
+
+/* *********************************************************************
+Function Name: getHasHadTurnInRound
+Purpose: Gets the flag indicating whether the player has had a turn in the current round.
+Parameters: None.
+Return Value: A boolean value (true if player has had a turn, false otherwise).
+Algorithm:
+         1) Return the value of hasHadTurnInRound.
+Reference: None
+********************************************************************* */
+bool Player::getHasHadTurnInRound() const {
+    return hasHadTurnInRound;
+}
+
+/* *********************************************************************
+Function Name: canUncoverSquare
+Purpose: Checks if a specific square on the player's board can be uncovered,
+         considering handicap protection rules.
+Parameters:
+         squareLabel - an integer (1-based index) representing the square to check
+         tournamentPtr - a pointer to the Tournament object for handicap info
+Return Value: A boolean value; true if the square can be uncovered, false otherwise.
+Algorithm:
+         1) Check if the square is out of range or already uncovered.
+         2) Check if the square is protected by handicap rules.
+         3) Return true only if the square is covered and not protected.
+Reference: None
+********************************************************************* */
+bool Player::canUncoverSquare(int squareLabel, const Tournament* tournamentPtr) const {
+    // Basic validation - square must be in range and covered
+    if (squareLabel < 1 || squareLabel > squares.size()) return false;
+    int idx = squareLabel - 1;
+    if (squares[idx] == 0) return false;  // Already uncovered
+
+    // If no tournament pointer or handicap isn't active, no additional restrictions
+    if (!tournamentPtr || !tournamentPtr->getHandicapActive()) return true;
+
+    // Check if this is a handicap square
+    if (squareLabel == tournamentPtr->getHandicapSquare() &&
+        getName() == tournamentPtr->getAdvantagePlayerName() &&
+        !hasHadTurnInRound) {
+        // This is the handicap square for the advantage player who hasn't had a turn yet
+        return false;  // Cannot uncover this protected square
+    }
+
+    return true;  // Square can be uncovered
+}
+
+
+
+
+
 /* *********************************************************************
 Function Name: decideMove
 Purpose: To determine the player's move based on the dice roll and the state
@@ -449,7 +520,7 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
         if (squares[i] == 0)
             myAvailable.push_back(i + 1);
     }
-    vector<vector<int>> coverCombos = getCombinations(myAvailable, diceSum);
+    vector<vector<int>> coverCombos = Player::getCombinations(myAvailable, diceSum);
     if (!coverCombos.empty()) {
         coverDecision.squares = coverCombos[0];
         // Choose a candidate that maximizes the highest value
@@ -476,7 +547,7 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
         if (oppSquares[i] != 0)  // Only consider covered squares.
             oppCovered.push_back(i + 1);
     }
-    vector<vector<int>> uncoverCombos = getCombinations(oppCovered, diceSum);
+    vector<vector<int>> uncoverCombos = Player::getCombinations(oppCovered, diceSum);
 
     // If uncovering is not allowed, wipe out combos. meant for computer
     if (!allowUncover) {
