@@ -163,7 +163,8 @@ void Turn::execute() {
     bool roundEnded = false;  // track if the player ended the round
 
     do {
-        player.setHasHadTurnInRound(true);
+        // We'll set hasHadTurnInRound to true after a successful move,
+        // not at the beginning of the turn
 
         player.printBoard();
 
@@ -201,6 +202,12 @@ void Turn::execute() {
         cout << "Sum = " << sum << "\n" << "\n";
 
         if (sum == 0) {
+            // Prevent skipping on first turn of the round
+            if (!player.getHasHadTurnInRound()) {
+                cout << "Cannot skip on your first turn of the round.\n";
+                continue; // Go back to the beginning of the do-while loop
+            }
+
             cout << player.getName() << " chose to skip their turn.\n";
             break;
         }
@@ -223,6 +230,8 @@ void Turn::execute() {
         }
         lastMoveWasUncover = !decision.cover;  // Set the flag based on the decision.
         if (decision.squares.empty()) {
+            // Prevent skipping on first turn of the round - but this shouldn't happen 
+            // since we already check in Human::decideMove
             cout << player.getName() << " did not choose any squares. Turn ends.\n";
             break;
         }
@@ -255,6 +264,10 @@ void Turn::execute() {
             cout << "Could not apply the chosen move. Turn ends.\n";
             break;
         }
+
+        // Mark that the player has had their turn in this round
+        // This happens only after a successful move
+        player.setHasHadTurnInRound(true);
         cout << (decision.cover ? "Covered" : "Uncovered") << " squares: ";
         for (int sq : decision.squares)
             cout << sq << " ";
@@ -309,7 +322,6 @@ void Turn::execute() {
             }
         }
     }
-
 }
 
 /* *********************************************************************

@@ -427,6 +427,7 @@ void Round::determineFirstPlayer()
     }
 }
 
+
 /* *********************************************************************
 Function Name: getRoundWinner
 Purpose: Returns a reference to the player who won the round.

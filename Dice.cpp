@@ -127,7 +127,7 @@ pair<int, int> Dice::rollCustom(int diceCount) const
     while (true)
     {
         cout << "Enter " << diceCount
-            << " dice value(s) (1-6) or '0' to skip: ";
+            << " dice value(s) (1-6): ";
 
         // Read a full line
         string line;
@@ -140,7 +140,7 @@ pair<int, int> Dice::rollCustom(int diceCount) const
         // If the user typed absolutely nothing
         if (line.empty())
         {
-            cout << "No input. Please enter numbers 1..6 or '0' to skip.\n";
+            cout << "No input. Please enter numbers 1..6\n";
             continue;
         }
 
@@ -153,12 +153,12 @@ pair<int, int> Dice::rollCustom(int diceCount) const
             tokens.push_back(val);
         }
 
-        // 1) If user typed exactly one token == 0, skip
-        if (tokens.size() == 1 && tokens[0] == 0)
-        {
-            cout << "Skipping roll.\n";
-            return { 0, 0 };
-        }
+        //// 1) If user typed exactly one token == 0, skip
+        //if (tokens.size() == 1 && tokens[0] == 0)
+        //{
+        //    cout << "Skipping roll.\n";
+        //    return { 0, 0 };
+        //}
 
         // 2) If user typed exactly diceCount tokens, validate them
         if (tokens.size() == static_cast<size_t>(diceCount))
@@ -189,7 +189,7 @@ pair<int, int> Dice::rollCustom(int diceCount) const
             else
             {
                 // Maybe they typed "6 0" or "7" or something
-                cout << "Invalid dice values; must be in [1..6]. Use single '0' to skip.\n";
+                cout << "Invalid dice values; must be in [1..6].\n";
                 continue; // re-prompt
             }
         }
@@ -197,7 +197,7 @@ pair<int, int> Dice::rollCustom(int diceCount) const
         {
             // e.g. typed "3 4 5" for diceCount=2, or typed "3" for diceCount=2
             cout << "Invalid number of inputs. Please enter exactly "
-                << diceCount << " value(s), or single '0' to skip.\n";
+                << diceCount << " \n";
             continue; // re-prompt
         }
     }

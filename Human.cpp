@@ -75,10 +75,6 @@ MoveDecision Human::decideMove(int diceSum, const Player& opponent, bool allowUn
     MoveDecision decision;
 
 
-
-
-
-
     // First, ask if the user wants a hint.
     bool wantHint = getYesNo("Would you like a hint for your move? (y/n): ");
     if (wantHint) {
@@ -171,9 +167,16 @@ MoveDecision Human::decideMove(int diceSum, const Player& opponent, bool allowUn
 
         if (input.empty())
         {
-            cout << "No input provided. Skipping turn.\n";
-            decision.squares.clear();
-            return decision;
+            // Check if this is the player's first turn in the round
+            if (!getHasHadTurnInRound()) {
+                cout << "Cannot skip on your first turn of the round. Please enter a valid move.\n";
+                continue; // Re-prompt for input
+            }
+            else {
+                cout << "No input provided. Skipping turn.\n";
+                decision.squares.clear();
+                return decision;
+            }
         }
 
         // Parse the squares
@@ -186,13 +189,25 @@ MoveDecision Human::decideMove(int diceSum, const Player& opponent, bool allowUn
         {
             if (num == 0)
             {
-                // skip signal
-                cout << getName() << " chose to skip their turn.\n";
-                decision.squares.clear();
-                return decision;
+                // Check if this is the player's first turn in the round
+                if (!getHasHadTurnInRound()) {
+                    cout << "Cannot skip on your first turn of the round. Please enter a valid move.\n";
+                    skip = true;
+                    break; // Exit the parsing loop
+                }
+                else {
+                    // skip signal
+                    cout << getName() << " chose to skip their turn.\n";
+                    decision.squares.clear();
+                    return decision;
+                }
             }
             chosen.push_back(num);
             total += num;
+        }
+
+        if (skip) {
+            continue; // Re-prompt for input
         }
 
         if (chosen.empty())
