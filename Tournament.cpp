@@ -395,6 +395,10 @@ void Tournament::start()
                 temp /= 10;
             }
 
+            if (advSquare > 9) {
+                advSquare = (advSquare % 9 == 0) ? 9 : advSquare % 9;
+            }
+
             Player* advantagePlayer = nullptr;
             if (winner.getName() == firstTurn.getName())
             {
