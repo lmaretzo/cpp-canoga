@@ -72,6 +72,8 @@ void Tournament::initializeBoardSize()
             break;
         cout << "Invalid input. Please enter 9, 10, or 11: ";
     }
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
 }
 
 /* *********************************************************************
@@ -376,6 +378,8 @@ void Tournament::start()
             else if (getAdvantagePlayerName() == computer->getName())
                 computer->coverSquare(getHandicapSquare());
         }
+
+
 
         round.play();
 

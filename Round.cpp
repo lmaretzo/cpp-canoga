@@ -366,10 +366,6 @@ Return Value: None
 ********************************************************************* */
 void Round::determineFirstPlayer()
 {
-    cin.clear();
-
-    // Discard leftover characters (including newline) up to the next newline
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
     cout << "Rolling dice to determine who goes first...\n";
     auto rollP1 = dice.roll();
@@ -382,6 +378,7 @@ void Round::determineFirstPlayer()
         << " and " << rollP1.second << " (sum = " << sumP1 << ")\n";
     cout << player2->getName() << " rolled " << rollP2.first
         << " and " << rollP2.second << " (sum = " << sumP2 << ")\n";
+
 
     // Handle tie as a recursive re-roll
     if (sumP1 == sumP2)

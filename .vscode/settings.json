@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "ctime": "cpp",
+        "iostream": "cpp",
+        "limits": "cpp",
+        "cctype": "cpp",
+        "sstream": "cpp",
+        "cerrno": "cpp"
+    }
+}
