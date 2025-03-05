@@ -483,10 +483,6 @@ bool Player::canUncoverSquare(int squareLabel, const Tournament* tournamentPtr) 
     return true;  // Square can be uncovered
 }
 
-
-
-
-
 /* *********************************************************************
 Function Name: decideMove
 Purpose: To determine the player's move based on the dice roll and the state
@@ -505,8 +501,8 @@ Algorithm:
               - coverScore = (sum of cover candidate) + 2 * (maximum cover candidate value)
               - uncoverScore = (sum of uncover candidate)
          3) If uncoverScore is lower than coverScore, choose uncover; otherwise, choose cover.
-         4) Store an explanation string reflecting the computed scores and rationale.
-         5) If only one type of move is available, return it (without extra explanation if desired).
+         4) Generate detailed explanations for each square in the chosen combination.
+         5) If only one type of move is available, return it with square-by-square explanations.
 Reference: AI Assisted
 ********************************************************************* */
 MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowUncover) {
@@ -549,7 +545,7 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
     }
     vector<vector<int>> uncoverCombos = Player::getCombinations(oppCovered, diceSum);
 
-    // If uncovering is not allowed, wipe out combos. meant for computer
+    // If uncovering is not allowed, wipe out combos
     if (!allowUncover) {
         uncoverCombos.clear();
     }
@@ -590,76 +586,173 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
         // For uncovering, a lower total is preferable.
         int uncoverScore = uncoverTotal;
 
-        // compute the maximum value in the uncover candidate.
-        int maxUncover = 0;
-        for (int n : uncoverDecision.squares) {
-            maxUncover = max(maxUncover, n);
-        }
-
         string explanation;
         if (uncoverScore < coverScore) {
             // Uncover move is preferred.
-            if (maxUncover >= 7) {
-                explanation = "I recommend uncovering because, although this move includes a high-impact square (max value "
-                    + to_string(maxUncover) + "), its overall uncover score (" + to_string(uncoverScore)
-                    + ") is lower than the cover score (" + to_string(coverScore)
-                    + "), which means it minimizes the opponent's potential points.";
+            explanation = "Uncovering is recommended because the overall uncover score (" + to_string(uncoverScore)
+                + ") is lower than the cover score (" + to_string(coverScore) + "). ";
+
+            // Find the highest value square in the combination for context
+            int highestSquare = 0;
+            for (int sq : uncoverDecision.squares) {
+                highestSquare = max(highestSquare, sq);
+            }
+
+            // Add specific explanation for individual squares
+            if (uncoverDecision.squares.size() == 1) {
+                // Single square case
+                int sq = uncoverDecision.squares[0];
+                if (sq >= 7) {
+                    explanation += "Uncovering " + to_string(sq) + " is strategic as it's a high-value square that significantly reduces opponent's potential points.";
+                }
+                else if (sq >= 4) {
+                    explanation += "Uncovering " + to_string(sq) + " targets a medium-value square, which is the best option available for this dice sum.";
+                }
+                else {
+                    explanation += "Uncovering " + to_string(sq) + " is the only option available for this dice sum.";
+                }
             }
             else {
-                explanation = "I recommend uncovering because the overall uncover score (" + to_string(uncoverScore)
-                    + ") is lower than the cover score (" + to_string(coverScore)
-                    + "), and the uncovered squares are of low value, reducing risk.";
+                // Multiple squares case - explain the combination as a whole
+                if (uncoverDecision.squares.size() > 1 && highestSquare >= 7) {
+                    explanation += "This combination prioritizes uncovering " + to_string(highestSquare) +
+                        " (a high-value square) while using smaller squares to complete the exact sum.";
+                }
+                else if (uncoverDecision.squares.size() > 1 && highestSquare >= 4) {
+                    explanation += "This combination focuses on uncovering " + to_string(highestSquare) +
+                        " (a medium-value square) while using smaller squares to reach the exact sum.";
+                }
+                else {
+                    explanation += "This combination optimally uses the available squares to reach the required sum.";
+                }
             }
+
             return MoveDecision{ false, uncoverDecision.squares, explanation };
         }
         else {
             // Cover move is preferred.
-            if (maxCover >= 7) {
-                explanation = "I recommend covering because this move secures high-impact squares (max value "
-                    + to_string(maxCover) + "), and its cover score (" + to_string(coverScore)
-                    + ") is higher than the uncover score (" + to_string(uncoverScore)
-                    + "), offering stronger protection.";
+            explanation = "I recommend covering because the cover score (" + to_string(coverScore)
+                + ") is higher than the uncover score (" + to_string(uncoverScore) + "). ";
+
+            // Find the highest value square in the combination for context
+            int highestSquare = 0;
+            for (int sq : coverDecision.squares) {
+                highestSquare = max(highestSquare, sq);
+            }
+
+            // Add specific explanation for individual squares
+            if (coverDecision.squares.size() == 1) {
+                // Single square case
+                int sq = coverDecision.squares[0];
+                if (sq >= 7) {
+                    explanation += "Covering " + to_string(sq) + " is crucial as it's a high-value square that protects against major point loss.";
+                }
+                else if (sq >= 4) {
+                    explanation += "Covering " + to_string(sq) + " secures a medium-value square, which is the best option available for this dice sum.";
+                }
+                else {
+                    explanation += "Covering " + to_string(sq) + " is the only option available for this dice sum.";
+                }
             }
             else {
-                explanation = "I recommend covering because the cover score (" + to_string(coverScore)
-                    + ") is higher than the uncover score (" + to_string(uncoverScore)
-                    + "), providing a balanced defense across your board.";
+                // Multiple squares case - explain the combination as a whole
+                if (coverDecision.squares.size() > 1 && highestSquare >= 7) {
+                    explanation += "This combination prioritizes covering " + to_string(highestSquare) +
+                        " (a high-value square) while using smaller squares to complete the exact sum.";
+                }
+                else if (coverDecision.squares.size() > 1 && highestSquare >= 4) {
+                    explanation += "This combination focuses on covering " + to_string(highestSquare) +
+                        " (a medium-value square) while using smaller squares to reach the exact sum.";
+                }
+                else {
+                    explanation += "This combination optimally uses the available squares to reach the required sum.";
+                }
             }
+
             return MoveDecision{ true, coverDecision.squares, explanation };
         }
     }
     // If only an uncover move is available.
     else if (!uncoverDecision.squares.empty()) {
-        int maxUncover = 0;
-        for (int n : uncoverDecision.squares) {
-            maxUncover = max(maxUncover, n);
+        string explanation = "Only an uncover move is available. ";
+
+        // Find the highest value square in the combination
+        int highestSquare = 0;
+        for (int sq : uncoverDecision.squares) {
+            highestSquare = max(highestSquare, sq);
         }
-        string explanation;
-        if (maxUncover >= 7) {
-            explanation = "Only an uncover move is available, and it targets a high-impact square (max value "
-                + to_string(maxUncover) + "); this move is best for reducing the opponent's score.";
+
+        // Explain based on combination size and highest value
+        if (uncoverDecision.squares.size() == 1) {
+            // Single square case
+            int sq = uncoverDecision.squares[0];
+            if (sq >= 7) {
+                explanation += "Uncovering " + to_string(sq) + " is highly advantageous as it targets a high-value square.";
+            }
+            else if (sq >= 4) {
+                explanation += "Uncovering " + to_string(sq) + " targets a medium-value square, which is the best option available.";
+            }
+            else {
+                explanation += "Uncovering " + to_string(sq) + " is the only option available for this dice sum.";
+            }
         }
         else {
-            explanation = "Only an uncover move is available; uncovering these lower-value squares helps lower the opponent's board total.";
+            // Multiple squares case
+            if (uncoverDecision.squares.size() > 1 && highestSquare >= 7) {
+                explanation += "This combination prioritizes uncovering " + to_string(highestSquare) +
+                    " (a high-value square) while using smaller squares to complete the exact sum.";
+            }
+            else if (uncoverDecision.squares.size() > 1 && highestSquare >= 4) {
+                explanation += "This combination focuses on uncovering " + to_string(highestSquare) +
+                    " (a medium-value square) while using smaller squares to reach the exact sum.";
+            }
+            else {
+                explanation += "This combination optimally uses the available squares to reach the required sum.";
+            }
         }
+
         return MoveDecision{ false, uncoverDecision.squares, explanation };
     }
 
     // Otherwise, only a cover move is available.
     else {
-        // assuming coverDecision.squares is not empty if this branch is reached.
-        int maxCover = 0;
-        for (int n : coverDecision.squares) {
-            maxCover = max(maxCover, n);
+        string explanation = "Only a cover move is available. ";
+
+        // Find the highest value square in the combination
+        int highestSquare = 0;
+        for (int sq : coverDecision.squares) {
+            highestSquare = max(highestSquare, sq);
         }
-        string explanation;
-        if (maxCover >= 7) {
-            explanation = "Only a cover move is available, and it protects high-impact squares (max value "
-                + to_string(maxCover) + "), which is critical for a strong defense.";
+
+        // Explain based on combination size and highest value
+        if (coverDecision.squares.size() == 1) {
+            // Single square case
+            int sq = coverDecision.squares[0];
+            if (sq >= 7) {
+                explanation += "Covering " + to_string(sq) + " is a priority as it's a high-value square that needs protection.";
+            }
+            else if (sq >= 4) {
+                explanation += "Covering " + to_string(sq) + " secures a medium-value square, which is the best option available.";
+            }
+            else {
+                explanation += "Covering " + to_string(sq) + " is the only option available for this dice sum.";
+            }
         }
         else {
-            explanation = "Only a cover move is available; covering these squares maintains a balanced defense.";
+            // Multiple squares case
+            if (coverDecision.squares.size() > 1 && highestSquare >= 7) {
+                explanation += "This combination prioritizes covering " + to_string(highestSquare) +
+                    " (a high-value square) while using smaller squares to complete the exact sum.";
+            }
+            else if (coverDecision.squares.size() > 1 && highestSquare >= 4) {
+                explanation += "This combination focuses on covering " + to_string(highestSquare) +
+                    " (a medium-value square) while using smaller squares to reach the exact sum.";
+            }
+            else {
+                explanation += "This combination optimally uses the available squares to reach the required sum.";
+            }
         }
+
         return MoveDecision{ true, coverDecision.squares, explanation };
     }
 }
