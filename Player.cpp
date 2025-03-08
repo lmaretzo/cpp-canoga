@@ -252,6 +252,60 @@ bool Player::uncoverSquare(int squareLabel, const Tournament* tournamentPtr)
     return true;
 }
 
+
+/* *********************************************************************
+Function Name: canUncover
+Purpose: Determines if uncovering opponent squares is allowed based on
+         game state, available combinations, and handicap rules.
+Parameters:
+         diceSum       - an integer representing the dice roll sum
+         opponent      - a reference to the opponent player
+         allowUncover  - a boolean indicating if uncovering is allowed by game rules
+         tournamentPtr - a pointer to the Tournament for handicap information
+Return Value: A boolean value; true if uncovering is allowed, false otherwise.
+Algorithm:
+         1) Check if uncovering is allowed by game rules (first turn)
+         2) Check if opponent has any covered squares
+         3) Check for valid uncover combinations
+         4) Check handicap protection
+Reference: None
+********************************************************************* */
+bool Player::canUncover(int diceSum, const Player& opponent, const Tournament* tournamentPtr) const {
+    // Rule 1: If opponent has no covered squares, cannot uncover
+    bool opponentHasCoveredSquares = false;
+    vector<int> oppSquares = opponent.getSquares();
+    for (int sq : oppSquares) {
+        if (sq != 0) { // Opponent has covered at least one square
+            opponentHasCoveredSquares = true;
+            break;
+        }
+    }
+    if (!opponentHasCoveredSquares) {
+        return false;
+    }
+
+    // Rule 2: Handicap protection
+    if (tournamentPtr && tournamentPtr->getHandicapActive() &&
+        opponent.getName() == tournamentPtr->getAdvantagePlayerName() &&
+        !opponent.getHasHadTurnInRound()) {
+        return false;
+    }
+
+    // Rule 3: Check if there are valid combinations to uncover
+    vector<int> oppCovered;
+    for (int i = 0; i < static_cast<int>(oppSquares.size()); i++) {
+        if (oppSquares[i] != 0)  // Only consider covered squares
+            oppCovered.push_back(i + 1);
+    }
+    vector<vector<int>> uncoverCombos = getCombinations(oppCovered, diceSum);
+    if (uncoverCombos.empty()) {
+        return false;
+    }
+
+    // If we passed all checks, uncovering is allowed
+    return true;
+}
+
 /* *********************************************************************
 Function Name: areAllCovered
 Purpose: To check if all squares on the board are covered.
@@ -537,37 +591,34 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
     }
 
     // Compute Uncover Decision
-    vector<int> oppCovered;
-    vector<int> oppSquares = opponent.getSquares();
-    for (int i = 0; i < static_cast<int>(oppSquares.size()); i++) {
-        if (oppSquares[i] != 0)  // Only consider covered squares.
-            oppCovered.push_back(i + 1);
-    }
-    vector<vector<int>> uncoverCombos = Player::getCombinations(oppCovered, diceSum);
+    uncoverDecision.squares.clear(); // Default to empty (no uncover move)
 
-    // If uncovering is not allowed, wipe out combos
-    if (!allowUncover) {
-        uncoverCombos.clear();
-    }
+    // Only consider uncovering if explicitly allowed and our centralized conditions are met
+    if (canUncover(diceSum, opponent, nullptr)) {
+        vector<int> oppCovered;
+        vector<int> oppSquares = opponent.getSquares();
+        for (int i = 0; i < static_cast<int>(oppSquares.size()); i++) {
+            if (oppSquares[i] != 0)  // Only consider covered squares.
+                oppCovered.push_back(i + 1);
+        }
+        vector<vector<int>> uncoverCombos = Player::getCombinations(oppCovered, diceSum);
 
-    if (!uncoverCombos.empty()) {
-        uncoverDecision.squares = uncoverCombos[0];
+        if (!uncoverCombos.empty()) {
+            uncoverDecision.squares = uncoverCombos[0];
 
-        // Choose the candidate with the lower total.
-        for (auto& combo : uncoverCombos) {
-            int currentTotal = 0;
-            for (int n : combo)
-                currentTotal += n;
-            int bestTotal = 0;
-            for (int n : uncoverDecision.squares)
-                bestTotal += n;
-            if (currentTotal < bestTotal) {
-                uncoverDecision.squares = combo;
+            // Choose the candidate with the lower total.
+            for (auto& combo : uncoverCombos) {
+                int currentTotal = 0;
+                for (int n : combo)
+                    currentTotal += n;
+                int bestTotal = 0;
+                for (int n : uncoverDecision.squares)
+                    bestTotal += n;
+                if (currentTotal < bestTotal) {
+                    uncoverDecision.squares = combo;
+                }
             }
         }
-    }
-    else {
-        uncoverDecision.squares.clear();
     }
 
     // Heuristic Evaluation
@@ -713,12 +764,36 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
 
         return MoveDecision{ false, uncoverDecision.squares, explanation };
     }
-
-    // Otherwise, only a cover move is available.
+    // Otherwise, only a cover move is available or there's no valid uncover move due to restrictions
     else {
         string explanation = "Only a cover move is available. ";
 
-        // Find the highest value square in the combination
+        // Explain why uncovering isn't an option (if there are covered squares to potentially uncover)
+        bool opponentHasCoveredSquares = false;
+        vector<int> oppSquares = opponent.getSquares();
+        for (int sq : oppSquares) {
+            if (sq != 0) {
+                opponentHasCoveredSquares = true;
+                break;
+            }
+        }
+
+        //if (opponentHasCoveredSquares && !allowUncover) {
+        //    explanation += "Uncovering is not allowed on the first turn. ";
+        //}
+        if (opponentHasCoveredSquares && !canUncover(diceSum, opponent, nullptr)) {
+            // Check if it's a handicap protection issue
+            if (opponent.getName() == "Computer" || opponent.getName() == "Human") {
+                explanation += "Uncovering may be restricted due to handicap protection or lack of valid combinations. ";
+            }
+        }
+
+        // If no cover move is available either, return empty decision
+        if (coverDecision.squares.empty()) {
+            return MoveDecision{ true, vector<int>(), "No valid moves available for this dice sum." };
+        }
+
+        // Otherwise continue with the cover move explanation
         int highestSquare = 0;
         for (int sq : coverDecision.squares) {
             highestSquare = max(highestSquare, sq);

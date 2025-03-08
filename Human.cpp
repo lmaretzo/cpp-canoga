@@ -109,41 +109,28 @@ MoveDecision Human::decideMove(int diceSum, const Player& opponent, bool allowUn
     }
 
     // Force covering in these cases:
+// Force covering in these cases:
     bool forceCovering = false;
     string reasonMessage = "";
 
-    // Case 1: No covered squares on opponent's board
-    if (!opponentHasCoveredSquares) {
+    // Use the centralized function to determine if uncovering is allowed
+    if (!canUncover(diceSum, opponent, tournamentPtr)) {
         forceCovering = true;
-        reasonMessage = "Uncovering is not allowed because the opponent has no covered squares.";
-    }
-    // Case 2: Handicap protection rule
-    else if (tournamentPtr && tournamentPtr->getHandicapActive() &&
-        opponent.getName() == tournamentPtr->getAdvantagePlayerName() &&
-        !opponent.getHasHadTurnInRound()) {
-        forceCovering = true;
-        reasonMessage = "Uncovering is not allowed because " + opponent.getName() +
-            " has the handicap advantage and hasn't had a turn yet.";
-    }
-    // Case 3: No valid uncover combinations (using existing gameplay logic)
-    else {
-        // Get opponent's covered squares (reusing the logic from Player::decideMove)
-        vector<int> oppCovered;
-        vector<int> oppSquares = opponent.getSquares();
-        for (int i = 0; i < static_cast<int>(oppSquares.size()); i++) {
-            if (oppSquares[i] != 0)  // Only consider covered squares
-                oppCovered.push_back(i + 1);
+
+        // Determine the reason for better user feedback
+        if (!opponentHasCoveredSquares) {
+            reasonMessage = "Uncovering is not allowed because the opponent has no covered squares.";
         }
-
-        // Use the existing getCombinations function to check for valid uncover options
-        vector<vector<int>> uncoverCombos = getCombinations(oppCovered, diceSum);
-
-        if (uncoverCombos.empty()) {
-            forceCovering = true;
+        else if (tournamentPtr && tournamentPtr->getHandicapActive() &&
+            opponent.getName() == tournamentPtr->getAdvantagePlayerName() &&
+            !opponent.getHasHadTurnInRound()) {
+            reasonMessage = "Uncovering is not allowed because " + opponent.getName() +
+                " has the handicap advantage and hasn't had a turn yet.";
+        }
+        else {
             reasonMessage = "Uncovering is not allowed because there are no valid combinations that sum to " + std::to_string(diceSum) + ".";
         }
     }
-
 
     if (forceCovering) {
         cover = true;

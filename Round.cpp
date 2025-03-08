@@ -155,9 +155,7 @@ void Round::play()
             }
             else {
                 // First player's turn (Computer)
-                Turn turnFirst(*player1, *player2, dice,
-                    (firstTurnForFirstPlayer ? false : true),
-                    tournamentPtr);
+                Turn turnFirst(*player1, *player2, dice, true, tournamentPtr);
                 turnFirst.execute();
                 if (firstTurnForFirstPlayer) {
                     firstTurnForFirstPlayer = false;

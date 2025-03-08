@@ -215,19 +215,21 @@ public:
 
 
     /* *********************************************************************
-    Function Name: decideMove
-    Purpose: To determine the player's move based on the dice roll and the opponent's board state.
+    Function Name: canUncover
+    Purpose: Determines if uncovering opponent squares is allowed based on
+             opponent board state and handicap rules.
     Parameters:
-             diceSum      - an integer representing the total from the dice roll
-             opponent     - a constant reference to the opponent Player object
-             allowUncover - a boolean flag indicating whether uncovering the opponent's squares is allowed this turn
-    Return Value: A MoveDecision structure that contains the decision (cover/uncover) and the chosen squares.
-    Algorithm: Computes valid move combinations and returns a decision; intended to be overridden by derived classes.
+             diceSum       - an integer representing the dice roll sum
+             opponent      - a reference to the opponent player
+             tournamentPtr - a pointer to the Tournament for handicap information
+    Return Value: A boolean value; true if uncovering is allowed, false otherwise.
+    Algorithm:
+             1) Check if opponent has any covered squares
+             2) Check for valid uncover combinations
+             3) Check handicap protection
     Reference: None
     ********************************************************************* */
-    virtual MoveDecision decideMove(int diceSum, const Player& opponent, bool allowUncover);
-
-
+    bool canUncover(int diceSum, const Player& opponent, const Tournament* tournamentPtr = nullptr) const;
 
     /* *********************************************************************
     Function Name: offerHint
@@ -308,7 +310,18 @@ Reference: None
 ********************************************************************* */
     static vector<vector<int>> getCombinations(const vector<int>& available, int target);
 
-
+    /* *********************************************************************
+Function Name: decideMove
+Purpose: To determine the player's move based on the dice roll and the opponent's board state.
+Parameters:
+         diceSum      - an integer representing the total from the dice roll
+         opponent     - a constant reference to the opponent Player object
+         allowUncover - a boolean flag indicating whether uncovering the opponent's squares is allowed this turn
+Return Value: A MoveDecision structure that contains the decision (cover/uncover) and the chosen squares.
+Algorithm: Computes valid move combinations and returns a decision; intended to be overridden by derived classes.
+Reference: None
+********************************************************************* */
+    virtual MoveDecision decideMove(int diceSum, const Player& opponent, bool allowUncover);
 
 private:
     string playerName; // Holds the player's name.

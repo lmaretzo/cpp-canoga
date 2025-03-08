@@ -210,7 +210,7 @@ void Turn::execute() {
             cout << player.getName() << " chose to skip their turn.\n";
             break;
         }
-        if (!(canCoverAnyCombination(player, sum) || canUncoverAnyCombination(opponent, sum))) {
+        if (!(canCoverAnyCombination(player, sum) || player.canUncover(sum, opponent, tournamentPtr))) {
             cout << "No valid moves for sum = " << sum << ". "
                 << player.getName() << "'s turn ends.\n";
             break;
