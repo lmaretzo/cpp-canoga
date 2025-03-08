@@ -323,6 +323,41 @@ Reference: None
 ********************************************************************* */
     virtual MoveDecision decideMove(int diceSum, const Player& opponent, bool allowUncover);
 
+    // Add these method declarations to the Player class in Player.h
+
+        /* *********************************************************************
+        Function Name: getOptimalDiceRollWithReason
+        Purpose: Determines the strategic choice between rolling one or two dice
+                 with a detailed explanation of the reasoning process. This should only
+                 be called when squares 7-n are covered (when player has a choice).
+        Parameters: None.
+        Return Value: A pair containing:
+                      - an integer (1 or 2) representing the optimal number of dice to roll
+                      - a string explaining the reasoning behind the decision
+        Algorithm:
+                 1) Analyze the full board state, considering all uncovered squares
+                 2) Evaluate strategic factors like value distribution and game progress
+                 3) Calculate probabilities of useful rolls for both one and two dice
+                 4) Return the optimal decision with a detailed explanation
+        Reference: None
+        ********************************************************************* */
+    std::pair<int, std::string> getOptimalDiceRollWithReason() const;
+
+    /* *********************************************************************
+    Function Name: canCoverSum
+    Purpose: Helper method to check if there exists any combination of the given
+             values that sums to the target value, respecting game rules.
+    Parameters:
+             values - a vector of integers representing available values
+             target - an integer representing the sum to reach
+    Return Value: Boolean indicating whether a valid combination exists.
+    Algorithm:
+             1) Check combinations of 1-4 elements that sum to the target
+             2) Return true as soon as a valid combination is found
+    Reference: None
+    ********************************************************************* */
+    bool canCoverSum(const std::vector<int>& values, int target) const;
+
 private:
     string playerName; // Holds the player's name.
     //bool computer;

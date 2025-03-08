@@ -171,28 +171,45 @@ void Turn::execute() {
         cout << "\nRolling...\n";
         std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // pause for sec
 
+        // Update the relevant part of the Turn::execute() method:
+
         bool allCoveredSevenToN = areSquaresSevenToNCovered(player);
         int diceToRoll = 2;  // Default: roll two dice.
+
+        // Per game rules: Player can only choose dice count if squares 7-n are all covered
         if (allCoveredSevenToN) {
-            // Compute the optimal dice roll using the new function in the Player class.
-            int optimal = player.optimalDiceRoll();
+            // Compute the optimal dice roll using the enhanced function in the Player class.
+            std::pair<int, std::string> optimaAndReason;
             if (player.getName() == "Computer") {
-                // For computer players, automatically use the optimal dice roll.
-                diceToRoll = optimal;
+                // For computer players, automatically use the optimal dice roll with explanation.
+                optimaAndReason = player.getOptimalDiceRollWithReason();
+                diceToRoll = optimaAndReason.first;
+
+                // Display the AI's reasoning for its decision
+                cout << player.getName() << " decides to roll " << diceToRoll
+                    << " die" << (diceToRoll == 1 ? "" : "ce") << ".\n"
+                    << "Reasoning: " << optimaAndReason.second << "\n";
             }
             else {
                 // For human players, first ask if they want a hint regarding the optimal dice roll.
                 bool wantHint = getYesNo("Would you like a hint for the optimal dice roll? (y/n): ");
                 if (wantHint) {
-                    // Display the hint.
-                    cout << "Hint: Based on your board, the optimal dice roll is "
-                        << optimal << " die" << (optimal == 1 ? "" : "s") << ".\n";
+                    // Display the hint with detailed reasoning.
+                    optimaAndReason = player.getOptimalDiceRollWithReason();
+                    cout << "Hint: Based on your board, the optimal choice is "
+                        << optimaAndReason.first << " die" << (optimaAndReason.first == 1 ? "" : "ce")
+                        << ".\nReasoning: " << optimaAndReason.second << "\n";
                 }
                 // Then prompt the user to choose whether to roll one die.
                 bool rollOneDie = getYesNo("Do you want to roll one die? (y/n): ");
                 diceToRoll = rollOneDie ? 1 : 2;
             }
         }
+        //else {
+        //    // If any square from 7-n is uncovered, player MUST roll two dice per game rules
+        //    cout << "Rolling two dice (required because some squares 7-" << player.getSquares().size()
+        //        << " are still uncovered).\n";
+        //}
 
 
         pair<int, int> rollVal = diceRef.roll(diceToRoll);
