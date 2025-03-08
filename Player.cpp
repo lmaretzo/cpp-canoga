@@ -733,6 +733,8 @@ bool Player::canUncoverSquare(int squareLabel, const Tournament* tournamentPtr) 
 
     return true;  // Square can be uncovered
 }
+
+
 /* *********************************************************************
 Function Name: decideMove
 Purpose: To determine the player's move based on the dice roll and the state
@@ -908,16 +910,34 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
                             bestCoverExplanation += " is strategic as it covers high-value square " +
                                 std::to_string(highestSquare) + ".";
                         }
+                        else if (highestSquare >= 5) {
+                            // For mid-value square combinations
+                            if (squareCount == 2) {
+                                bestCoverExplanation += " balances efficiency with strategic value by covering mid-value square " +
+                                    std::to_string(highestSquare) + " along with square " +
+                                    std::to_string(sortedSquares.front()) + ".";
+                            }
+                            else if (squareCount > 2) {
+                                bestCoverExplanation += " strategically covers mid-value square " +
+                                    std::to_string(highestSquare) + " while efficiently using " +
+                                    std::to_string(squareCount - 1) + " additional squares to match the dice sum.";
+                            }
+                        }
                         else if (squareCount > 2) {
                             bestCoverExplanation += " efficiently combines " + std::to_string(squareCount) +
-                                " squares to match the dice sum.";
+                                " squares to maximize coverage with the given dice sum.";
+                        }
+                        else if (squareCount == 2) {
+                            int firstSquare = sortedSquares.front();
+                            int secondSquare = sortedSquares.back();
+                            bestCoverExplanation += " uses the exact combination needed (" +
+                                std::to_string(firstSquare) + " + " + std::to_string(secondSquare) +
+                                " = " + std::to_string(firstSquare + secondSquare) +
+                                ") to match the dice sum.";
                         }
                         else {
-                            bestCoverExplanation += " is the best available option.";
+                            bestCoverExplanation += " is the best available option for the given dice sum.";
                         }
-                    }
-                    else {
-                        bestCoverExplanation += " is the best available option.";
                     }
                 }
                 else if (combo.size() == 1) {
@@ -928,10 +948,10 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
                             std::to_string(square) + ".";
                     }
                     else if (square >= 5) {
-                        bestCoverExplanation += " covers mid-value square " + std::to_string(square) + ".";
+                        bestCoverExplanation += " covers mid-value square " + std::to_string(square) + ", which provides good strategic value.";
                     }
                     else {
-                        bestCoverExplanation += " is the best available option.";
+                        bestCoverExplanation += " covers a low-value square " + std::to_string(square) + ", which is the best option for this dice roll.";
                     }
                 }
                 else {
@@ -1083,16 +1103,34 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
                                 bestUncoverExplanation += " targets the high-value square " +
                                     std::to_string(highestSquare) + ".";
                             }
+                            else if (highestSquare >= 5) {
+                                // For mid-value square combinations
+                                if (squareCount == 2) {
+                                    bestUncoverExplanation += " focuses on mid-value square " +
+                                        std::to_string(highestSquare) + " along with square " +
+                                        std::to_string(sortedSquares.front()) + " to match the dice sum precisely.";
+                                }
+                                else if (squareCount > 2) {
+                                    bestUncoverExplanation += " strategically targets mid-value square " +
+                                        std::to_string(highestSquare) + " while using " +
+                                        std::to_string(squareCount - 1) + " additional squares to match the exact sum.";
+                                }
+                            }
                             else if (squareCount > 2) {
                                 bestUncoverExplanation += " efficiently targets " + std::to_string(squareCount) +
-                                    " squares.";
+                                    " squares to maximize uncovering with the given dice sum.";
+                            }
+                            else if (squareCount == 2) {
+                                int firstSquare = sortedSquares.front();
+                                int secondSquare = sortedSquares.back();
+                                bestUncoverExplanation += " specifically targets the combination of squares " +
+                                    std::to_string(firstSquare) + " and " + std::to_string(secondSquare) +
+                                    " which sum to " + std::to_string(firstSquare + secondSquare) +
+                                    ", matching the dice roll perfectly.";
                             }
                             else {
-                                bestUncoverExplanation += " is the best available option.";
+                                bestUncoverExplanation += " is optimal for the given dice sum.";
                             }
-                        }
-                        else {
-                            bestUncoverExplanation += " is the best available option.";
                         }
                     }
                     else if (combo.size() == 1) {
@@ -1103,10 +1141,10 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
                                 std::to_string(square) + ".";
                         }
                         else if (square >= 5) {
-                            bestUncoverExplanation += " targets mid-value square " + std::to_string(square) + ".";
+                            bestUncoverExplanation += " targets mid-value square " + std::to_string(square) + ", providing good tactical advantage.";
                         }
                         else {
-                            bestUncoverExplanation += " is the best available option.";
+                            bestUncoverExplanation += " targets a low-value square " + std::to_string(square) + ", which is necessary given the current dice roll.";
                         }
                     }
                     else {
