@@ -3,11 +3,9 @@
  * Project:  Canoga
  * Date:  1/31/2025
  ************************************************************/
-
 #pragma once
 #ifndef COMPUTER_H
 #define COMPUTER_H
-
 #include "Player.h"
 #include <string>
 #include <vector>
@@ -30,24 +28,25 @@ Reference: None
 class Computer : public Player {
 public:
     /* *********************************************************************
-  Function Name: Computer (Constructor)
-  Purpose: To initialize a Computer object with a given name and board size.
-  Parameters:
-           name       - a string representing the computer player's name (passed by value)
-           boardSize  - an integer representing the number of squares on the board
-  Return Value: None.
-  Algorithm: Calls the base class constructor to initialize common attributes.
-  Reference: None
-  ********************************************************************* */
+    Function Name: Computer (Constructor)
+    Purpose: To initialize a Computer object with a given name and board size.
+    Parameters:
+             name       - a string representing the computer player's name (passed by value)
+             boardSize  - an integer representing the number of squares on the board
+    Return Value: None.
+    Algorithm: Calls the base class constructor to initialize common attributes.
+    Reference: None
+    ********************************************************************* */
     Computer(const string& name, int boardSize);
+
     /* *********************************************************************
-Function Name: ~Computer (Destructor)
-Purpose: To clean up any resources used by the Computer object.
-Parameters: None.
-Return Value: None.
-Algorithm: Destructor performs any necessary cleanup. (No explicit cleanup required.)
-Reference: None
-********************************************************************* */
+    Function Name: ~Computer (Destructor)
+    Purpose: To clean up any resources used by the Computer object.
+    Parameters: None.
+    Return Value: None.
+    Algorithm: Destructor performs any necessary cleanup. (No explicit cleanup required.)
+    Reference: None
+    ********************************************************************* */
     virtual ~Computer();
 
     /* *********************************************************************
@@ -59,6 +58,7 @@ Reference: None
              opponent     - a constant reference to the opponent Player object
              allowUncover - a boolean flag indicating whether uncovering the opponent's
                             squares is allowed this turn
+             tournamentPtr - a pointer to the Tournament object for handicap info
     Return Value: A MoveDecision structure containing the decision (cover/uncover)
                  and the selected squares.
     Algorithm: Uses built-in AI logic to compute valid combinations for covering
@@ -67,5 +67,4 @@ Reference: None
     ********************************************************************* */
     virtual MoveDecision decideMove(int diceSum, const Player& opponent, bool allowUncover, const Tournament* tournamentPtr = nullptr) override;
 };
-
 #endif

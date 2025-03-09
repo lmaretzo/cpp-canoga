@@ -26,8 +26,25 @@ Reference: None
 class Tournament
 {
 public:
-    Tournament();  // Constructor
-    ~Tournament(); // Destructor
+    /* *********************************************************************
+    Function Name: Tournament (Constructor)
+    Purpose: Initializes a new Tournament object with default values.
+    Parameters: None.
+    Return Value: None.
+    Algorithm: Sets up default values and initializes player objects.
+    Reference: None
+    ********************************************************************* */
+    Tournament();
+
+    /* *********************************************************************
+    Function Name: ~Tournament (Destructor)
+    Purpose: Cleans up resources used by the Tournament object.
+    Parameters: None.
+    Return Value: None.
+    Algorithm: Performs necessary cleanup.
+    Reference: None
+    ********************************************************************* */
+    ~Tournament();
 
     /* *********************************************************************
     Function Name: getHuman
@@ -73,8 +90,35 @@ public:
     ********************************************************************* */
     std::string getNextTurn() const { return nextTurn; }
 
+    /* *********************************************************************
+    Function Name: enableManualDiceMode
+    Purpose: Enables the manual dice entry mode for testing.
+    Parameters: None.
+    Return Value: None.
+    Algorithm: Calls the enableManualMode method on the dice object.
+    Reference: None
+    ********************************************************************* */
     void enableManualDiceMode();
+
+    /* *********************************************************************
+    Function Name: disableManualDiceMode
+    Purpose: Disables the manual dice entry mode, reverting to random rolls.
+    Parameters: None.
+    Return Value: None.
+    Algorithm: Calls the disableManualMode method on the dice object.
+    Reference: None
+    ********************************************************************* */
     void disableManualDiceMode();
+
+    /* *********************************************************************
+    Function Name: start
+    Purpose: Starts and manages the tournament until completion.
+    Parameters: None.
+    Return Value: None.
+    Algorithm: Sets up the game, plays rounds until the user decides to quit,
+               applies handicap rules, and declares a winner.
+    Reference: None
+    ********************************************************************* */
     void start();
 
     /* *********************************************************************
@@ -110,19 +154,102 @@ public:
     ********************************************************************* */
     std::string getAdvantagePlayerName() const { return advantagePlayerName; }
 
+    /* *********************************************************************
+    Function Name: setHandicapSquare
+    Purpose: Sets the handicap square value.
+    Parameters:
+             s - An integer representing the square number.
+    Return Value: None.
+    Algorithm: Assigns the parameter value to the handicapSquare member.
+    Reference: None
+    ********************************************************************* */
     void setHandicapSquare(int s) { handicapSquare = s; }
+
+    /* *********************************************************************
+    Function Name: setHandicapActive
+    Purpose: Sets the handicap active status.
+    Parameters:
+             b - A boolean indicating if handicap should be active.
+    Return Value: None.
+    Algorithm: Assigns the parameter value to the handicapActive member.
+    Reference: None
+    ********************************************************************* */
     void setHandicapActive(bool b) { handicapActive = b; }
+
+    /* *********************************************************************
+    Function Name: setAdvantagePlayerName
+    Purpose: Sets the name of the player with the handicap advantage.
+    Parameters:
+             name - A string with the player's name.
+    Return Value: None.
+    Algorithm: Assigns the parameter value to the advantagePlayerName member.
+    Reference: None
+    ********************************************************************* */
     void setAdvantagePlayerName(const std::string& name) { advantagePlayerName = name; }
 
+    /* *********************************************************************
+    Function Name: setFirstTurnIsHuman
+    Purpose: Sets the flag indicating if the human player goes first.
+    Parameters:
+             val - A boolean indicating if the human goes first.
+    Return Value: None.
+    Algorithm: Assigns the parameter value to the firstTurnIsHuman member.
+    Reference: None
+    ********************************************************************* */
     void setFirstTurnIsHuman(bool val) { firstTurnIsHuman = val; }
+
+    /* *********************************************************************
+    Function Name: setNextTurn
+    Purpose: Sets the next player's turn.
+    Parameters:
+             val - A string indicating whose turn is next ("Human" or "Computer").
+    Return Value: None.
+    Algorithm: Assigns the parameter value to the nextTurn member.
+    Reference: None
+    ********************************************************************* */
     void setNextTurn(const std::string& val) { nextTurn = val; }
 
-    // Serialization functions:
+    /* *********************************************************************
+    Function Name: saveGame
+    Purpose: Saves the current game state to a file.
+    Parameters:
+             filename - A string representing the path to save the game.
+    Return Value: A boolean indicating if the save was successful.
+    Algorithm: Writes player states, scores, and turn information to the file.
+    Reference: None
+    ********************************************************************* */
     bool saveGame(const std::string& filename);
+
+    /* *********************************************************************
+    Function Name: loadGame
+    Purpose: Loads a saved game state from a file.
+    Parameters:
+             filename - A string representing the path to load the game from.
+    Return Value: A boolean indicating if the load was successful.
+    Algorithm: Reads player states, scores, and turn information from the file.
+    Reference: None
+    ********************************************************************* */
     bool loadGame(const std::string& filename);
 
 private:
+    /* *********************************************************************
+    Function Name: initializeBoardSize
+    Purpose: Prompts the user to select a valid board size.
+    Parameters: None.
+    Return Value: None.
+    Algorithm: Gets and validates user input for board size (9, 10, or 11).
+    Reference: None
+    ********************************************************************* */
     void initializeBoardSize();
+
+    /* *********************************************************************
+    Function Name: newGameInitialization
+    Purpose: Sets up a new game with initial parameters.
+    Parameters: None.
+    Return Value: None.
+    Algorithm: Displays welcome message and initializes the board size.
+    Reference: None
+    ********************************************************************* */
     void newGameInitialization();
 
     /* *********************************************************************
@@ -137,7 +264,16 @@ private:
     ********************************************************************* */
     Player* computer;
 
+    /* *********************************************************************
+    Data Member: dice
+    Purpose: Dice object used for rolling dice throughout the tournament.
+    ********************************************************************* */
     Dice dice;
+
+    /* *********************************************************************
+    Data Member: boardSize
+    Purpose: Stores the size of the game board (9, 10, or 11).
+    ********************************************************************* */
     int boardSize;
 
     /* *********************************************************************

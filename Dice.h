@@ -35,15 +35,15 @@ class Dice
 {
 public:
     /* *********************************************************************
-   Function Name: Dice (Constructor)
-   Purpose: Initializes a Dice object and seeds the random number generator.
-   Parameters: None
-   Return Value: None
-   Algorithm:
-       1) Initialize manualMode to false.
-       2) Ensure the RNG is seeded only once per program execution.
-   Reference: None
-   ********************************************************************* */
+    Function Name: Dice (Constructor)
+    Purpose: Initializes a Dice object and seeds the random number generator.
+    Parameters: None
+    Return Value: None
+    Algorithm:
+        1) Initialize manualMode to false.
+        2) Ensure the RNG is seeded only once per program execution.
+    Reference: None
+    ********************************************************************* */
     Dice();
 
     /* *********************************************************************
@@ -57,15 +57,15 @@ public:
     ~Dice();
 
     /* *********************************************************************
-   Function Name: rollOne
-   Purpose: Rolls a single six-sided die.
-   Parameters: None
-   Return Value: An integer between 1 and 6.
-   Algorithm:
-       1) Generate a random number between 1 and 6.
-       2) Return the result.
-   Reference: None
-   ********************************************************************* */
+    Function Name: rollOne
+    Purpose: Rolls a single six-sided die.
+    Parameters: None
+    Return Value: An integer between 1 and 6.
+    Algorithm:
+        1) Generate a random number between 1 and 6.
+        2) Return the result.
+    Reference: None
+    ********************************************************************* */
     int rollOne() const;
 
     /* *********************************************************************
@@ -74,8 +74,8 @@ public:
     Parameters: None
     Return Value: A pair of integers representing two dice rolls.
     Algorithm:
-    1) Call rollOne() twice.
-    2) Store the results in a pair and return them.
+        1) Call rollOne() twice.
+        2) Store the results in a pair and return them.
     Reference: None
     ********************************************************************* */
     pair<int, int> rollTwo() const;
@@ -90,8 +90,7 @@ public:
         2) Notify the user that manual mode has been enabled.
     Reference: None
     ********************************************************************* */
-    void enableManualMode();  // Declaration here
-
+    void enableManualMode();
 
     /* *********************************************************************
     Function Name: disableManualMode
@@ -103,7 +102,7 @@ public:
         2) Notify the user that manual mode has been disabled.
     Reference: None
     ********************************************************************* */
-    void disableManualMode(); // Declaration here
+    void disableManualMode();
 
     /* *********************************************************************
     Function Name: roll
@@ -115,39 +114,45 @@ public:
     Reference: None
     ********************************************************************* */
     pair<int, int> roll() const;
-    
+
     /* *********************************************************************
     Function Name: roll (overloaded)
     Purpose: Rolls either one or two dice based on user input.
     Parameters:
-    - diceCount: An integer specifying the number of dice to roll.
+        - diceCount: An integer specifying the number of dice to roll.
     Return Value: A pair of integers representing dice rolls.
     Algorithm:
-    1) Calls rollCustom(diceCount) to perform the roll.
+        1) Calls rollCustom(diceCount) to perform the roll.
     Reference: None
     ********************************************************************* */
-    pair<int, int> roll(int diceCount) const; // Overload to accept 1 or 2 dice
-
+    pair<int, int> roll(int diceCount) const;
 
 private:
-    bool manualMode; // True if manual mode is enabled
-    mutable vector<int> manualRolls; // Holds the manually entered rolls
+    /* *********************************************************************
+    Data Member: manualMode
+    Purpose: True if manual mode is enabled, allowing user input for dice values.
+    ********************************************************************* */
+    bool manualMode;
 
     /* *********************************************************************
-Function Name: rollCustom
-Purpose: Handles both manual and random dice rolling, based on mode.
-Parameters:
-    - diceCount: An integer specifying how many dice to roll.
-Return Value: A pair of integers representing dice values.
-Algorithm:
-    1) If manualMode is active, prompt user for dice values.
-    2) Validate input to ensure numbers are between 1 and 6 (or 0 to skip).
-    3) If manualMode is off, generate random dice rolls.
-Reference: AI assistance was used to refine the input validation logic.
-********************************************************************* */
+    Data Member: manualRolls
+    Purpose: Holds the manually entered rolls for testing purposes.
+    ********************************************************************* */
+    mutable vector<int> manualRolls;
 
+    /* *********************************************************************
+    Function Name: rollCustom
+    Purpose: Handles both manual and random dice rolling, based on mode.
+    Parameters:
+        - diceCount: An integer specifying how many dice to roll.
+    Return Value: A pair of integers representing dice values.
+    Algorithm:
+        1) If manualMode is active, prompt user for dice values.
+        2) Validate input to ensure numbers are between 1 and 6 (or 0 to skip).
+        3) If manualMode is off, generate random dice rolls.
+    Reference: AI assistance was used to refine the input validation logic.
+    ********************************************************************* */
     pair<int, int> rollCustom(int diceCount) const;
-
 };
 
 #endif

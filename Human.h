@@ -13,7 +13,7 @@
 #include <vector>
 
 class Tournament;
-
+ 
 using namespace std;
 
 /* *********************************************************************
