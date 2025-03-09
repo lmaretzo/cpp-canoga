@@ -541,7 +541,7 @@ std::pair<int, std::string> Player::getOptimalDiceRollWithReason() const {
 
     for (int i = 2; i <= 12; i++) {
         if (canCoverSum(uncoveredValues, i)) {
-            twoCount += twoDiceProbs[i] * 36; // Scale back to count out of 36
+            twoCount += static_cast<int>(twoDiceProbs[i] * 36); // Cast to int before addition        
         }
     }
     double twoDiceProb = twoCount / 36.0;
@@ -768,469 +768,287 @@ bool Player::canUncoverSquare(int squareLabel, const Tournament* tournamentPtr) 
     return true;  // Square can be uncovered
 }
 
-
-
-MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowUncover, const Tournament* tournamentPtr) {
-    MoveDecision coverDecision, uncoverDecision;
-    coverDecision.cover = true;   // default for covering
-    uncoverDecision.cover = false; // default for uncovering
-
-
-    // *** MOVED TO BEGINNING: Check if handicap blocking is in effect ***
-// Check opponent squares and handicap protection
+/* *********************************************************************
+Function Name: checkForceCovering
+Purpose: Determines if the player must cover their own squares (cannot uncover)
+Parameters:
+         opponent      - a constant reference to the opponent Player object
+         tournamentPtr - a pointer to the Tournament object for handicap info
+         diceSum       - an integer representing the sum of dice
+Return Value: true if covering is forced, false if uncovering is an option
+Algorithm:
+         1) Check if opponent has any covered squares
+         2) Check for handicap protection
+         3) Check if valid uncovering combinations exist
+Reference: None
+********************************************************************* */
+bool Player::checkForceCovering(const Player& opponent, const Tournament* tournamentPtr, int diceSum) const {
+    // Rule 1: If opponent has no covered squares, cannot uncover
     bool opponentHasCoveredSquares = false;
     vector<int> oppSquares = opponent.getSquares();
     for (int sq : oppSquares) {
-        if (sq != 0) {
+        if (sq != 0) { // Opponent has covered at least one square
             opponentHasCoveredSquares = true;
             break;
         }
     }
+    if (!opponentHasCoveredSquares) {
+        return true;
+    }
 
+    // Rule 2: Handicap protection
     bool handicapBlocking = tournamentPtr && tournamentPtr->getHandicapActive() &&
         opponent.getName() == tournamentPtr->getAdvantagePlayerName() &&
         !opponent.getHasHadTurnInRound();
-
-    // Force covering in these cases (handicap block logic mirror from Human.cpp)
-    bool forceCovering = false;
-    if (!opponentHasCoveredSquares || handicapBlocking || !canUncover(diceSum, opponent, tournamentPtr)) {
-        forceCovering = true;
+    if (handicapBlocking) {
+        return true;
     }
 
-    // Step 1: Generate all valid cover combinations
+    // Rule 3: No valid combinations to uncover
+    return !canUncover(diceSum, opponent, tournamentPtr);
+}
+
+/* *********************************************************************
+Function Name: evaluateCoverMoves
+Purpose: Evaluates all valid covering move combinations and selects the best one
+Parameters:
+         diceSum       - an integer representing the sum of dice
+         coverDecision - reference to a MoveDecision structure to store the result
+Return Value: None (modifies coverDecision by reference)
+Algorithm:
+         1) Find all valid cover combinations
+         2) Score each combination based on strategic factors
+         3) Select the highest-scoring combination
+         4) Generate explanation for the selected move
+Reference: None
+********************************************************************* */
+void Player::evaluateCoverMoves(int diceSum, MoveDecision& coverDecision) {
+    coverDecision.cover = true;
+    coverDecision.squares.clear();
+
+    // Find uncovered squares
     vector<int> myAvailable;
     for (int i = 0; i < static_cast<int>(squares.size()); i++) {
         if (squares[i] == 0)
             myAvailable.push_back(i + 1);
     }
-    vector<vector<int>> coverCombos = Player::getCombinations(myAvailable, diceSum);
 
+    vector<vector<int>> coverCombos = getCombinations(myAvailable, diceSum);
+    if (coverCombos.empty()) {
+        return;
+    }
 
-    // Step 2: Find the optimal cover move if any valid moves exist
-    if (!coverCombos.empty()) {
-        // Enhanced strategy: Evaluate each cover combination
-        int bestCoverScore = -1;
-        string bestCoverExplanation;
+    // Evaluate each cover combination
+    int bestCoverScore = -1;
+    string bestExplanation;
 
-        for (const auto& combo : coverCombos) {
-            // Safety check - skip empty combos
-            if (combo.empty()) continue;
+    for (const auto& combo : coverCombos) {
+        // Skip empty combos (safety check)
+        if (combo.empty()) continue;
 
-            // Calculate basic score: sum of squares plus bonus for high values
-            int comboSum = 0;
-            int maxSquare = 0;
-            int squareCount = combo.size();
+        // Calculate score factors
+        int comboSum = 0;
+        int maxSquare = 0;
+        int squareCount = combo.size();
 
-            for (int square : combo) {
-                comboSum += square;
-                maxSquare = std::max(maxSquare, square);
-            }
+        for (int square : combo) {
+            comboSum += square;
+            maxSquare = std::max(maxSquare, square);
+        }
 
-            // Base score calculation
-            int score = comboSum + (2 * maxSquare);
+        // Base score calculation
+        int score = comboSum + (2 * maxSquare);
 
-            // Endgame detection - check if this move would win the game
-            bool wouldWin = true;
-            vector<int> simulatedBoard = squares;
-            for (int sq : combo) {
-                if (sq - 1 >= 0 && sq - 1 < static_cast<int>(simulatedBoard.size())) {
-                    simulatedBoard[sq - 1] = sq; // Mark as covered
-                }
-            }
-
-            // Check if all squares would be covered after this move
-            for (int val : simulatedBoard) {
-                if (val == 0) {
-                    wouldWin = false;
-                    break;
-                }
-            }
-
-            // Massive bonus for winning moves
-            if (wouldWin) {
-                score += 1000;
-            }
-
-            // Bonus for covering high-value squares
-            if (maxSquare >= 7) {
-                score += 15;
-            }
-            else if (maxSquare >= 5) {
-                score += 8;
-            }
-
-            // Bonus for covering multiple squares efficiently
-            if (squareCount > 1) {
-                score += squareCount * 3;
-            }
-
-            // Bonus for covering consecutive squares (tactical advantage)
-            bool hasConsecutive = false;
-            // Create a copy of combo that we can sort
-            vector<int> sortedCombo = combo;
-            std::sort(sortedCombo.begin(), sortedCombo.end());
-            for (size_t i = 1; i < sortedCombo.size(); i++) {
-                if (sortedCombo[i] == sortedCombo[i - 1] + 1) {
-                    hasConsecutive = true;
-                    break;
-                }
-            }
-            if (hasConsecutive) {
-                score += 5;
-            }
-
-            // Update best cover decision if this is better
-            if (score > bestCoverScore) {
-                bestCoverScore = score;
-                coverDecision.squares = combo;
-
-                // Generate explanation
-                if (combo.size() == 1) {
-                    bestCoverExplanation = "Cover square: " + formatNumberList(combo);
-                }
-                else {
-                    bestCoverExplanation = "Cover squares: " + formatNumberList(combo);
-                }
-
-                if (wouldWin) {
-                    bestCoverExplanation += " because it would win the game by covering all squares!";
-                }
-                else if (combo.size() > 1) {
-                    // Sort squares by value to identify high and low values
-                    vector<int> sortedSquares = combo;
-                    std::sort(sortedSquares.begin(), sortedSquares.end());
-
-                    // Safety check before accessing front/back
-                    if (!sortedSquares.empty()) {
-                        int lowestSquare = sortedSquares.front();
-                        int highestSquare = sortedSquares.back();
-
-                        // Different explanations based on the combination of values
-                        if (highestSquare >= 7 && lowestSquare <= 4) {
-                            // Count how many low-value squares we have
-                            vector<int> lowValueSquares;
-                            for (int sq : sortedSquares) {
-                                if (sq <= 4) {
-                                    lowValueSquares.push_back(sq);
-                                }
-                            }
-
-                            // Create explanation based on the number of low-value squares
-                            bestCoverExplanation += " because it is a strategic combination that covers high-value square " +
-                                std::to_string(highestSquare) +
-                                " while efficiently using low-value square";
-
-                            // Add 's' if multiple low-value squares
-                            if (lowValueSquares.size() > 1) {
-                                bestCoverExplanation += "s ";
-                            }
-                            else {
-                                bestCoverExplanation += " ";
-                            }
-
-                            // Add all low-value squares
-                            for (size_t i = 0; i < lowValueSquares.size(); i++) {
-                                bestCoverExplanation += std::to_string(lowValueSquares[i]);
-
-                                if (i < lowValueSquares.size() - 2) {
-                                    bestCoverExplanation += ", ";
-                                }
-                                else if (i == lowValueSquares.size() - 2) {
-                                    bestCoverExplanation += " and ";
-                                }
-                            }
-
-                            bestCoverExplanation += " to reach the exact sum.";
-                        }
-
-                        else if (highestSquare >= 7) {
-                            bestCoverExplanation += " because it is strategic as it covers high-value square " +
-                                std::to_string(highestSquare) + ".";
-                        }
-                        else if (highestSquare >= 5) {
-                            // For mid-value square combinations
-                            if (squareCount == 2) {
-                                bestCoverExplanation += " because it balances efficiency with strategic value by covering mid-value square " +
-                                    std::to_string(highestSquare) + " along with square " +
-                                    std::to_string(sortedSquares.front()) + ".";
-                            }
-                            else if (squareCount > 2) {
-                                bestCoverExplanation += " because it strategically covers mid-value square " +
-                                    std::to_string(highestSquare) + " while efficiently using " +
-                                    std::to_string(squareCount - 1) + " additional squares to match the dice sum.";
-                            }
-                        }
-                        else if (squareCount > 2) {
-                            bestCoverExplanation += " because it efficiently combines " + std::to_string(squareCount) +
-                                " squares to maximize coverage with the given dice sum.";
-                        }
-                        else if (squareCount == 2) {
-                            int firstSquare = sortedSquares.front();
-                            int secondSquare = sortedSquares.back();
-                            bestCoverExplanation += " because it uses the exact combination needed (" +
-                                std::to_string(firstSquare) + " + " + std::to_string(secondSquare) +
-                                " = " + std::to_string(firstSquare + secondSquare) +
-                                ") to match the dice sum.";
-                        }
-                        else {
-                            bestCoverExplanation += " because it is the best available option for the given dice sum.";
-                        }
-                    }
-                }
-                else if (combo.size() == 1) {
-                    // Single square case - safe to access first element
-                    int square = combo[0];
-                    if (square >= 7) {
-                        bestCoverExplanation += " because it is strategic as it covers high-value square " +
-                            std::to_string(square) + ".";
-                    }
-                    else if (square >= 5) {
-                        bestCoverExplanation += " because it covers mid-value square " + std::to_string(square) + ", which provides good strategic value.";
-                    }
-                    else {
-                        bestCoverExplanation += " because it covers a low-value square " + std::to_string(square) + ", which is the best option for this dice roll.";
-                    }
-                }
-                else {
-                    // Should never reach here (empty combo) but added for safety
-                    bestCoverExplanation += " because it is the best available option.";
-                }
+        // Check if this move would win the game
+        bool wouldWin = true;
+        vector<int> simulatedBoard = squares;
+        for (int sq : combo) {
+            if (sq - 1 >= 0 && sq - 1 < static_cast<int>(simulatedBoard.size())) {
+                simulatedBoard[sq - 1] = sq; // Mark as covered
             }
         }
 
-        // Store the explanation for the best cover move
-        coverDecision.explanation = bestCoverExplanation;
-    }
-    else {
-        coverDecision.squares.clear();
-    }
-
-    // Step 3: Generate all valid uncover combinations (only if allowed by game rules)
-    uncoverDecision.squares.clear(); // Default to empty (no uncover move)
-
-    // Only consider uncovering if explicitly allowed by game rules and our centralized conditions are met
-    if (opponentHasCoveredSquares && !handicapBlocking && canUncover(diceSum, opponent, tournamentPtr)) {
-        vector<int> oppCovered;
-        vector<int> oppSquares = opponent.getSquares();
-
-        // Check if handicap is active for filtering out the handicap square
-        bool isHandicapActive = tournamentPtr && tournamentPtr->getHandicapActive() &&
-            opponent.getName() == tournamentPtr->getAdvantagePlayerName() &&
-            !opponent.getHasHadTurnInRound();
-        int handicapSquare = isHandicapActive ? tournamentPtr->getHandicapSquare() : 0;
-
-        // Only add squares that aren't protected by handicap
-        for (int i = 0; i < static_cast<int>(oppSquares.size()); i++) {
-            if (oppSquares[i] != 0) {  // Only consider covered squares
-                int squareLabel = i + 1;
-                // Skip the handicap square if it's protected
-                if (isHandicapActive && squareLabel == handicapSquare) {
-                    continue;  // Skip adding this square to available options
-                }
-                oppCovered.push_back(squareLabel);
+        for (int val : simulatedBoard) {
+            if (val == 0) {
+                wouldWin = false;
+                break;
             }
         }
 
-        vector<vector<int>> uncoverCombos = Player::getCombinations(oppCovered, diceSum);
+        // Apply scoring bonuses
+        if (wouldWin) {
+            score += 1000;  // Massive bonus for winning moves
+        }
+        if (maxSquare >= 7) {
+            score += 15;    // Bonus for high-value squares
+        }
+        else if (maxSquare >= 5) {
+            score += 8;     // Bonus for mid-value squares
+        }
+        if (squareCount > 1) {
+            score += squareCount * 3;  // Bonus for covering multiple squares
+        }
 
-        if (!uncoverCombos.empty()) {
-            // Enhanced strategy: Evaluate each uncover combination
-            int bestUncoverScore = -1;
-            string bestUncoverExplanation;
-
-            for (const auto& combo : uncoverCombos) {
-                // Safety check - skip empty combos
-                if (combo.empty()) continue;
-
-                // Calculate basic score
-                int comboSum = 0;
-                int maxSquare = 0;
-                int squareCount = combo.size();
-
-                for (int square : combo) {
-                    comboSum += square;
-                    maxSquare = std::max(maxSquare, square);
-                }
-
-                // For uncovering, we generally want the lowest sum (most efficient)
-                // But with strategic considerations
-                int score = 100 - comboSum;  // Base score: Lower sum is better
-
-                // Check if this move would win the game by uncovering all opponent squares
-                bool wouldWin = true;
-                vector<int> simulatedOpponentBoard = oppSquares;
-                for (int sq : combo) {
-                    if (sq - 1 >= 0 && sq - 1 < static_cast<int>(simulatedOpponentBoard.size())) {
-                        simulatedOpponentBoard[sq - 1] = 0; // Mark as uncovered
-                    }
-                }
-
-                // Check if all opponent squares would be uncovered after this move
-                for (int val : simulatedOpponentBoard) {
-                    if (val != 0) {
-                        wouldWin = false;
-                        break;
-                    }
-                }
-
-                // Massive bonus for winning moves
-                if (wouldWin) {
-                    score += 1000;
-                }
-
-                // Bonus for uncovering high-value squares
-                if (maxSquare >= 7) {
-                    score += 10;  // Significant bonus for high-value squares
-                }
-
-                // Bonus for strategically uncovering multiple squares
-                if (squareCount > 1) {
-                    score += squareCount * 2;
-                }
-
-                // Update best uncover decision if this is better
-                if (score > bestUncoverScore) {
-                    bestUncoverScore = score;
-                    uncoverDecision.squares = combo;
-
-                    // Generate explanation
-                    if (combo.size() == 1) {
-                        bestUncoverExplanation = "Uncover square: " + formatNumberList(combo);
-                    }
-                    else {
-                        bestUncoverExplanation = "Uncover squares: " + formatNumberList(combo);
-                    }
-
-                    if (wouldWin) {
-                        bestUncoverExplanation += " because it would win the game by uncovering all opponent's squares!";
-                    }
-                    else if (combo.size() > 1) {
-                        // Sort squares by value to identify high and low values
-                        vector<int> sortedSquares = combo;
-                        std::sort(sortedSquares.begin(), sortedSquares.end());
-
-                        // Safety check before accessing front/back
-                        if (!sortedSquares.empty()) {
-                            int lowestSquare = sortedSquares.front();
-                            int highestSquare = sortedSquares.back();
-
-                            // Different explanations based on the combination of values
-                            if (highestSquare >= 7 && lowestSquare <= 4) {
-                                // Count how many low-value squares we have
-                                vector<int> lowValueSquares;
-                                for (int sq : sortedSquares) {
-                                    if (sq <= 4) {
-                                        lowValueSquares.push_back(sq);
-                                    }
-                                }
-
-                                // Create explanation based on the number of low-value squares
-                                bestUncoverExplanation += " because it targets the high-value square " +
-                                    std::to_string(highestSquare) +
-                                    " while using low-value square";
-
-                                // Add 's' if multiple low-value squares
-                                if (lowValueSquares.size() > 1) {
-                                    bestUncoverExplanation += "s ";
-                                }
-                                else {
-                                    bestUncoverExplanation += " ";
-                                }
-
-                                // Add all low-value squares
-                                for (size_t i = 0; i < lowValueSquares.size(); i++) {
-                                    bestUncoverExplanation += std::to_string(lowValueSquares[i]);
-
-                                    if (i < lowValueSquares.size() - 2) {
-                                        bestUncoverExplanation += ", ";
-                                    }
-                                    else if (i == lowValueSquares.size() - 2) {
-                                        bestUncoverExplanation += " and ";
-                                    }
-                                }
-
-                                bestUncoverExplanation += " to complete the combination.";
-                            }
-                            else if (highestSquare >= 7) {
-                                bestUncoverExplanation += " targets the high-value square " +
-                                    std::to_string(highestSquare) + ".";
-                            }
-                            else if (highestSquare >= 5) {
-                                // For mid-value square combinations
-                                if (squareCount == 2) {
-                                    bestUncoverExplanation += " because it focuses on mid-value square " +
-                                        std::to_string(highestSquare) + " along with square " +
-                                        std::to_string(sortedSquares.front()) + " to match the dice sum precisely.";
-                                }
-                                else if (squareCount > 2) {
-                                    bestUncoverExplanation += " because it strategically targets mid-value square " +
-                                        std::to_string(highestSquare) + " while using " +
-                                        std::to_string(squareCount - 1) + " additional squares to match the exact sum.";
-                                }
-                            }
-                            else if (squareCount > 2) {
-                                bestUncoverExplanation += " because it efficiently targets " + std::to_string(squareCount) +
-                                    " squares to maximize uncovering with the given dice sum.";
-                            }
-                            else if (squareCount == 2) {
-                                int firstSquare = sortedSquares.front();
-                                int secondSquare = sortedSquares.back();
-                                bestUncoverExplanation += " because it specifically targets the combination of squares " +
-                                    std::to_string(firstSquare) + " and " + std::to_string(secondSquare) +
-                                    " which sum to " + std::to_string(firstSquare + secondSquare) +
-                                    ", matching the dice roll perfectly.";
-                            }
-                            else {
-                                bestUncoverExplanation += " because it is optimal for the given dice sum.";
-                            }
-                        }
-                    }
-                    else if (combo.size() == 1) {
-                        // Single square case - safe to access first element
-                        int square = combo[0];
-                        if (square >= 7) {
-                            bestUncoverExplanation += " because it targets the high-value square " +
-                                std::to_string(square) + ".";
-                        }
-                        else if (square >= 5) {
-                            bestUncoverExplanation += " because it targets mid-value square " + std::to_string(square) + ", providing good tactical advantage.";
-                        }
-                        else {
-                            bestUncoverExplanation += " because it targets a low-value square " + std::to_string(square) + ", which is necessary given the current dice roll.";
-                        }
-                    }
-                    else {
-                        // Should never reach here (empty combo) but added for safety
-                        bestUncoverExplanation += " because it is the best available option.";
-                    }
-
-                    // Store the explanation for the best uncover move
-                    uncoverDecision.explanation = bestUncoverExplanation;
-                }
+        // Bonus for consecutive squares
+        bool hasConsecutive = false;
+        vector<int> sortedCombo = combo;
+        std::sort(sortedCombo.begin(), sortedCombo.end());
+        for (size_t i = 1; i < sortedCombo.size(); i++) {
+            if (sortedCombo[i] == sortedCombo[i - 1] + 1) {
+                hasConsecutive = true;
+                break;
             }
+        }
+        if (hasConsecutive) {
+            score += 5;
+        }
+
+        // Update best cover decision if this is better
+        if (score > bestCoverScore) {
+            bestCoverScore = score;
+            coverDecision.squares = combo;
+            bestExplanation = generateMoveExplanation(combo, true, wouldWin);
         }
     }
 
-    // Step 4: Make the final decision between covering and uncovering
-    if (!coverDecision.squares.empty() && !uncoverDecision.squares.empty() && !forceCovering) {
-        // Both moves are available - calculate strategic scores for comparison
-        int coverTotal = 0, uncoverTotal = 0, maxCover = 0, maxUncover = 0;
-        bool coverWouldWin = false, uncoverWouldWin = false;
+    coverDecision.explanation = bestExplanation;
+}
 
-        // Calculate cover scores
-        for (int n : coverDecision.squares) {
-            coverTotal += n;
-            maxCover = std::max(maxCover, n);
+/* *********************************************************************
+Function Name: evaluateUncoverMoves
+Purpose: Evaluates all valid uncovering move combinations and selects the best one
+Parameters:
+         diceSum         - an integer representing the sum of dice
+         opponent        - a constant reference to the opponent Player object
+         tournamentPtr   - a pointer to the Tournament object for handicap info
+         uncoverDecision - reference to a MoveDecision structure to store the result
+Return Value: None (modifies uncoverDecision by reference)
+Algorithm:
+         1) Find all valid uncover combinations
+         2) Score each combination based on strategic factors
+         3) Select the highest-scoring combination
+         4) Generate explanation for the selected move
+Reference: None
+********************************************************************* */
+void Player::evaluateUncoverMoves(int diceSum, const Player& opponent, const Tournament* tournamentPtr, MoveDecision& uncoverDecision) {
+    uncoverDecision.cover = false;
+    uncoverDecision.squares.clear();
+
+    // If we can't uncover, return empty decision
+    if (!canUncover(diceSum, opponent, tournamentPtr)) {
+        return;
+    }
+
+    vector<int> oppCovered;
+    vector<int> oppSquares = opponent.getSquares();
+
+    // Check if handicap is active for filtering out the handicap square
+    bool isHandicapActive = tournamentPtr && tournamentPtr->getHandicapActive() &&
+        opponent.getName() == tournamentPtr->getAdvantagePlayerName() &&
+        !opponent.getHasHadTurnInRound();
+    int handicapSquare = isHandicapActive ? tournamentPtr->getHandicapSquare() : 0;
+
+    // Only add squares that aren't protected by handicap
+    for (int i = 0; i < static_cast<int>(oppSquares.size()); i++) {
+        if (oppSquares[i] != 0) {  // Only consider covered squares
+            int squareLabel = i + 1;
+            // Skip the handicap square if it's protected
+            if (isHandicapActive && squareLabel == handicapSquare) {
+                continue;
+            }
+            oppCovered.push_back(squareLabel);
+        }
+    }
+
+    vector<vector<int>> uncoverCombos = getCombinations(oppCovered, diceSum);
+    if (uncoverCombos.empty()) {
+        return;
+    }
+
+    // Evaluate each uncover combination
+    int bestUncoverScore = -1;
+    string bestExplanation;
+
+    for (const auto& combo : uncoverCombos) {
+        // Skip empty combos (safety check)
+        if (combo.empty()) continue;
+
+        // Calculate score factors
+        int comboSum = 0;
+        int maxSquare = 0;
+        int squareCount = combo.size();
+
+        for (int square : combo) {
+            comboSum += square;
+            maxSquare = std::max(maxSquare, square);
         }
 
-        // Calculate uncover scores
-        for (int n : uncoverDecision.squares) {
-            uncoverTotal += n;
-            maxUncover = std::max(maxUncover, n);
+        // For uncovering, we generally want the lowest sum (most efficient)
+        int score = 100 - comboSum;  // Base score: Lower sum is better
+
+        // Check if this move would win the game
+        bool wouldWin = true;
+        vector<int> simulatedOpponentBoard = oppSquares;
+        for (int sq : combo) {
+            if (sq - 1 >= 0 && sq - 1 < static_cast<int>(simulatedOpponentBoard.size())) {
+                simulatedOpponentBoard[sq - 1] = 0; // Mark as uncovered
+            }
         }
 
-        // Check for winning moves
-        vector<int> tempSquares = squares;
+        for (int val : simulatedOpponentBoard) {
+            if (val != 0) {
+                wouldWin = false;
+                break;
+            }
+        }
+
+        // Apply scoring bonuses
+        if (wouldWin) {
+            score += 1000;  // Massive bonus for winning moves
+        }
+        if (maxSquare >= 7) {
+            score += 10;    // Bonus for high-value squares
+        }
+        if (squareCount > 1) {
+            score += squareCount * 2;  // Bonus for multiple squares
+        }
+
+        // Update best uncover decision if this is better
+        if (score > bestUncoverScore) {
+            bestUncoverScore = score;
+            uncoverDecision.squares = combo;
+            bestExplanation = generateMoveExplanation(combo, false, wouldWin);
+        }
+    }
+
+    uncoverDecision.explanation = bestExplanation;
+}
+
+/* *********************************************************************
+Function Name: makeStrategicDecision
+Purpose: Decides between covering and uncovering based on strategic scoring
+Parameters:
+         coverDecision   - the best covering move decision
+         uncoverDecision - the best uncovering move decision
+         opponent        - a constant reference to the opponent Player object
+Return Value: The strategically superior MoveDecision
+Algorithm:
+         1) If either move would win the game, prioritize it
+         2) If both would win, calculate and compare potential scores
+         3) Otherwise, use strategic scoring to compare the moves
+         4) Return the superior move with enhanced explanation
+Reference: None
+********************************************************************* */
+MoveDecision Player::makeStrategicDecision(const MoveDecision& coverDecision,
+    const MoveDecision& uncoverDecision,
+    const Player& opponent) {
+    // Check for win conditions
+    vector<int> tempSquares = squares;
+    bool coverWouldWin = false;
+    bool uncoverWouldWin = false;
+
+    // Check if cover move would win
+    if (!coverDecision.squares.empty()) {
         for (int sq : coverDecision.squares) {
             if (sq - 1 >= 0 && sq - 1 < static_cast<int>(tempSquares.size())) {
                 tempSquares[sq - 1] = sq;
@@ -1243,8 +1061,11 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
                 break;
             }
         }
+    }
 
-        vector<int> tempOppSquares = opponent.getSquares();
+    // Check if uncover move would win
+    vector<int> tempOppSquares = opponent.getSquares();
+    if (!uncoverDecision.squares.empty()) {
         for (int sq : uncoverDecision.squares) {
             if (sq - 1 >= 0 && sq - 1 < static_cast<int>(tempOppSquares.size())) {
                 tempOppSquares[sq - 1] = 0;
@@ -1257,94 +1078,297 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
                 break;
             }
         }
+    }
 
-        // If either move is a winning move, prioritize that
-        if (coverWouldWin && !uncoverWouldWin) {
-            string explanation = "Covering is recommended because it will win the game by covering all my squares. " +
-                coverDecision.explanation;
-            return MoveDecision{ true, coverDecision.squares, explanation };
-        }
-        else if (!coverWouldWin && uncoverWouldWin) {
-            string explanation = "Uncovering is recommended because it will win the game by uncovering all opponent's squares. " +
-                uncoverDecision.explanation;
-            return MoveDecision{ false, uncoverDecision.squares, explanation };
-        }
-        else if (coverWouldWin && uncoverWouldWin) {
-            // Both would win - make a strategic choice based on score potential
-            int coverScore = 0, uncoverScore = 0;
+    // If either move is a winning move, prioritize it
+    if (coverWouldWin && !uncoverWouldWin) {
+        MoveDecision result = coverDecision;
+        result.explanation = "Covering is recommended because it will win the game by covering all my squares. " + coverDecision.explanation;
+        return result;
+    }
+    else if (!coverWouldWin && uncoverWouldWin) {
+        MoveDecision result = uncoverDecision;
+        result.explanation = "Uncovering is recommended because it will win the game by uncovering all opponent's squares. " + uncoverDecision.explanation;
+        return result;
+    }
+    else if (coverWouldWin && uncoverWouldWin) {
+        // Both would win - make a strategic choice based on score potential
+        int coverScore = 0, uncoverScore = 0;
 
-            // Calculate potential score for cover win (sum of opponent's uncovered squares)
-            for (size_t i = 0; i < tempOppSquares.size(); i++) {
-                if (tempOppSquares[i] == 0) {
-                    coverScore += static_cast<int>(i) + 1;
-                }
-            }
-
-            // Calculate potential score for uncover win (sum of own covered squares)
-            for (size_t i = 0; i < tempSquares.size(); i++) {
-                if (tempSquares[i] != 0) {
-                    uncoverScore += tempSquares[i];
-                }
-            }
-
-            if (uncoverScore > coverScore) {
-                string explanation = "Both moves would win the game, but uncovering yields a higher score (" +
-                    std::to_string(uncoverScore) + " vs " + std::to_string(coverScore) +
-                    "). " + uncoverDecision.explanation;
-                return MoveDecision{ false, uncoverDecision.squares, explanation };
-            }
-            else {
-                string explanation = "Both moves would win the game, but covering yields a higher score (" +
-                    std::to_string(coverScore) + " vs " + std::to_string(uncoverScore) +
-                    "). " + coverDecision.explanation;
-                return MoveDecision{ true, coverDecision.squares, explanation };
+        // Calculate potential score for cover win (sum of opponent's uncovered squares)
+        for (size_t i = 0; i < tempOppSquares.size(); i++) {
+            if (tempOppSquares[i] == 0) {
+                coverScore += static_cast<int>(i) + 1;
             }
         }
 
-        // Neither move wins immediately - use enhanced strategic scoring
-        int coverScore = coverTotal + (3 * maxCover);
-        if (maxCover >= 7) coverScore += 10;  // Bonus for high-value squares
+        // Calculate potential score for uncover win (sum of own covered squares)
+        for (size_t i = 0; i < tempSquares.size(); i++) {
+            if (tempSquares[i] != 0) {
+                uncoverScore += tempSquares[i];
+            }
+        }
 
-        int uncoverScore = 100 - uncoverTotal + (2 * maxUncover);
-        if (maxUncover >= 7) uncoverScore += 15;  // Higher bonus for targeting opponent's high squares
-
-        // Add bonus for multi-square moves
-        coverScore += static_cast<int>(coverDecision.squares.size()) * 3;
-        uncoverScore += static_cast<int>(uncoverDecision.squares.size()) * 2;
-
-        // Make final decision with explanation
         if (uncoverScore > coverScore) {
-            string explanation = "Uncovering is recommended with strategic score " + std::to_string(uncoverScore) +
-                " versus cover score " + std::to_string(coverScore) + ". " +
-                uncoverDecision.explanation;
-            return MoveDecision{ false, uncoverDecision.squares, explanation };
+            MoveDecision result = uncoverDecision;
+            result.explanation = "Both moves would win the game, but uncovering yields a higher score (" +
+                std::to_string(uncoverScore) + " vs " + std::to_string(coverScore) +
+                "). " + uncoverDecision.explanation;
+            return result;
         }
         else {
-            string explanation = "Covering is recommended with strategic score " + std::to_string(coverScore) +
-                " versus uncover score " + std::to_string(uncoverScore) + ". " +
-                coverDecision.explanation;
-            return MoveDecision{ true, coverDecision.squares, explanation };
+            MoveDecision result = coverDecision;
+            result.explanation = "Both moves would win the game, but covering yields a higher score (" +
+                std::to_string(coverScore) + " vs " + std::to_string(uncoverScore) +
+                "). " + coverDecision.explanation;
+            return result;
         }
     }
 
-    // Step 5: Handle cases where only one type of move is available
-    else if (!uncoverDecision.squares.empty() && !forceCovering) {
-        string explanation = "Only an uncover move is available. \n" + uncoverDecision.explanation;
-        return MoveDecision{ false, uncoverDecision.squares, explanation };
+    // Neither move wins immediately - use enhanced strategic scoring
+    if (coverDecision.squares.empty()) {
+        return uncoverDecision;
     }
-    // Otherwise, only a cover move is available or there's no valid uncover move
+    if (uncoverDecision.squares.empty()) {
+        return coverDecision;
+    }
+
+    // Calculate strategic scores
+    int coverTotal = 0, uncoverTotal = 0, maxCover = 0, maxUncover = 0;
+
+    // Calculate cover scores
+    for (int n : coverDecision.squares) {
+        coverTotal += n;
+        maxCover = std::max(maxCover, n);
+    }
+
+    // Calculate uncover scores
+    for (int n : uncoverDecision.squares) {
+        uncoverTotal += n;
+        maxUncover = std::max(maxUncover, n);
+    }
+
+    int coverScore = coverTotal + (3 * maxCover);
+    if (maxCover >= 7) coverScore += 10;  // Bonus for high-value squares
+
+    int uncoverScore = 100 - uncoverTotal + (2 * maxUncover);
+    if (maxUncover >= 7) uncoverScore += 15;  // Higher bonus for targeting opponent's high squares
+
+    // Add bonus for multi-square moves
+    coverScore += static_cast<int>(coverDecision.squares.size()) * 3;
+    uncoverScore += static_cast<int>(uncoverDecision.squares.size()) * 2;
+
+    // Make final decision with explanation
+    if (uncoverScore > coverScore) {
+        MoveDecision result = uncoverDecision;
+        result.explanation = "Uncovering is recommended with strategic score " + std::to_string(uncoverScore) +
+            " versus cover score " + std::to_string(coverScore) + ". " +
+            uncoverDecision.explanation;
+        return result;
+    }
     else {
-        // If no cover move is available either, return empty decision
-        if (coverDecision.squares.empty()) {
-            return MoveDecision{ true, vector<int>(), "No valid moves available for this dice sum. \n" };
-        }
-
-
-        string explanation = coverDecision.explanation;
-
-
-        return MoveDecision{ true, coverDecision.squares, explanation };
+        MoveDecision result = coverDecision;
+        result.explanation = "Covering is recommended with strategic score " + std::to_string(coverScore) +
+            " versus uncover score " + std::to_string(uncoverScore) + ". " +
+            coverDecision.explanation;
+        return result;
     }
+}
+
+/* *********************************************************************
+Function Name: generateMoveExplanation
+Purpose: Generates a detailed explanation for a move decision
+Parameters:
+         combo    - vector of integers representing the chosen squares
+         isCover  - boolean indicating if this is a cover (true) or uncover (false) move
+         wouldWin - boolean indicating if this move would win the game
+Return Value: a string containing the detailed explanation
+Algorithm:
+         1) Format the list of squares
+         2) Generate appropriate explanation based on move type and square values
+         3) Add special explanation for winning moves
+Reference: None
+********************************************************************* */
+std::string Player::generateMoveExplanation(const std::vector<int>& combo, bool isCover, bool wouldWin) {
+    // Format the explanation intro
+    string explanation;
+    string moveType = isCover ? "Cover" : "Uncover";
+    string verb = isCover ? "covers" : "targets";
+
+    if (combo.size() == 1) {
+        explanation = moveType + " square: " + formatNumberList(combo);
+    }
+    else {
+        explanation = moveType + " squares: " + formatNumberList(combo);
+    }
+
+    // Add explanation details
+    if (wouldWin) {
+        if (isCover) {
+            explanation += " because it would win the game by covering all squares!";
+        }
+        else {
+            explanation += " because it would win the game by uncovering all opponent's squares!";
+        }
+        return explanation;
+    }
+
+    // For non-winning moves, provide strategic explanation
+    if (combo.size() > 1) {
+        // Sort squares by value to identify high and low values
+        vector<int> sortedSquares = combo;
+        std::sort(sortedSquares.begin(), sortedSquares.end());
+
+        if (!sortedSquares.empty()) {
+            int lowestSquare = sortedSquares.front();
+            int highestSquare = sortedSquares.back();
+
+            // Different explanations based on the combination of values
+            if (highestSquare >= 7 && lowestSquare <= 4) {
+                // Count how many low-value squares we have
+                vector<int> lowValueSquares;
+                for (int sq : sortedSquares) {
+                    if (sq <= 4) {
+                        lowValueSquares.push_back(sq);
+                    }
+                }
+
+                // Create explanation based on the number of low-value squares
+                explanation += " because it " + verb + " the high-value square " +
+                    std::to_string(highestSquare) +
+                    " while " + (isCover ? "efficiently using" : "using") + " low-value square";
+
+                // Add 's' if multiple low-value squares
+                if (lowValueSquares.size() > 1) {
+                    explanation += "s ";
+                }
+                else {
+                    explanation += " ";
+                }
+
+                // Add all low-value squares
+                explanation += formatNumberList(lowValueSquares);
+                explanation += isCover ? "." : " to complete the combination.";
+
+            }
+            else if (highestSquare >= 7) {
+                explanation += " because it " + verb + " high-value square " +
+                    std::to_string(highestSquare) + ".";
+            }
+            else if (highestSquare >= 5) {
+                // For mid-value square combinations
+                if (combo.size() == 2) {
+                    explanation += " because it " + (isCover ? "balances efficiency with strategic value by " + verb : "focuses on") +
+                        " mid-value square " + std::to_string(highestSquare) + " along with square " +
+                        std::to_string(sortedSquares.front()) +
+                        (isCover ? "." : " to match the dice sum precisely.");
+                }
+                else if (combo.size() > 2) {
+                    explanation += " because it strategically " + verb + " mid-value square " +
+                        std::to_string(highestSquare) + " while " + (isCover ? "efficiently using" : "using") + " " +
+                        std::to_string(combo.size() - 1) + " additional squares to match the " +
+                        (isCover ? "dice sum." : "exact sum.");
+                }
+            }
+            else if (combo.size() > 2) {
+                explanation += " because it efficiently " + verb + " " + std::to_string(combo.size()) +
+                    " squares to maximize " + (isCover ? "coverage" : "uncovering") + " with the given dice sum.";
+            }
+            else if (combo.size() == 2) {
+                int firstSquare = sortedSquares.front();
+                int secondSquare = sortedSquares.back();
+                if (isCover) {
+                    explanation += " because it uses the exact combination needed (" +
+                        std::to_string(firstSquare) + " + " + std::to_string(secondSquare) +
+                        " = " + std::to_string(firstSquare + secondSquare) +
+                        ") to match the dice sum.";
+                }
+                else {
+                    explanation += " because it specifically targets the combination of squares " +
+                        std::to_string(firstSquare) + " and " + std::to_string(secondSquare) +
+                        " which sum to " + std::to_string(firstSquare + secondSquare) +
+                        ", matching the dice roll perfectly.";
+                }
+            }
+        }
+    }
+    else if (combo.size() == 1) {
+        // Single square case
+        int square = combo[0];
+        if (square >= 7) {
+            explanation += " because it ";
+            explanation += (isCover ? "is strategic as it covers" : "targets the");
+            explanation += " high-value square ";
+            explanation += std::to_string(square);
+            explanation += ".";
+        }
+        else if (square >= 5) {
+            explanation += " because it " + verb + " mid-value square " + std::to_string(square) +
+                (isCover ? ", which provides good strategic value." : ", providing good tactical advantage.");
+        }
+        else {
+            explanation += " because it " + verb + " a low-value square " + std::to_string(square) +
+                ", which is " + (isCover ? "the best option for this dice roll." : "necessary given the current dice roll.");
+        }
+    }
+
+    return explanation;
+}
+
+/* *********************************************************************
+Function Name: decideMove
+Purpose: To determine the player's move based on the dice roll and the opponent's board state.
+Parameters:
+         diceSum      - an integer representing the total from the dice roll
+         opponent     - a constant reference to the opponent Player object
+         allowUncover - a boolean flag indicating whether uncovering is allowed this turn
+         tournamentPtr- a pointer to the Tournament object for handicap info
+Return Value: A MoveDecision structure containing the decision (cover/uncover) and the chosen squares.
+Algorithm:
+         1) Check if covering is forced
+         2) Evaluate the best covering move
+         3) Evaluate the best uncovering move if allowed
+         4) Make strategic decision between covering and uncovering
+         5) Return the selected move with explanation
+Reference: None
+********************************************************************* */
+MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowUncover, const Tournament* tournamentPtr) {
+    // Initialize move decisions
+    MoveDecision coverDecision;
+    coverDecision.cover = true;
+
+    MoveDecision uncoverDecision;
+    uncoverDecision.cover = false;
+
+    // Check if covering is forced (cannot uncover)
+    bool forceCovering = checkForceCovering(opponent, tournamentPtr, diceSum);
+
+    // Step 1: Evaluate covering moves
+    evaluateCoverMoves(diceSum, coverDecision);
+
+    // Step 2: Evaluate uncovering moves if allowed
+    if (!forceCovering && allowUncover) {
+        evaluateUncoverMoves(diceSum, opponent, tournamentPtr, uncoverDecision);
+    }
+
+    // Step 3: Handle cases where only one type of move is available
+    if (uncoverDecision.squares.empty() || forceCovering) {
+        // No uncover move is available or covering is forced
+        if (coverDecision.squares.empty()) {
+            // No valid moves at all
+            return MoveDecision{ true, vector<int>(), "No valid moves available for this dice sum." };
+        }
+        return coverDecision;
+    }
+
+    if (coverDecision.squares.empty()) {
+        // Only an uncover move is available
+        uncoverDecision.explanation = "Only an uncover move is available. " + uncoverDecision.explanation;
+        return uncoverDecision;
+    }
+
+    // Step 4: Make strategic decision between covering and uncovering
+    return makeStrategicDecision(coverDecision, uncoverDecision, opponent);
 }
 /* *********************************************************************
 Function Name: offerHint

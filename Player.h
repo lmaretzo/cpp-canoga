@@ -402,6 +402,96 @@ Reference: None
     static void findCombinations(const vector<int>& nums, int target, int start,
         vector<int>& current, vector<vector<int>>& result);
 
+
+    // Add these method declarations to the Player class in Player.h:
+
+/* *********************************************************************
+Function Name: checkForceCovering
+Purpose: Determines if the player must cover their own squares (cannot uncover)
+Parameters:
+         opponent      - a constant reference to the opponent Player object
+         tournamentPtr - a pointer to the Tournament object for handicap info
+         diceSum       - an integer representing the sum of dice
+Return Value: true if covering is forced, false if uncovering is an option
+Algorithm:
+         1) Check if opponent has any covered squares
+         2) Check for handicap protection
+         3) Check if valid uncovering combinations exist
+Reference: None
+********************************************************************* */
+    bool checkForceCovering(const Player& opponent, const Tournament* tournamentPtr, int diceSum) const;
+
+    /* *********************************************************************
+    Function Name: evaluateCoverMoves
+    Purpose: Evaluates all valid covering move combinations and selects the best one
+    Parameters:
+             diceSum       - an integer representing the sum of dice
+             coverDecision - reference to a MoveDecision structure to store the result
+    Return Value: None (modifies coverDecision by reference)
+    Algorithm:
+             1) Find all valid cover combinations
+             2) Score each combination based on strategic factors
+             3) Select the highest-scoring combination
+             4) Generate explanation for the selected move
+    Reference: None
+    ********************************************************************* */
+    void evaluateCoverMoves(int diceSum, MoveDecision& coverDecision);
+
+    /* *********************************************************************
+    Function Name: evaluateUncoverMoves
+    Purpose: Evaluates all valid uncovering move combinations and selects the best one
+    Parameters:
+             diceSum         - an integer representing the sum of dice
+             opponent        - a constant reference to the opponent Player object
+             tournamentPtr   - a pointer to the Tournament object for handicap info
+             uncoverDecision - reference to a MoveDecision structure to store the result
+    Return Value: None (modifies uncoverDecision by reference)
+    Algorithm:
+             1) Find all valid uncover combinations
+             2) Score each combination based on strategic factors
+             3) Select the highest-scoring combination
+             4) Generate explanation for the selected move
+    Reference: None
+    ********************************************************************* */
+    void evaluateUncoverMoves(int diceSum, const Player& opponent,
+        const Tournament* tournamentPtr, MoveDecision& uncoverDecision);
+
+    /* *********************************************************************
+    Function Name: makeStrategicDecision
+    Purpose: Decides between covering and uncovering based on strategic scoring
+    Parameters:
+             coverDecision   - the best covering move decision
+             uncoverDecision - the best uncovering move decision
+             opponent        - a constant reference to the opponent Player object
+    Return Value: The strategically superior MoveDecision
+    Algorithm:
+             1) If either move would win the game, prioritize it
+             2) If both would win, calculate and compare potential scores
+             3) Otherwise, use strategic scoring to compare the moves
+             4) Return the superior move with enhanced explanation
+    Reference: None
+    ********************************************************************* */
+    MoveDecision makeStrategicDecision(const MoveDecision& coverDecision,
+        const MoveDecision& uncoverDecision,
+        const Player& opponent);
+
+    /* *********************************************************************
+    Function Name: generateMoveExplanation
+    Purpose: Generates a detailed explanation for a move decision
+    Parameters:
+             combo    - vector of integers representing the chosen squares
+             isCover  - boolean indicating if this is a cover (true) or uncover (false) move
+             wouldWin - boolean indicating if this move would win the game
+    Return Value: a string containing the detailed explanation
+    Algorithm:
+             1) Format the list of squares
+             2) Generate appropriate explanation based on move type and square values
+             3) Add special explanation for winning moves
+    Reference: None
+    ********************************************************************* */
+    std::string generateMoveExplanation(const std::vector<int>& combo, bool isCover, bool wouldWin);
+
+
 };
 
 
