@@ -85,27 +85,57 @@ public:
 
 
 private:
-    Player* player1;
-    Player* player2;
+    /* *********************************************************************
+    Data Member: player1, player2
+    Purpose: Pointers to the two players participating in the round.
+    ********************************************************************* */
+    Player* player1;          // Pointer to first player
+    Player* player2;          // Pointer to second player
+
+    /* *********************************************************************
+    Data Member: dice
+    Purpose: Reference to the dice object used for rolling dice during the round.
+    ********************************************************************* */
     Dice& dice;
+
+    /* *********************************************************************
+    Data Member: boardSize
+    Purpose: Stores the number of squares on each player's board.
+    ********************************************************************* */
     int boardSize;
 
+    /* *********************************************************************
+    Data Member: roundWinner, firstTurnPlayer, winningScore
+    Purpose: Track round outcomes including which player won, who went first,
+             and how many points were awarded.
+    ********************************************************************* */
     Player* roundWinner;
     Player* firstTurnPlayer;
     int winningScore;
 
-    bool bothPlayersTurnComplete; 
-    bool firstTurnIsHuman;        //true if the first-turn player is Human
+    /* *********************************************************************
+    Data Member: bothPlayersTurnComplete, firstTurnIsHuman
+    Purpose: Track game state flags for determining valid move options and
+             win conditions.
+    ********************************************************************* */
+    bool bothPlayersTurnComplete;
+    bool firstTurnIsHuman;
+
+    /* *********************************************************************
+    Data Member: tournamentPtr, skipFirstTurnRoll, loadedNextTurn
+    Purpose: Manage game state with the tournament and handle saved games.
+    ********************************************************************* */
+    Tournament* tournamentPtr;
+    bool skipFirstTurnRoll;
+    std::string loadedNextTurn;
+
 
     // Helper to check if the round is over
     bool isRoundOver() const;
 
     void determineFirstPlayer();
 
-    Tournament* tournamentPtr;  // New member for Tournament pointer.
 
-    bool skipFirstTurnRoll;
-    std::string loadedNextTurn; // stores the loaded "Next Turn" info.
 };
 
 #endif

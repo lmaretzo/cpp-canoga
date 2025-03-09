@@ -1,7 +1,7 @@
 /************************************************************
  * Name:  Lucas Maretzo
  * Project:  Canoga
- * Date:  (New) Computer Class Header
+ * Date:  1/31/2025
  ************************************************************/
 
 #pragma once

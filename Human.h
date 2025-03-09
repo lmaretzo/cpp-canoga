@@ -74,6 +74,11 @@ public:
     ********************************************************************* */
     virtual MoveDecision decideMove(int diceSum, const Player& opponent, bool allowUncover, const Tournament* tournamentPtr = nullptr) override;
 
+
+    /* *********************************************************************
+        Data Member: tournamentPtr
+        Purpose: Pointer to the Tournament object to access game-wide settings.
+    ********************************************************************* */
     Tournament* tournamentPtr; 
 
 };

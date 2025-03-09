@@ -23,14 +23,28 @@ Purpose: To encapsulate a player's move decision, indicating whether the move
 Attributes:
          cover   - a boolean that is true if the move is to cover squares, false if uncovering
          squares - a vector of integers listing the chosen squares (empty if no move)
+         explanation - a string providing reasoning for the move decision
 Reference: None
 ********************************************************************* */
 struct MoveDecision {
-    bool cover = true;      // Indicates if the move is to cover (true) or uncover (false)
-    vector<int> squares;    // Holds the chosen squares for the move
-    string explanation;     // Holds a brief explanation for the move decision
-};
+    /* *********************************************************************
+    Data Member: cover
+    Purpose: Indicates if the move is to cover (true) or uncover (false)
+    ********************************************************************* */
+    bool cover = true;
 
+    /* *********************************************************************
+    Data Member: squares
+    Purpose: Holds the chosen squares for the move
+    ********************************************************************* */
+    vector<int> squares;
+
+    /* *********************************************************************
+    Data Member: explanation
+    Purpose: Holds a brief explanation for the move decision
+    ********************************************************************* */
+    string explanation;
+};
 
 /* *********************************************************************
 Class Name: Player
@@ -109,17 +123,16 @@ public:
     Reference: None
     ********************************************************************* */
     void setName(const string& name);
-   // void setIsComputer(bool flag);
 
-   /* *********************************************************************
-   Function Name: addToScore
-   Purpose: To add a specified number of points to the player's score.
-   Parameters:
-            points - an integer representing the points to add
-   Return Value: None.
-   Algorithm: Increments the score attribute by the provided points.
-   Reference: None
-   ********************************************************************* */
+    /* *********************************************************************
+    Function Name: addToScore
+    Purpose: To add a specified number of points to the player's score.
+    Parameters:
+             points - an integer representing the points to add
+    Return Value: None.
+    Algorithm: Increments the score attribute by the provided points.
+    Reference: None
+    ********************************************************************* */
     void addToScore(int points);
 
     /* *********************************************************************
@@ -131,13 +144,14 @@ public:
     Algorithm: If the specified square is uncovered (value 0), mark it as covered by setting its value to the square number.
     Reference: None
     ********************************************************************* */
-    bool coverSquare(int squareLabel);   
+    bool coverSquare(int squareLabel);
 
     /* *********************************************************************
     Function Name: uncoverSquare
     Purpose: To mark a square on the player's board as uncovered.
     Parameters:
              squareLabel - an integer (1-based index) representing the square to uncover
+             tournamentPtr - a pointer to the Tournament object for handicap rules (optional)
     Return Value: A boolean value (true if the operation was successful, false otherwise).
     Algorithm: If the specified square is covered (non-zero), mark it as uncovered by setting its value to 0.
     Reference: None
@@ -152,7 +166,7 @@ public:
     Algorithm: Iterates through the board and returns false if any square is uncovered (0).
     Reference: None
     ********************************************************************* */
-    bool areAllCovered() const;   
+    bool areAllCovered() const;
 
     /* *********************************************************************
     Function Name: areAllUncovered
@@ -162,7 +176,7 @@ public:
     Algorithm: Iterates through the board and returns false if any square is covered (non-zero).
     Reference: None
     ********************************************************************* */
-    bool areAllUncovered() const; 
+    bool areAllUncovered() const;
 
     /* *********************************************************************
     Function Name: getSquares
@@ -182,8 +196,7 @@ public:
     Algorithm: Prints the board with borders; uncovered squares show their number and covered squares show 'X'.
     Reference: None
     ********************************************************************* */
-    void printBoard() const; // Print the player's current board
-
+    void printBoard() const;
 
     /* *********************************************************************
     Function Name: isBoardModified
@@ -191,7 +204,7 @@ public:
     Parameters: None.
     Return Value: true if at least one square is covered, false otherwise.
     Algorithm:
-     1) Return the value of boardModified.
+             1) Return the value of boardModified.
     Reference: None
     ********************************************************************* */
     bool isBoardModified() const;
@@ -212,7 +225,6 @@ public:
     Reference: ai assist
     ********************************************************************* */
     int optimalDiceRoll() const;
-
 
     /* *********************************************************************
     Function Name: canUncover
@@ -250,10 +262,30 @@ public:
     Algorithm: Assigns a new vector of size boardSize with all values set to 0 to the squares attribute.
     Reference: None
     ********************************************************************* */
-    void resetSquares(int boardSize); // Pass the board size to resetSquares
+    void resetSquares(int boardSize);
 
-    // Add these in Player.h inside the Player class declaration:
+    /* *********************************************************************
+    Function Name: setSquares
+    Purpose: To update the player's board state with a new configuration.
+    Parameters:
+             newSquares - a constant reference to a vector of integers representing the new board state
+    Return Value: None.
+    Algorithm:
+             1) Assign newSquares to the squares vector.
+             2) Check if any squares are covered and update boardModified flag accordingly.
+    Reference: None
+    ********************************************************************* */
     void setSquares(const std::vector<int>& newSquares);
+
+    /* *********************************************************************
+    Function Name: setScore
+    Purpose: To set the player's score to a specified value.
+    Parameters:
+             newScore - an integer representing the new score value
+    Return Value: None.
+    Algorithm: Assign the provided value to the score variable.
+    Reference: None
+    ********************************************************************* */
     void setScore(int newScore);
 
     /* *********************************************************************
@@ -296,51 +328,50 @@ public:
     bool canUncoverSquare(int squareLabel, const Tournament* tournamentPtr = nullptr) const;
 
     /* *********************************************************************
-Function Name: getCombinations
-Purpose: To obtain all valid combinations of numbers that sum to a target value.
-Parameters:
-         available - a constant reference to a vector of integers representing the available numbers
-         target    - an integer representing the desired sum
-Return Value: A vector of vectors of integers, each inner vector is a valid combination.
-Algorithm:
-         1) Make a copy of available numbers and sort them.
-         2) Use findCombinations to compute all valid combinations.
-         3) Return the computed combinations.
-Reference: None
-********************************************************************* */
+    Function Name: getCombinations
+    Purpose: To obtain all valid combinations of numbers that sum to a target value.
+    Parameters:
+             available - a constant reference to a vector of integers representing the available numbers
+             target    - an integer representing the desired sum
+    Return Value: A vector of vectors of integers, each inner vector is a valid combination.
+    Algorithm:
+             1) Make a copy of available numbers and sort them.
+             2) Use findCombinations to compute all valid combinations.
+             3) Return the computed combinations.
+    Reference: None
+    ********************************************************************* */
     static vector<vector<int>> getCombinations(const vector<int>& available, int target);
 
     /* *********************************************************************
-Function Name: decideMove
-Purpose: To determine the player's move based on the dice roll and the opponent's board state.
-Parameters:
-         diceSum      - an integer representing the total from the dice roll
-         opponent     - a constant reference to the opponent Player object
-         allowUncover - a boolean flag indicating whether uncovering the opponent's squares is allowed this turn
-Return Value: A MoveDecision structure that contains the decision (cover/uncover) and the chosen squares.
-Algorithm: Computes valid move combinations and returns a decision; intended to be overridden by derived classes.
-Reference: None
-********************************************************************* */
+    Function Name: decideMove
+    Purpose: To determine the player's move based on the dice roll and the opponent's board state.
+    Parameters:
+             diceSum      - an integer representing the total from the dice roll
+             opponent     - a constant reference to the opponent Player object
+             allowUncover - a boolean flag indicating whether uncovering the opponent's squares is allowed this turn
+             tournamentPtr - a pointer to the Tournament object for handicap info
+    Return Value: A MoveDecision structure that contains the decision (cover/uncover) and the chosen squares.
+    Algorithm: Computes valid move combinations and returns a decision; intended to be overridden by derived classes.
+    Reference: None
+    ********************************************************************* */
     virtual MoveDecision decideMove(int diceSum, const Player& opponent, bool allowUncover, const Tournament* tournamentPtr = nullptr);
 
-    // Add these method declarations to the Player class in Player.h
-
-        /* *********************************************************************
-        Function Name: getOptimalDiceRollWithReason
-        Purpose: Determines the strategic choice between rolling one or two dice
-                 with a detailed explanation of the reasoning process. This should only
-                 be called when squares 7-n are covered (when player has a choice).
-        Parameters: None.
-        Return Value: A pair containing:
-                      - an integer (1 or 2) representing the optimal number of dice to roll
-                      - a string explaining the reasoning behind the decision
-        Algorithm:
-                 1) Analyze the full board state, considering all uncovered squares
-                 2) Evaluate strategic factors like value distribution and game progress
-                 3) Calculate probabilities of useful rolls for both one and two dice
-                 4) Return the optimal decision with a detailed explanation
-        Reference: None
-        ********************************************************************* */
+    /* *********************************************************************
+    Function Name: getOptimalDiceRollWithReason
+    Purpose: Determines the strategic choice between rolling one or two dice
+             with a detailed explanation of the reasoning process. This should only
+             be called when squares 7-n are covered (when player has a choice).
+    Parameters: None.
+    Return Value: A pair containing:
+                  - an integer (1 or 2) representing the optimal number of dice to roll
+                  - a string explaining the reasoning behind the decision
+    Algorithm:
+             1) Analyze the full board state, considering all uncovered squares
+             2) Evaluate strategic factors like value distribution and game progress
+             3) Calculate probabilities of useful rolls for both one and two dice
+             4) Return the optimal decision with a detailed explanation
+    Reference: None
+    ********************************************************************* */
     std::pair<int, std::string> getOptimalDiceRollWithReason() const;
 
     /* *********************************************************************
@@ -359,66 +390,77 @@ Reference: None
     bool canCoverSum(const std::vector<int>& values, int target) const;
 
     /* *********************************************************************
-Function Name: formatNumberList
-Purpose: Helper function to format a list of numbers with proper commas and "and"
-Parameters:
-         numbers - a vector of integers to format
-Return Value: A string containing the formatted list
-Algorithm:
-         1) For empty lists, return an empty string
-         2) For a single item, return that item as a string
-         3) For multiple items, add commas between all but the last two items
-         4) Add " and " between the last two items
-Reference: None
-********************************************************************* */
+    Function Name: formatNumberList
+    Purpose: Helper function to format a list of numbers with proper commas and "and"
+    Parameters:
+             numbers - a vector of integers to format
+    Return Value: A string containing the formatted list
+    Algorithm:
+             1) For empty lists, return an empty string
+             2) For a single item, return that item as a string
+             3) For multiple items, add commas between all but the last two items
+             4) Add " and " between the last two items
+    Reference: None
+    ********************************************************************* */
     std::string formatNumberList(const std::vector<int>& numbers) const;
+
 private:
-    string playerName; // Holds the player's name.
-    //bool computer;
-    int score; // Holds the player's current score.
 
+    /* *********************************************************************
+    Data Member: playerName
+    Purpose: Holds the player's name.
+    ********************************************************************* */
+    string playerName;
 
-    vector<int> squares;   // Represents the player's board; 0 indicates uncovered, non-zero indicates covered.
+    /* *********************************************************************
+    Data Member: score
+    Purpose: Holds the player's current score.
+    ********************************************************************* */
+    int score;
+
+    /* *********************************************************************
+    Data Member: squares
+    Purpose: Represents the player's board; 0 indicates uncovered, non-zero indicates covered.
+    ********************************************************************* */
+    vector<int> squares;
 
     /* *********************************************************************
     Data Member: boardModified
     Purpose: Indicates whether the board has been modified during the round.
     ********************************************************************* */
     bool boardModified;
-    bool hasHadTurnInRound; // Track if player has had a turn in the current round
+
+    // Track if player has had a turn in the current round
+    bool hasHadTurnInRound;
 
     /* *********************************************************************
-Function Name: findCombinations
-Purpose: Helper method for getCombinations that recursively finds combinations.
-Parameters:
-         nums    - available numbers
-         target  - desired sum
-         start   - starting index
-         current - current combination
-         result  - storage for valid combinations
-Return Value: None.
-Reference: None
-********************************************************************* */
-    static void findCombinations(const vector<int>& nums, int target, int start,
-        vector<int>& current, vector<vector<int>>& result);
+    Function Name: findCombinations
+    Purpose: Helper method for getCombinations that recursively finds combinations.
+    Parameters:
+             nums    - available numbers
+             target  - desired sum
+             start   - starting index
+             current - current combination
+             result  - storage for valid combinations
+    Return Value: None.
+    Reference: None
+    ********************************************************************* */
+    static void findCombinations(const vector<int>& nums, int target, int start, vector<int>& current, vector<vector<int>>& result);
 
-
-    // Add these method declarations to the Player class in Player.h:
-
-/* *********************************************************************
-Function Name: checkForceCovering
-Purpose: Determines if the player must cover their own squares (cannot uncover)
-Parameters:
-         opponent      - a constant reference to the opponent Player object
-         tournamentPtr - a pointer to the Tournament object for handicap info
-         diceSum       - an integer representing the sum of dice
-Return Value: true if covering is forced, false if uncovering is an option
-Algorithm:
-         1) Check if opponent has any covered squares
-         2) Check for handicap protection
-         3) Check if valid uncovering combinations exist
-Reference: None
-********************************************************************* */
+    /* *********************************************************************
+    Function Name: checkForceCovering
+    Purpose: Determines if the player must cover their own squares (cannot uncover)
+    Parameters:
+             opponent      - a constant reference to the opponent Player object
+             tournamentPtr - a pointer to the Tournament object for handicap info
+             diceSum       - an integer representing the sum of dice
+    Return Value: true if covering is forced, false if uncovering is an option
+    Algorithm:
+             1) Check if opponent has any covered squares
+             2) Check for handicap protection
+             3) Check if valid uncovering combinations exist
+    Reference: None
+    ********************************************************************* */
     bool checkForceCovering(const Player& opponent, const Tournament* tournamentPtr, int diceSum) const;
 
     /* *********************************************************************
@@ -471,9 +513,7 @@ Reference: None
              4) Return the superior move with enhanced explanation
     Reference: None
     ********************************************************************* */
-    MoveDecision makeStrategicDecision(const MoveDecision& coverDecision,
-        const MoveDecision& uncoverDecision,
-        const Player& opponent);
+    MoveDecision makeStrategicDecision(const MoveDecision& coverDecision, const MoveDecision& uncoverDecision, const Player& opponent);
 
     /* *********************************************************************
     Function Name: generateMoveExplanation
@@ -490,11 +530,6 @@ Reference: None
     Reference: None
     ********************************************************************* */
     std::string generateMoveExplanation(const std::vector<int>& combo, bool isCover, bool wouldWin);
-
-
 };
-
-
-
 
 #endif
