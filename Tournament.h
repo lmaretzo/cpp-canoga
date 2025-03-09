@@ -1,3 +1,10 @@
+/************************************************************
+ * Name:     Lucas Maretzo
+ * Project:  P1 Canoga
+ * Class:    CMPS366 Operating Systems
+ * Date:     3/10/2025
+ ************************************************************/
+
 #pragma once
 #ifndef TOURNAMENT_H
 #define TOURNAMENT_H
@@ -21,7 +28,7 @@ Attributes:
          nextTurn              - String indicating the next player's turn.
          firstTurnIsHuman      - Boolean indicating if the first turn belongs to the human player.
          gameLoaded            - Boolean flag indicating if a game was loaded.
-Reference: None
+Reference: AI 
 ********************************************************************* */
 class Tournament
 {
@@ -205,7 +212,7 @@ public:
              val - A string indicating whose turn is next ("Human" or "Computer").
     Return Value: None.
     Algorithm: Assigns the parameter value to the nextTurn member.
-    Reference: None
+    Reference: AI
     ********************************************************************* */
     void setNextTurn(const std::string& val) { nextTurn = val; }
 

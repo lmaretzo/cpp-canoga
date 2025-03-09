@@ -1,19 +1,18 @@
 /************************************************************
- * Name:  Lucas Maretzo
- * Project:  Canoga
- * Date:  1/31/2025
+ * Name:     Lucas Maretzo
+ * Project:  P1 Canoga
+ * Class:    CMPS366 Operating Systems
+ * Date:     3/10/2025
  ************************************************************/
 
 #include "Player.h"
-#include <iostream> // for debugging or printing in hint method
+#include <iostream> 
 #include <algorithm>
 #include "Tournament.h"
+#include <algorithm> 
 
 using namespace std;
 
-
-
-#include <algorithm>  // for sort, max
 
 /* *********************************************************************
 Function Name: findCombinations
@@ -32,17 +31,19 @@ Algorithm:
          3) Iterate over nums starting from 'start'; for each number less than or equal to target,
             add it to current, recursively call findCombinations with updated target and start,
             then remove the number from current.
-Reference: None
+Reference: AI
 ********************************************************************* */
 void Player::findCombinations(const vector<int>& nums, int target, int start,
     vector<int>& current, vector<vector<int>>& result) {
     if (target == 0 && current.size() >= 1 && current.size() <= 4) {
         result.push_back(current);
     }
-    if (current.size() == 4) return; // cannot choose more than 4 squares
+    // Cannot choose more than 4 squares
+    if (current.size() == 4) return;
     for (int i = start; i < nums.size(); i++) {
         if (nums[i] > target)
-            continue;  // skip numbers that are too large
+            // skip numbers that are too large
+            continue;
         current.push_back(nums[i]);
         findCombinations(nums, target - nums[i], i + 1, current, result);
         current.pop_back();
@@ -87,10 +88,9 @@ Reference: None
 ********************************************************************* */
 Player::Player()
     : playerName("Unknown"), score(0), squares(9, 0), hasHadTurnInRound(false)
-
 {
-    // squares default to uncovered (all zero).
-    boardModified = false;  // NEW: Initialize boardModified in the default constructor.
+    // Ensure board is marked unmodified.
+    boardModified = false;
 }
 
 /* *********************************************************************
@@ -110,7 +110,9 @@ Player::Player(const string& name, int boardSize)
 
 {
     resetSquares(boardSize);
-    boardModified = false; // Ensure board is marked unmodified.
+
+    // Ensure board is marked unmodified.
+    boardModified = false;
 }
 
 /* *********************************************************************
@@ -125,13 +127,15 @@ Reference: None
 ********************************************************************* */
 void Player::resetSquares(int boardSize)
 {
-    squares.assign(boardSize, 0); // Reset squares dynamically based on the board size
-    boardModified = false; // Mark the board as unmodified.
+    // Reset squares dynamically based on the board size
+    squares.assign(boardSize, 0);
+
+    // Mark the board as unmodified.
+    boardModified = false; 
 }
 
 Player::~Player()
 {
-    // nothing special
 }
 
 /* *********************************************************************
@@ -157,13 +161,20 @@ Algorithm:
          1) Return the value of score.
 Reference: None
 ********************************************************************* */
-
 int Player::getScore() const
 {
     return score;
 }
 
-//comment later
+/* *********************************************************************
+Function Name: isBoardModified
+Purpose: To check if the board has been modified from its initial state.
+Parameters: None.
+Return Value: A boolean value; true if at least one square is covered, false otherwise.
+Algorithm:
+         1) Return the value of boardModified.
+Reference: None
+********************************************************************* */
 bool Player::isBoardModified() const {
     return boardModified;
 }
@@ -218,19 +229,24 @@ bool Player::coverSquare(int squareLabel)
     int idx = squareLabel - 1;
     if (squares[idx] != 0)
     {
-        // already covered
+        // Already covered.
         return false;
     }
-    squares[idx] = squareLabel; // now covered
-    boardModified = true; // Mark the board as modified.
+
+    // Now it is covered.
+    squares[idx] = squareLabel;
+
+    // Mark the board as modified.
+    boardModified = true; 
     return true;
 }
 
 /* *********************************************************************
 Function Name: uncoverSquare
-Purpose: To uncover a specific square on the player's board.
+Purpose: To mark a square on the player's board as uncovered.
 Parameters:
          squareLabel - an integer (1-based index) representing the square to uncover
+         tournamentPtr - a pointer to the Tournament object for handicap rules (optional)
 Return Value: A boolean value; true if the square was successfully uncovered, false otherwise.
 Algorithm:
          1) Check if squareLabel is within range.
@@ -244,11 +260,16 @@ bool Player::uncoverSquare(int squareLabel, const Tournament* tournamentPtr)
     int idx = squareLabel - 1;
     if (squares[idx] == 0)
     {
-        // already uncovered
+        // Already is uncovered.
         return false;
     }
-    squares[idx] = 0; // now uncovered
-    boardModified = true; // Mark the board as modified.
+
+    // Now it is uncovered.
+    squares[idx] = 0;
+
+    // Mark the board as modified.
+    boardModified = true;
+
     return true;
 }
 
@@ -271,15 +292,20 @@ Algorithm:
 Reference: None
 ********************************************************************* */
 bool Player::canUncover(int diceSum, const Player& opponent, const Tournament* tournamentPtr) const {
+
     // Rule 1: If opponent has no covered squares, cannot uncover
     bool opponentHasCoveredSquares = false;
+
     vector<int> oppSquares = opponent.getSquares();
     for (int sq : oppSquares) {
-        if (sq != 0) { // Opponent has covered at least one square
+
+        // Opponent has covered at least one square
+        if (sq != 0) {
             opponentHasCoveredSquares = true;
             break;
         }
     }
+
     if (!opponentHasCoveredSquares) {
         return false;
     }
@@ -294,7 +320,9 @@ bool Player::canUncover(int diceSum, const Player& opponent, const Tournament* t
     // Rule 3: Check if there are valid combinations to uncover
     vector<int> oppCovered;
     for (int i = 0; i < static_cast<int>(oppSquares.size()); i++) {
-        if (oppSquares[i] != 0)  // Only consider covered squares
+
+        // Only consider covered squares
+        if (oppSquares[i] != 0)
             oppCovered.push_back(i + 1);
     }
     vector<vector<int>> uncoverCombos = getCombinations(oppCovered, diceSum);
@@ -358,21 +386,21 @@ Reference: None
 ********************************************************************* */
 vector<int> Player::getSquares() const
 {
-    return squares; // return a copy
+    // This returns a copy
+    return squares;
 }
 
 /* *********************************************************************
 Function Name: setSquares
-Purpose: To update the player's board state and track modifications.
+Purpose: To update the player's board state with a new configuration.
 Parameters:
-    - newSquares: A vector of integers representing the new board state.
+         newSquares - a constant reference to a vector of integers representing the new board state
 Return Value: None.
 Algorithm:
-    1) Assign newSquares to the player's squares vector.
-    2) Check if any square is covered (nonzero), and set boardModified accordingly.
+         1) Assign newSquares to the squares vector.
+         2) Check if any squares are covered and update boardModified flag accordingly.
 Reference: None
 ********************************************************************* */
-
 void Player::setSquares(const std::vector<int>& newSquares) {
     squares = newSquares;
     // Check if any square is nonzero; if so, mark boardModified as true.
@@ -388,19 +416,16 @@ void Player::setSquares(const std::vector<int>& newSquares) {
 
 /* *********************************************************************
 Function Name: setScore
-Purpose: To update the player's score.
+Purpose: To set the player's score to a specified value.
 Parameters:
-    - newScore: An integer representing the new score.
+         newScore - an integer representing the new score value
 Return Value: None.
-Algorithm:
-    1) Assign the provided value to the score variable.
+Algorithm: Assign the provided value to the score variable.
 Reference: None
 ********************************************************************* */
-
 void Player::setScore(int newScore) {
     score = newScore;
 }
-
 
 /* *********************************************************************
 Function Name: printBoard
@@ -427,26 +452,36 @@ void Player::printBoard() const {
     // Generate the row content dynamically
     for (int i = 0; i < squares.size(); ++i) {
         if (squares[i] == 0) {
+
             // Uncovered square shows its number
             if (i + 1 < 10) {
-                cout << "| " << (i + 1) << " "; // Single-digit alignment
+
+                // Single-digit alignment
+                cout << "| " << (i + 1) << " ";
             }
             else {
-                cout << "| " << (i + 1); // Double-digit alignment
+
+                // Double-digit alignment
+                cout << "| " << (i + 1);
             }
         }
         else {
+
             // Covered square shows "X"
             cout << "| X ";
         }
     }
-    cout << "|" << endl; // End the row content
+
+    // End the row content
+    cout << "|" << endl;
 
     // Generate the bottom border dynamically
     for (int i = 0; i < squares.size(); ++i) {
         cout << "+---";
     }
-    cout << "+" << endl; // End the bottom border
+
+    // End the bottom border
+    cout << "+" << endl;
 
     cout << endl;
 }
@@ -467,18 +502,28 @@ Algorithm:
          3) Evaluate strategic factors (progress toward covering all squares)
          4) Make a decision based on maximizing expected value
          5) Generate a detailed explanation of the reasoning
-Reference: None
+Reference: AI
 ********************************************************************* */
 std::pair<int, std::string> Player::getOptimalDiceRollWithReason() const {
+
     // Count uncovered squares
     int totalUncovered = 0;
-    int lowValueUncovered = 0;  // Squares 1-4
-    int midValueUncovered = 0;  // Squares 5-9
-    int highValueUncovered = 0; // Squares 10-11 (if present)
+
+    // Squares 1-4
+    int lowValueUncovered = 0;
+
+	// Squares 5-9
+    int midValueUncovered = 0;
+
+	// Squares 10-11 if present
+    int highValueUncovered = 0;
+
     std::vector<int> uncoveredValues;
 
     for (int i = 0; i < squares.size(); i++) {
-        if (squares[i] == 0) { // Uncovered square
+
+        // Uncovered square
+        if (squares[i] == 0) {
             totalUncovered++;
             int squareValue = i + 1;
             uncoveredValues.push_back(squareValue);
@@ -503,7 +548,6 @@ std::pair<int, std::string> Player::getOptimalDiceRollWithReason() const {
         for (int val : uncoveredValues) {
             remainingDesc += std::to_string(val) + " ";
         }
-
         return { 1, "Only " + std::to_string(totalUncovered) + " square(s) remain uncovered (" +
                 remainingDesc + "). Rolling one die gives better precision for these specific values." };
     }
@@ -524,24 +568,51 @@ std::pair<int, std::string> Player::getOptimalDiceRollWithReason() const {
     int twoCount = 0;
     // Probability distribution for two dice
     const std::vector<double> twoDiceProbs = {
-        0,     // 0 (not possible)
-        0,     // 1 (not possible)
-        1 / 36.0, // 2
-        2 / 36.0, // 3
-        3 / 36.0, // 4
-        4 / 36.0, // 5
-        5 / 36.0, // 6
-        6 / 36.0, // 7
-        5 / 36.0, // 8
-        4 / 36.0, // 9
-        3 / 36.0, // 10
-        2 / 36.0, // 11
-        1 / 36.0  // 12
+        // 0 (not possible)
+        0,
+
+        // 1 (not possible)
+        0,
+
+        // 2
+        1 / 36.0,
+
+        // 3
+        2 / 36.0,
+
+		// 4
+        3 / 36.0,
+
+		// 5
+        4 / 36.0,
+
+		// 6
+        5 / 36.0,
+
+		// 7
+        6 / 36.0,
+
+		// 8
+        5 / 36.0,
+
+		// 9
+        4 / 36.0,
+
+		// 10
+        3 / 36.0,
+
+		// 11
+        2 / 36.0,
+
+        //12
+        1 / 36.0
     };
 
     for (int i = 2; i <= 12; i++) {
         if (canCoverSum(uncoveredValues, i)) {
-            twoCount += static_cast<int>(twoDiceProbs[i] * 36); // Cast to int before addition        
+
+            // Cast to int before addition
+            twoCount += static_cast<int>(twoDiceProbs[i] * 36);        
         }
     }
     double twoDiceProb = twoCount / 36.0;
@@ -613,7 +684,7 @@ Return Value: Boolean indicating whether a valid combination exists.
 Algorithm:
          1) Use a recursive approach to check subsets
          2) Terminate when a valid subset is found or all options exhausted
-Reference: None
+Reference: AI
 ********************************************************************* */
 bool Player::canCoverSum(const std::vector<int>& values, int target) const {
     // Dynamic programming approach to subset sum problem
@@ -671,8 +742,6 @@ int Player::optimalDiceRoll() const {
     return getOptimalDiceRollWithReason().first;
 }
 
-
-
 /* *********************************************************************
 Function Name: setHasHadTurnInRound
 Purpose: Sets the flag indicating whether the player has had a turn in the current round.
@@ -711,7 +780,7 @@ Algorithm:
          2) For a single item, return that item as a string
          3) For multiple items, add commas between all but the last two items
          4) Add " and " between the last two items
-Reference: None
+Reference: AI
 ********************************************************************* */
 std::string Player::formatNumberList(const std::vector<int>& numbers) const {
     if (numbers.empty()) return "";
@@ -746,13 +815,15 @@ Algorithm:
          1) Check if the square is out of range or already uncovered.
          2) Check if the square is protected by handicap rules.
          3) Return true only if the square is covered and not protected.
-Reference: None
+Reference: AI
 ********************************************************************* */
 bool Player::canUncoverSquare(int squareLabel, const Tournament* tournamentPtr) const {
     // Basic validation - square must be in range and covered
     if (squareLabel < 1 || squareLabel > squares.size()) return false;
     int idx = squareLabel - 1;
-    if (squares[idx] == 0) return false;  // Already uncovered
+
+    // Already uncovered
+    if (squares[idx] == 0) return false;
 
     // If no tournament pointer or handicap isn't active, no additional restrictions
     if (!tournamentPtr || !tournamentPtr->getHandicapActive()) return true;
@@ -761,11 +832,13 @@ bool Player::canUncoverSquare(int squareLabel, const Tournament* tournamentPtr) 
     if (squareLabel == tournamentPtr->getHandicapSquare() &&
         getName() == tournamentPtr->getAdvantagePlayerName() &&
         !hasHadTurnInRound) {
-        // This is the handicap square for the advantage player who hasn't had a turn yet
-        return false;  // Cannot uncover this protected square
+
+        // This is the handicap square for the advantage player who hasn't had a turn yet and you cannot uncover this protected square
+        return false;
     }
 
-    return true;  // Square can be uncovered
+    // Square can be uncovered
+    return true;
 }
 
 /* *********************************************************************
@@ -780,14 +853,17 @@ Algorithm:
          1) Check if opponent has any covered squares
          2) Check for handicap protection
          3) Check if valid uncovering combinations exist
-Reference: None
+Reference: AI
 ********************************************************************* */
 bool Player::checkForceCovering(const Player& opponent, const Tournament* tournamentPtr, int diceSum) const {
+
     // Rule 1: If opponent has no covered squares, cannot uncover
     bool opponentHasCoveredSquares = false;
     vector<int> oppSquares = opponent.getSquares();
     for (int sq : oppSquares) {
-        if (sq != 0) { // Opponent has covered at least one square
+
+        // Opponent has covered at least one square
+        if (sq != 0) {
             opponentHasCoveredSquares = true;
             break;
         }
@@ -820,7 +896,7 @@ Algorithm:
          2) Score each combination based on strategic factors
          3) Select the highest-scoring combination
          4) Generate explanation for the selected move
-Reference: None
+Reference: AI
 ********************************************************************* */
 void Player::evaluateCoverMoves(int diceSum, MoveDecision& coverDecision) {
     coverDecision.cover = true;
@@ -843,6 +919,7 @@ void Player::evaluateCoverMoves(int diceSum, MoveDecision& coverDecision) {
     string bestExplanation;
 
     for (const auto& combo : coverCombos) {
+
         // Skip empty combos (safety check)
         if (combo.empty()) continue;
 
@@ -864,7 +941,9 @@ void Player::evaluateCoverMoves(int diceSum, MoveDecision& coverDecision) {
         vector<int> simulatedBoard = squares;
         for (int sq : combo) {
             if (sq - 1 >= 0 && sq - 1 < static_cast<int>(simulatedBoard.size())) {
-                simulatedBoard[sq - 1] = sq; // Mark as covered
+
+                // Mark as covered
+                simulatedBoard[sq - 1] = sq;
             }
         }
 
@@ -877,16 +956,24 @@ void Player::evaluateCoverMoves(int diceSum, MoveDecision& coverDecision) {
 
         // Apply scoring bonuses
         if (wouldWin) {
-            score += 1000;  // Massive bonus for winning moves
+
+			// Massive bonus for winning moves
+            score += 1000;
         }
         if (maxSquare >= 7) {
-            score += 15;    // Bonus for high-value squares
+
+			// Bonus for high-value squares
+            score += 15;
         }
         else if (maxSquare >= 5) {
-            score += 8;     // Bonus for mid-value squares
+
+			// Bonus for mid-value squares
+            score += 8;
         }
         if (squareCount > 1) {
-            score += squareCount * 3;  // Bonus for covering multiple squares
+
+			// Bonus for multiple squares
+            score += squareCount * 3;
         }
 
         // Bonus for consecutive squares
@@ -928,7 +1015,7 @@ Algorithm:
          2) Score each combination based on strategic factors
          3) Select the highest-scoring combination
          4) Generate explanation for the selected move
-Reference: None
+Reference: AI
 ********************************************************************* */
 void Player::evaluateUncoverMoves(int diceSum, const Player& opponent, const Tournament* tournamentPtr, MoveDecision& uncoverDecision) {
     uncoverDecision.cover = false;
@@ -950,8 +1037,11 @@ void Player::evaluateUncoverMoves(int diceSum, const Player& opponent, const Tou
 
     // Only add squares that aren't protected by handicap
     for (int i = 0; i < static_cast<int>(oppSquares.size()); i++) {
-        if (oppSquares[i] != 0) {  // Only consider covered squares
+
+		// Only consider covered squares
+        if (oppSquares[i] != 0) {
             int squareLabel = i + 1;
+
             // Skip the handicap square if it's protected
             if (isHandicapActive && squareLabel == handicapSquare) {
                 continue;
@@ -970,6 +1060,7 @@ void Player::evaluateUncoverMoves(int diceSum, const Player& opponent, const Tou
     string bestExplanation;
 
     for (const auto& combo : uncoverCombos) {
+
         // Skip empty combos (safety check)
         if (combo.empty()) continue;
 
@@ -983,15 +1074,17 @@ void Player::evaluateUncoverMoves(int diceSum, const Player& opponent, const Tou
             maxSquare = std::max(maxSquare, square);
         }
 
-        // For uncovering, we generally want the lowest sum (most efficient)
-        int score = 100 - comboSum;  // Base score: Lower sum is better
+        // For uncovering, we generally want the lowest sum (most efficient) Base score: Lower sum is better
+        int score = 100 - comboSum;
 
         // Check if this move would win the game
         bool wouldWin = true;
         vector<int> simulatedOpponentBoard = oppSquares;
         for (int sq : combo) {
             if (sq - 1 >= 0 && sq - 1 < static_cast<int>(simulatedOpponentBoard.size())) {
-                simulatedOpponentBoard[sq - 1] = 0; // Mark as uncovered
+
+                // Mark as uncovered
+                simulatedOpponentBoard[sq - 1] = 0;
             }
         }
 
@@ -1004,13 +1097,19 @@ void Player::evaluateUncoverMoves(int diceSum, const Player& opponent, const Tou
 
         // Apply scoring bonuses
         if (wouldWin) {
-            score += 1000;  // Massive bonus for winning moves
+
+            // Massive bonus for winning moves
+            score += 1000;
         }
         if (maxSquare >= 7) {
-            score += 10;    // Bonus for high-value squares
+
+            // Bonus for high-value squares
+            score += 10;
         }
         if (squareCount > 1) {
-            score += squareCount * 2;  // Bonus for multiple squares
+
+			// Bonus for multiple squares
+            score += squareCount * 2;
         }
 
         // Update best uncover decision if this is better
@@ -1037,11 +1136,12 @@ Algorithm:
          2) If both would win, calculate and compare potential scores
          3) Otherwise, use strategic scoring to compare the moves
          4) Return the superior move with enhanced explanation
-Reference: None
+Reference: AI
 ********************************************************************* */
 MoveDecision Player::makeStrategicDecision(const MoveDecision& coverDecision,
     const MoveDecision& uncoverDecision,
     const Player& opponent) {
+
     // Check for win conditions
     vector<int> tempSquares = squares;
     bool coverWouldWin = false;
@@ -1092,6 +1192,7 @@ MoveDecision Player::makeStrategicDecision(const MoveDecision& coverDecision,
         return result;
     }
     else if (coverWouldWin && uncoverWouldWin) {
+
         // Both would win - make a strategic choice based on score potential
         int coverScore = 0, uncoverScore = 0;
 
@@ -1149,10 +1250,14 @@ MoveDecision Player::makeStrategicDecision(const MoveDecision& coverDecision,
     }
 
     int coverScore = coverTotal + (3 * maxCover);
-    if (maxCover >= 7) coverScore += 10;  // Bonus for high-value squares
+
+    // Bonus for high-value squares
+    if (maxCover >= 7) coverScore += 10;
 
     int uncoverScore = 100 - uncoverTotal + (2 * maxUncover);
-    if (maxUncover >= 7) uncoverScore += 15;  // Higher bonus for targeting opponent's high squares
+
+    // Higher bonus for targeting opponent's high squares
+    if (maxUncover >= 7) uncoverScore += 15;
 
     // Add bonus for multi-square moves
     coverScore += static_cast<int>(coverDecision.squares.size()) * 3;
@@ -1187,9 +1292,10 @@ Algorithm:
          1) Format the list of squares
          2) Generate appropriate explanation based on move type and square values
          3) Add special explanation for winning moves
-Reference: None
+Reference: AI
 ********************************************************************* */
 std::string Player::generateMoveExplanation(const std::vector<int>& combo, bool isCover, bool wouldWin) {
+
     // Format the explanation intro
     string explanation;
     string moveType = isCover ? "Cover" : "Uncover";
@@ -1215,6 +1321,7 @@ std::string Player::generateMoveExplanation(const std::vector<int>& combo, bool 
 
     // For non-winning moves, provide strategic explanation
     if (combo.size() > 1) {
+
         // Sort squares by value to identify high and low values
         vector<int> sortedSquares = combo;
         std::sort(sortedSquares.begin(), sortedSquares.end());
@@ -1256,6 +1363,7 @@ std::string Player::generateMoveExplanation(const std::vector<int>& combo, bool 
                     std::to_string(highestSquare) + ".";
             }
             else if (highestSquare >= 5) {
+
                 // For mid-value square combinations
                 if (combo.size() == 2) {
                     explanation += " because it " + (isCover ? "balances efficiency with strategic value by " + verb : "focuses on") +
@@ -1293,6 +1401,7 @@ std::string Player::generateMoveExplanation(const std::vector<int>& combo, bool 
         }
     }
     else if (combo.size() == 1) {
+
         // Single square case
         int square = combo[0];
         if (square >= 7) {
@@ -1333,6 +1442,7 @@ Algorithm:
 Reference: None
 ********************************************************************* */
 MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowUncover, const Tournament* tournamentPtr) {
+
     // Initialize move decisions
     MoveDecision coverDecision;
     coverDecision.cover = true;
@@ -1353,8 +1463,10 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
 
     // Step 3: Handle cases where only one type of move is available
     if (uncoverDecision.squares.empty() || forceCovering) {
+
         // No uncover move is available or covering is forced
         if (coverDecision.squares.empty()) {
+
             // No valid moves at all
             return MoveDecision{ true, vector<int>(), "No valid moves available for this dice sum." };
         }
@@ -1362,6 +1474,7 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
     }
 
     if (coverDecision.squares.empty()) {
+
         // Only an uncover move is available
         uncoverDecision.explanation = "Only an uncover move is available. " + uncoverDecision.explanation;
         return uncoverDecision;
@@ -1369,16 +1482,4 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
 
     // Step 4: Make strategic decision between covering and uncovering
     return makeStrategicDecision(coverDecision, uncoverDecision, opponent);
-}
-/* *********************************************************************
-Function Name: offerHint
-Purpose: To provide a hint for the player's move. (Placeholder function.)
-Parameters: None.
-Return Value: None.
-Algorithm:
-         1) Print a message indicating that hint functionality is not yet implemented.
-Reference: AI recommended
-********************************************************************* */
-void Player::offerHint() {
-    cout << "[" << playerName << "] HINT: (Not yet implemented)\n";
 }

@@ -36,7 +36,7 @@ public:
     Algorithm:
              1) Initialize member variables with the given parameters.
              2) Set lastMoveWasUncover to false.
-    Reference: None
+    Reference: AI
     ********************************************************************* */
     Turn(Player& activePlayer, Player& opponent, Dice& dice, bool allowUncover = true, Tournament* tPtr = nullptr);
 

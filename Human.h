@@ -1,7 +1,8 @@
 /************************************************************
- * Name:  Lucas Maretzo
- * Project:  Canoga
- * Date:  Human Class Header
+ * Name:     Lucas Maretzo
+ * Project:  P1 Canoga
+ * Class:    CMPS366 Operating Systems
+ * Date:     3/10/2025
  ************************************************************/
 
 #pragma once
@@ -38,7 +39,7 @@ public:
          boardSize  - an integer representing the number of squares on the board
     Return Value: None.
     Algorithm: Calls the base class constructor to initialize player attributes.
-    Reference: None
+    Reference: AI
     ********************************************************************* */
     Human(const string& name, int boardSize, Tournament* tournament = nullptr);
 
@@ -70,7 +71,7 @@ public:
              4) Prompt the user to enter the squares for the move.
              5) Validate that the chosen squares sum to diceSum.
              6) Return the constructed MoveDecision.
-    Reference: AI Assisted
+    Reference: AI
     ********************************************************************* */
     virtual MoveDecision decideMove(int diceSum, const Player& opponent, bool allowUncover, const Tournament* tournamentPtr = nullptr) override;
 

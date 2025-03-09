@@ -1,7 +1,8 @@
 ﻿/************************************************************
- * Name:  Lucas Maretzo
- * Project:  Canoga
- * Date:  1/31/2025
+ * Name:     Lucas Maretzo
+ * Project:  P1 Canoga
+ * Class:    CMPS366 Operating Systems
+ * Date:     3/10/2025
  ************************************************************/
 
 #ifndef ROUND_H
@@ -10,7 +11,6 @@
 #include "Player.h"
 #include "Dice.h"
 
- // Forward declarations
 class Turn;
 class Tournament;
 

@@ -1,7 +1,8 @@
 ﻿/************************************************************
- * Name:  Lucas Maretzo
- * Project:  Canoga
- * Date:  1/31/2025
+ * Name:     Lucas Maretzo
+ * Project:  P1 Canoga
+ * Class:    CMPS366 Operating Systems
+ * Date:     3/10/2025
  ************************************************************/
 
 #include "Round.h"
@@ -70,11 +71,13 @@ Round::Round(
     // Ensure firstTurnPlayer is correctly assigned
     if (firstTurnIsHuman)
     {
-        firstTurnPlayer = player1;  // Set to Human if they went first
+        // Set to Human if they went first
+        firstTurnPlayer = player1;
     }
     else
     {
-        firstTurnPlayer = player2;  // Set to Computer if they went first
+        // Set to Computer if they went first
+        firstTurnPlayer = player2;
     }
 
 
@@ -101,13 +104,16 @@ Purpose: To execute a full round of the Canoga game. This function
 Parameters: None.
 Return Value: None.
 Algorithm:
-         1) Possibly determine the first-turn player by calling determineFirstPlayer(),
-            unless skipFirstTurnRoll is true.
-         2) Keep track that the first turn disallows uncovering for that player.
-         3) Alternate turns until isRoundOver() returns true.
-         4) Evaluate final win conditions and update scores.
-         5) Store the first-turn player and show updated scores.
-Reference: AI ASSISTED
+         1) If skipFirstTurnRoll is false, determine first player by rolling dice.
+         2) For new rounds: Alternate turns starting with firstTurnPlayer, disallowing
+            uncovering on the first turn only.
+         3) For loaded games: Use loadedNextTurn to determine which player goes first,
+            and toggle between Human and Computer for subsequent turns.
+         4) Continue turns until isRoundOver() returns true.
+         5) Evaluate final win conditions (all covered or all uncovered).
+         6) Calculate and award scores to the winner.
+         7) Update round outcome data and display the updated scores.
+Reference: AI
 ********************************************************************* */
 void Round::play()
 {
@@ -125,12 +131,9 @@ void Round::play()
     // Keep taking turns until the round is over:
     while (!isRoundOver())
     {
-        // ─────────────────────────────────────────────────────────
-        // 1) BRAND-NEW ROUND (NOT SKIPPING FIRST TURN ROLL)
-        // ─────────────────────────────────────────────────────────
+        // 1) Brand-new round (not skipping turn roll)
         if (!skipFirstTurnRoll)
         {
-            // === The code below is ORIGINAL logic ===
             if (firstTurnIsHuman) {
                 // First player's turn (Human)
                 Turn turnFirst(*player1, *player2, dice,
@@ -178,9 +181,8 @@ void Round::play()
                 }
             }
         }
-        // ─────────────────────────────────────────────────────────
-        // 2) LOADED A MID-ROUND GAME (SKIPPING FIRST TURN ROLL)
-        // ─────────────────────────────────────────────────────────
+
+        // 2) Loaded a mid-game round (Skipped first round)
         else
         {
             if (isHumanNext)
@@ -248,7 +250,7 @@ void Round::play()
 
 
 
-    // --- Evaluate final round outcomes: ---
+    // Evaluate final round outcomes
     if (player1->areAllCovered()) {
         cout << "\n** " << player1->getName()
             << " covers all squares and wins the round! **\n";
@@ -282,24 +284,29 @@ void Round::play()
         winningScore = scoreToAdd;
     }
     else if (bothPlayersTurnComplete && player1->areAllUncovered()) {
+
         // Opponent uncovered all of player1's squares
         cout << "\n** " << player2->getName()
             << " uncovers all of " << player1->getName()
             << "'s squares and wins the round! **\n";
         int scoreToAdd = 0;
         vector<int> p2Squares = player2->getSquares();
+
         for (size_t i = 0; i < p2Squares.size(); i++) {
+
             // sum up your own covered squares
             if (p2Squares[i] != 0) {
                 scoreToAdd += p2Squares[i];
             }
         }
+
         player2->addToScore(scoreToAdd);
         cout << player2->getName() << " is awarded "
             << scoreToAdd << " points.\n";
         roundWinner = player2;
         winningScore = scoreToAdd;
     }
+
     else if (bothPlayersTurnComplete && player2->areAllUncovered()) {
         // Opponent uncovered all of player2's squares
         cout << "\n** " << player1->getName()
@@ -312,6 +319,7 @@ void Round::play()
                 scoreToAdd += p1Squares[i];
             }
         }
+
         player1->addToScore(scoreToAdd);
         cout << player1->getName() << " is awarded "
             << scoreToAdd << " points.\n";
@@ -336,7 +344,7 @@ Algorithm:
     2) If both players have had at least one turn and either
        player's board is all uncovered, the round is over.
     3) Otherwise, continue.
-Reference: None
+Reference: AI
 ********************************************************************* */
 bool Round::isRoundOver() const
 {
@@ -372,7 +380,7 @@ Algorithm:
          6) In case of tie, recursively re-roll
          7) If player2 goes first, swap player pointers
          8) Update Tournament object with first turn information
-Reference: None
+Reference: AI
 ********************************************************************* */
 void Round::determineFirstPlayer()
 {
@@ -421,13 +429,11 @@ void Round::determineFirstPlayer()
         firstTurnPlayer = player1;
     }
 
-    // *******************************************************
-    //  Immediately update the tournament so mid-round save
+    // Update the tournament object with first turn information for mid-round saving
     if (tournamentPtr)
     {
         tournamentPtr->setFirstTurnIsHuman(firstTurnIsHuman);
-        // i do NOT call setNextTurn here,
-        // because that might be decided later elsewhere.
+        // I do not call setNextTurn here, because that might be decided later elsewhere.
     }
 }
 
@@ -443,7 +449,8 @@ Reference: None
 ********************************************************************* */
 Player& Round::getRoundWinner()
 {
-    return *roundWinner; // roundWinner is a Player*
+    // roundWinner is a Player*
+    return *roundWinner;
 }
 
 /* *********************************************************************
@@ -457,7 +464,8 @@ Reference: None
 ********************************************************************* */
 Player& Round::getFirstTurnPlayer()
 {
-    return *firstTurnPlayer; // firstTurnPlayer is a Player*
+    // firstTurnPlayer is a Player*
+    return *firstTurnPlayer;
 }
 
 /* *********************************************************************

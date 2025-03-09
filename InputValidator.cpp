@@ -1,3 +1,10 @@
+/************************************************************
+ * Name:     Lucas Maretzo
+ * Project:  P1 Canoga
+ * Class:    CMPS366 Operating Systems
+ * Date:     3/10/2025
+ ************************************************************/
+
 #include "InputValidator.h"
 using namespace std;
 

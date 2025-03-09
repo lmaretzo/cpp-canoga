@@ -1,8 +1,10 @@
 /************************************************************
- * Name:  Lucas Maretzo
- * Project:  Canoga
- * Date:  1/31/2025
+ * Name:     Lucas Maretzo
+ * Project:  P1 Canoga
+ * Class:    CMPS366 Operating Systems
+ * Date:     3/10/2025
  ************************************************************/
+
 #include "Turn.h"
 #include "InputValidator.h"
 #include <sstream>
@@ -11,7 +13,7 @@
 #include <string>
 #include <thread>
 #include <chrono>
-#include "Computer.h"   // Include Computer.h so that the type is known.
+#include "Computer.h"
 #include "Tournament.h"
 
 using namespace std;
@@ -30,7 +32,7 @@ Return Value: None.
 Algorithm:
          1) Initialize member variables with the given parameters.
          2) Set lastMoveWasUncover to false.
-Reference: None
+Reference: AI
 ********************************************************************* */
 Turn::Turn(Player& activePlayer, Player& opp, Dice& d, bool allowUncover, Tournament* tPtr)
     : player(activePlayer), opponent(opp), diceRef(d), allowUncover(allowUncover),
@@ -51,7 +53,7 @@ Algorithm:
          1) Retrieve the player's squares.
          2) Build a vector of numbers representing uncovered squares.
          3) Iterate through all subsets of these numbers to check if any subset sums to 'sum'.
-Reference: AI ASSISTED
+Reference: AI
 ********************************************************************* */
 bool Turn::canCoverAnyCombination(const Player& p, int sum) const
 {
@@ -98,8 +100,12 @@ Reference: None
 ********************************************************************* */
 bool Turn::areSquaresSevenToNCovered(const Player& player) const {
     const vector<int>& squares = player.getSquares();
-    for (int i = 6; i < squares.size(); ++i) { // Index 6 = square 7
-        if (squares[i] == 0) { // Uncovered square
+
+    // Index 6 = square 7
+    for (int i = 6; i < squares.size(); ++i) {
+
+        // Uncovered square
+        if (squares[i] == 0) {
             return false;
         }
     }
@@ -125,7 +131,9 @@ void printDice(int d1, int d2, int diceCount) {
         cout << "|  " << d1 << "  |\n";
         cout << "+-----+\n";
     }
-    else { // diceCount == 2
+
+    // For case when two dice are rolled
+    else {
         cout << "+-----+ " << "+-----+\n";
         cout << "|  " << d1 << "  | " << "|  " << d2 << "  |\n";
         cout << "+-----+ " << "+-----+\n";
@@ -153,34 +161,39 @@ Algorithm:
          7) Apply the move to the appropriate board.
          8) If the move cannot be applied, end the turn.
          9) Print the applied move and check for immediate win conditions.
-Reference: AI ASSISTED
+Reference: AI
 ********************************************************************* */
 void Turn::execute() {
 
     cout << "\n--- " << player.getName() << "'s TURN ---\n";
     bool stillRolling = true;
-    bool roundEnded = false;  // track if the player ended the round
+
+    // Track if the player ended the round by covering all squares
+    bool roundEnded = false;
 
     do {
-        // We'll set hasHadTurnInRound to true after a successful move,
-        // not at the beginning of the turn
-
+        // Set hasHadTurnInRound to true after a successful move, not at the beginning of the turn
         player.printBoard();
 
         // If the active player is Computer, display "Rolling..." and pause.
         cout << "\nRolling...\n";
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // pause for sec
+
+		// Pause for 1 second to simulate "rolling" the dice
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
         // Update the relevant part of the Turn::execute() method:
-
         bool allCoveredSevenToN = areSquaresSevenToNCovered(player);
-        int diceToRoll = 2;  // Default: roll two dice.
+
+		// Determine the number of dice to roll based on the game rules. Default: roll two dice.
+        int diceToRoll = 2;
 
         // Per game rules: Player can only choose dice count if squares 7-n are all covered
         if (allCoveredSevenToN) {
+
             // Compute the optimal dice roll using the enhanced function in the Player class.
             std::pair<int, std::string> optimaAndReason;
             if (player.getName() == "Computer") {
+
                 // For computer players, automatically use the optimal dice roll with explanation.
                 optimaAndReason = player.getOptimalDiceRollWithReason();
                 diceToRoll = optimaAndReason.first;
@@ -191,42 +204,45 @@ void Turn::execute() {
                     << "Reasoning: " << optimaAndReason.second << "\n";
             }
             else {
+
                 // For human players, first ask if they want a hint regarding the optimal dice roll.
                 bool wantHint = getYesNo("Would you like a hint for the optimal dice roll? (y/n): ");
                 if (wantHint) {
+
                     // Display the hint with detailed reasoning.
                     optimaAndReason = player.getOptimalDiceRollWithReason();
                     cout << "Hint: Based on your board, the optimal choice is "
                         << optimaAndReason.first << " die" << (optimaAndReason.first == 1 ? "" : "ce")
                         << ".\nReasoning: " << optimaAndReason.second << "\n";
                 }
+
                 // Then prompt the user to choose whether to roll one die.
                 bool rollOneDie = getYesNo("Do you want to roll one die? (y/n): ");
                 diceToRoll = rollOneDie ? 1 : 2;
             }
         }
-        //else {
-        //    // If any square from 7-n is uncovered, player MUST roll two dice per game rules
-        //    cout << "Rolling two dice (required because some squares 7-" << player.getSquares().size()
-        //        << " are still uncovered).\n";
-        //}
-
-
+        
+		// Roll the dice and compute the sum.
         pair<int, int> rollVal = diceRef.roll(diceToRoll);
         int sum = rollVal.first + rollVal.second;
         printDice(rollVal.first, rollVal.second, diceToRoll);
         cout << "Sum = " << sum << "\n" << "\n";
 
+		// Check if the player can cover any combination of squares for the given sum.
         if (sum == 0) {
+
             // Prevent skipping on first turn of the round
             if (!player.getHasHadTurnInRound()) {
                 cout << "Cannot skip on your first turn of the round.\n";
-                continue; // Go back to the beginning of the do-while loop
-            }
 
+                // Return to the beginning of the do-while loop to retry
+                continue;
+            }
             cout << player.getName() << " chose to skip their turn.\n";
             break;
         }
+
+		// Check if the player can cover any combination of squares for the given sum.
         if (!(canCoverAnyCombination(player, sum) || player.canUncover(sum, opponent, tournamentPtr))) {
             cout << "No valid moves for sum = " << sum << ". "
                 << player.getName() << "'s turn ends.\n";
@@ -242,24 +258,30 @@ void Turn::execute() {
         else {
             decision = player.decideMove(sum, opponent, allowUncover, tournamentPtr);
         }
-        lastMoveWasUncover = !decision.cover;  // Set the flag based on the decision.
+
+        // Update lastMoveWasUncover flag based on the player's decision
+        lastMoveWasUncover = !decision.cover;
+
         if (decision.squares.empty()) {
             // Prevent skipping on first turn of the round - but this shouldn't happen 
             // since we already check in Human::decideMove
             cout << player.getName() << " did not choose any squares. Turn ends.\n";
             break;
         }
+
+		// Apply the move to the appropriate board.
         bool allSuccessful = true;
         for (int sq : decision.squares) {
             bool success;
             if (decision.cover)
                 success = player.coverSquare(sq);
             else
-                // CHANGED: Pass tournament pointer to uncoverSquare
+                //Pass tournament pointer to uncoverSquare
                 success = opponent.uncoverSquare(sq, tournamentPtr);
 
             if (!success) {
-                // NEW: Add specific message for handicap protection
+
+                //Add specific message for handicap protection
                 if (!decision.cover && tournamentPtr &&
                     tournamentPtr->getHandicapActive() &&
                     sq == tournamentPtr->getHandicapSquare() &&
@@ -274,6 +296,8 @@ void Turn::execute() {
             }
 
         }
+
+		// If any square could not be covered/uncovered, end the turn.
         if (!allSuccessful) {
             cout << "Could not apply the chosen move. Turn ends.\n";
             break;
@@ -283,30 +307,38 @@ void Turn::execute() {
         // This happens only after a successful move
         player.setHasHadTurnInRound(true);
         cout << (decision.cover ? "Covered" : "Uncovered") << " squares: ";
+
         // Get list from Player's formatNumberList helper
         cout << player.formatNumberList(decision.squares) << "\n";
-
 
         // Immediately end the turn if the opponent is all uncovered
         if (lastMoveWasUncover && opponent.areAllUncovered()) {
             cout << player.getName() << " has uncovered all of "
                 << opponent.getName() << "'s squares and wins the round!\n";
-            return; // End turn immediately
+
+			// Set the flag to end the round
+            return;
         }
+
+		// If the player is Human, display the updated board.
         if (!decision.cover) {
             cout << "\nUpdated Opponent's Board:\n";
             opponent.printBoard();
         }
+
+		// Check for win conditions
         if (allowUncover && lastMoveWasUncover && opponent.areAllUncovered()) {
             cout << player.getName() << " has uncovered all of " << opponent.getName() << "'s squares!\n";
             break;
         }
+
         if (player.areAllCovered()) {
             cout << player.getName() << " has covered all squares!\n";
             roundEnded = true;
 
             break;
         }
+
     } while (stillRolling);
     if (tournamentPtr != nullptr)
     {
@@ -318,8 +350,7 @@ void Turn::execute() {
             tournamentPtr->setNextTurn("Computer");
     }
     // Only ask to save if:
-    // (1) It's the human, AND
-    // (2) The round did NOT just end on this turn.
+    // It's the human, and The round did NOT just end on this turn.
     if (!roundEnded && player.getName() == "Human") {
         if (getYesNo("Would you like to save and quit? (y/n): ")) {
             std::string filename;
@@ -349,17 +380,21 @@ Algorithm:
          1) Retrieve the board from the player.
          2) Build a vector of numbers representing the covered squares.
          3) Check every subset of these numbers to see if any sum to 'sum'.
-Reference: None
+Reference: AI
 ********************************************************************* */
 bool Turn::canUncoverAnyCombination(const Player& p, int sum) const {
     vector<int> squaresCopy = p.getSquares();
     vector<int> covered;
+
     // For uncovering, use the squares that are currently covered.
     for (int i = 0; i < (int)squaresCopy.size(); i++) {
-        if (squaresCopy[i] != 0)  // unlike covering, check for nonzero
+
+        // Unlike covering, check for nonzero
+        if (squaresCopy[i] != 0)
             covered.push_back(i + 1);
     }
-    // check all subsets of these covered squares
+
+    // Check all subsets of these covered squares
     int subsetCount = (1 << covered.size());
     for (int mask = 1; mask < subsetCount; mask++) {
         int total = 0, count = 0;
@@ -370,7 +405,8 @@ bool Turn::canUncoverAnyCombination(const Player& p, int sum) const {
             }
         }
         if (total == sum && count >= 1 && count <= 4)
-            return true; // Found a valid uncover combo
+			// Found a valid uncover combo
+            return true;
     }
     return false;
 }

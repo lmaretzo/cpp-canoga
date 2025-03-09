@@ -1,8 +1,10 @@
 /************************************************************
- * Name:  Lucas Maretzo
- * Project:  Canoga
- * Date:  1/31/2025
+ * Name:     Lucas Maretzo
+ * Project:  P1 Canoga
+ * Class:    CMPS366 Operating Systems
+ * Date:     3/10/2025
  ************************************************************/
+
 #pragma once
 #ifndef COMPUTER_H
 #define COMPUTER_H
@@ -63,7 +65,7 @@ public:
                  and the selected squares.
     Algorithm: Uses built-in AI logic to compute valid combinations for covering
                or uncovering and returns the selected move.
-    Reference: None
+    Reference: AI
     ********************************************************************* */
     virtual MoveDecision decideMove(int diceSum, const Player& opponent, bool allowUncover, const Tournament* tournamentPtr = nullptr) override;
 };

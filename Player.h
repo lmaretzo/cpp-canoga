@@ -1,7 +1,8 @@
 /************************************************************
- * Name:  Lucas Maretzo
- * Project:  Canoga
- * Date:  3/10/2025
+ * Name:     Lucas Maretzo
+ * Project:  P1 Canoga
+ * Class:    CMPS366 Operating Systems
+ * Date:     3/10/2025
  ************************************************************/
 
 #pragma once
@@ -154,7 +155,7 @@ public:
              tournamentPtr - a pointer to the Tournament object for handicap rules (optional)
     Return Value: A boolean value (true if the operation was successful, false otherwise).
     Algorithm: If the specified square is covered (non-zero), mark it as uncovered by setting its value to 0.
-    Reference: None
+    Reference: AI
     ********************************************************************* */
     bool uncoverSquare(int squareLabel, const Tournament* tournamentPtr = nullptr);
 
@@ -222,7 +223,7 @@ public:
              3) Compute the average uncovered value.
              4) If the average is above a chosen threshold (e.g., 4.0) or if few squares are uncovered,
                 return 1; otherwise, return 2.
-    Reference: ai assist
+    Reference: AI
     ********************************************************************* */
     int optimalDiceRoll() const;
 
@@ -239,19 +240,9 @@ public:
              1) Check if opponent has any covered squares
              2) Check for valid uncover combinations
              3) Check handicap protection
-    Reference: None
+    Reference: AI
     ********************************************************************* */
     bool canUncover(int diceSum, const Player& opponent, const Tournament* tournamentPtr = nullptr) const;
-
-    /* *********************************************************************
-    Function Name: offerHint
-    Purpose: To offer a hint for the player's move. (Placeholder for future strategy logic.)
-    Parameters: None.
-    Return Value: None.
-    Algorithm: Currently prints a message indicating that no hint is available.
-    Reference: None
-    ********************************************************************* */
-    void offerHint();
 
     /* *********************************************************************
     Function Name: resetSquares
@@ -352,7 +343,7 @@ public:
              tournamentPtr - a pointer to the Tournament object for handicap info
     Return Value: A MoveDecision structure that contains the decision (cover/uncover) and the chosen squares.
     Algorithm: Computes valid move combinations and returns a decision; intended to be overridden by derived classes.
-    Reference: None
+    Reference: AI
     ********************************************************************* */
     virtual MoveDecision decideMove(int diceSum, const Player& opponent, bool allowUncover, const Tournament* tournamentPtr = nullptr);
 
@@ -443,7 +434,7 @@ private:
              current - current combination
              result  - storage for valid combinations
     Return Value: None.
-    Reference: None
+    Reference: AI
     ********************************************************************* */
     static void findCombinations(const vector<int>& nums, int target, int start, vector<int>& current, vector<vector<int>>& result);
 
@@ -459,7 +450,7 @@ private:
              1) Check if opponent has any covered squares
              2) Check for handicap protection
              3) Check if valid uncovering combinations exist
-    Reference: None
+    Reference: AI
     ********************************************************************* */
     bool checkForceCovering(const Player& opponent, const Tournament* tournamentPtr, int diceSum) const;
 
@@ -475,7 +466,7 @@ private:
              2) Score each combination based on strategic factors
              3) Select the highest-scoring combination
              4) Generate explanation for the selected move
-    Reference: None
+    Reference: AI
     ********************************************************************* */
     void evaluateCoverMoves(int diceSum, MoveDecision& coverDecision);
 
@@ -493,7 +484,7 @@ private:
              2) Score each combination based on strategic factors
              3) Select the highest-scoring combination
              4) Generate explanation for the selected move
-    Reference: None
+    Reference: AI
     ********************************************************************* */
     void evaluateUncoverMoves(int diceSum, const Player& opponent,
         const Tournament* tournamentPtr, MoveDecision& uncoverDecision);
@@ -511,7 +502,7 @@ private:
              2) If both would win, calculate and compare potential scores
              3) Otherwise, use strategic scoring to compare the moves
              4) Return the superior move with enhanced explanation
-    Reference: None
+    Reference: AI
     ********************************************************************* */
     MoveDecision makeStrategicDecision(const MoveDecision& coverDecision, const MoveDecision& uncoverDecision, const Player& opponent);
 
@@ -527,7 +518,7 @@ private:
              1) Format the list of squares
              2) Generate appropriate explanation based on move type and square values
              3) Add special explanation for winning moves
-    Reference: None
+    Reference: AI
     ********************************************************************* */
     std::string generateMoveExplanation(const std::vector<int>& combo, bool isCover, bool wouldWin);
 };

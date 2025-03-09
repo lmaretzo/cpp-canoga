@@ -17,10 +17,11 @@ using namespace std;
 Function Name: Computer (Constructor)
 Purpose: Initializes a Computer object with a given name and board size.
 Parameters:
-    - name: The computer player's name.
-    - boardSize: The number of squares on the board.
-Return Value: None
-Reference: Inherits from Player.
+         name - a string representing the computer player's name (passed by value)
+         boardSize - an integer representing the number of squares on the board
+Return Value: None.
+Algorithm: Calls the base class constructor with the provided parameters.
+Reference: None
 ********************************************************************* */
 Computer::Computer(const string& name, int boardSize)
     : Player(name, boardSize)
@@ -30,13 +31,35 @@ Computer::Computer(const string& name, int boardSize)
 /* *********************************************************************
 Function Name: ~Computer (Destructor)
 Purpose: Cleans up a Computer object.
-Parameters: None
-Return Value: None
-Reference: Inherits from Player.
+Parameters: None.
+Return Value: None.
+Algorithm: No explicit cleanup required.
+Reference: None
 ********************************************************************* */
 Computer::~Computer()
 {
 }
+
+/* *********************************************************************
+Function Name: decideMove
+Purpose: To determine the move for the computer player based on the dice roll
+         and the state of the opponent's board.
+Parameters:
+         diceSum - an integer representing the total of the dice roll
+         opponent - a constant reference to the opponent Player object
+         allowUncover - a boolean flag indicating whether uncovering the opponent's
+                        squares is allowed this turn
+         tournamentPtr - a pointer to the Tournament object for handicap info
+Return Value: A MoveDecision structure containing the decision (cover/uncover)
+             and the selected squares.
+Algorithm:
+         1) Call the base class decideMove method to calculate the optimal move
+         2) Add a delay to simulate "thinking"
+         3) Convert the explanation to past tense for more natural computer narration
+         4) Display the reasoning for the move
+         5) Return the decision
+Reference: AI
+********************************************************************* */
 MoveDecision Computer::decideMove(int diceSum, const Player& opponent, bool allowUncover, const Tournament* tournamentPtr) {
     // Use the updated AI strategy from Player with tournament pointer
     MoveDecision decision = Player::decideMove(diceSum, opponent, allowUncover, tournamentPtr);

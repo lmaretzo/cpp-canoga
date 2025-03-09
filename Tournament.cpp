@@ -1,8 +1,10 @@
 ﻿/************************************************************
- * Name:  Lucas Maretzo
- * Project:  Canoga
- * Date:  1/31/2025
+ * Name:     Lucas Maretzo
+ * Project:  P1 Canoga
+ * Class:    CMPS366 Operating Systems
+ * Date:     3/10/2025
  ************************************************************/
+
 #include "Tournament.h"
 #include "Round.h"
 #include <iostream>
@@ -11,10 +13,10 @@
 #include "Computer.h"
 #include <fstream>
 #include <sstream>
-#include <cstdlib>   // for std::stoi
-#include <cerrno>    // For errno
-#define NOMINMAX     // Disable Windows' macro versions of min/max
-#include <windows.h> // for saving debugging
+#include <cstdlib> 
+#include <cerrno> 
+#define NOMINMAX
+#include <windows.h>
 
 
 using namespace std;
@@ -33,8 +35,11 @@ Tournament::Tournament()
     : boardSize(9), handicapSquare(0), handicapActive(false), nextTurn("Human"),
     firstTurnIsHuman(false), gameLoaded(false)
 {
-    human = new Human("Human", boardSize, this);      // Allocate human player.
-    computer = new Computer("Computer", boardSize);  // Allocate computer player.
+    // Allocate human player.
+    human = new Human("Human", boardSize, this);
+
+    // Allocate computer player.
+    computer = new Computer("Computer", boardSize);
 }
 
 
@@ -94,7 +99,20 @@ void Tournament::newGameInitialization()
     initializeBoardSize();
 }
 
-
+/* *********************************************************************
+Function Name: saveGame
+Purpose: To save the current game state to a file for later resumption.
+Parameters:
+         filename - a string representing the path and name of the file to save
+Return Value: A boolean value; true if save was successful, false otherwise.
+Algorithm:
+         1) Open the specified file for writing.
+         2) Write the computer's board state and score.
+         3) Write the human's board state and score.
+         4) Write turn information (first turn, next turn).
+         5) Close the file and return success status.
+Reference: AI
+********************************************************************* */
 bool Tournament::saveGame(const std::string& filename) {
     std::cout << "Inside saveGame, attempting to open file at: " << filename << std::endl;
 
@@ -137,7 +155,6 @@ bool Tournament::saveGame(const std::string& filename) {
     return true;
 }
 
-
 /* *********************************************************************
 Function Name: loadGame
 Purpose: To load a saved game state from a file.
@@ -165,16 +182,18 @@ bool Tournament::loadGame(const std::string& filename) {
     size_t pos = 0;
     int num;
 
-    // --- Load Computer state ---
-    // should be "Computer:"
+    // Load Computer state (should be "Computer:")
     std::getline(in, line);  
     if (line.find("Computer:") == std::string::npos) {
         std::cerr << "Error: Expected 'Computer:' header.\n";
         return false;
     }
-    computer->setName("Computer");  // Set the computer's name
 
-    std::getline(in, line);  // should be "   Squares: ..."
+    // Set the computer's name
+    computer->setName("Computer");
+
+    // should be "   Squares: ..."
+    std::getline(in, line);
     pos = line.find("Squares:");
     if (pos == std::string::npos) return false;
     std::istringstream issComp(line.substr(pos + 8));
@@ -188,31 +207,39 @@ bool Tournament::loadGame(const std::string& filename) {
     // So for each square, if the saved value is 0, set it to (i+1); else set it to 0.
     for (size_t i = 0; i < compSquares.size(); i++) {
         if (compSquares[i] == 0) {
-            compSquares[i] = static_cast<int>(i) + 1;  // Mark as covered.
+
+            // Mark as covered.
+            compSquares[i] = static_cast<int>(i) + 1;
         }
         else {
-            compSquares[i] = 0;                        // Mark as open.
+
+            // Mark as open.
+            compSquares[i] = 0;
         }
     }
     computer->setSquares(compSquares);
 
-    std::getline(in, line);  // should be "   Score: <score>"
+    // should be "   Score: <score>"
+    std::getline(in, line);
     pos = line.find("Score:");
     if (pos == std::string::npos) return false;
     int compScore = std::stoi(line.substr(pos + 6));
     computer->setScore(compScore);
 
-    std::getline(in, line);  // empty line
+    std::getline(in, line);
 
-    // --- Load Human state ---
-    std::getline(in, line);  // should be "Human:"
+    // Load Human state
+    std::getline(in, line);
     if (line.find("Human:") == std::string::npos) {
         std::cerr << "Error: Expected 'Human:' header.\n";
         return false;
     }
-    human->setName("Human");  // Set the human's name
 
-    std::getline(in, line);  // "   Squares: ..."
+    // Set the human's name
+    human->setName("Human");
+
+    // "   Squares: ..."
+    std::getline(in, line);
     pos = line.find("Squares:");
     if (pos == std::string::npos) return false;
     std::istringstream issHuman(line.substr(pos + 8));
@@ -220,13 +247,13 @@ bool Tournament::loadGame(const std::string& filename) {
     while (issHuman >> num) {
         humanSquares.push_back(num);
     }
-    // *** Error Handling: Check human board size ***
+    // Error Handling: Check human board size
     if (humanSquares.size() < 9 || humanSquares.size() > 11) {
         std::cerr << "Error: Invalid board size for Human (" << humanSquares.size()
             << "). Must be between 9 and 11.\n";
         return false;
     }
-    // *** Error Handling: Ensure both boards have the same size ***
+    // Error Handling: Ensure both boards have the same size
     if (humanSquares.size() != compSquares.size()) {
         std::cerr << "Error: Computer board size (" << compSquares.size()
             << ") and Human board size (" << humanSquares.size()
@@ -238,38 +265,45 @@ bool Tournament::loadGame(const std::string& filename) {
     // Invert the human board using the same convention:
     for (size_t i = 0; i < humanSquares.size(); i++) {
         if (humanSquares[i] == 0) {
-            humanSquares[i] = static_cast<int>(i) + 1;  // Mark as covered.
+
+            // Mark as covered.
+            humanSquares[i] = static_cast<int>(i) + 1;
         }
         else {
-            humanSquares[i] = 0;                        // Mark as open.
+
+            // Mark as open.
+            humanSquares[i] = 0;
         }
     }
     human->setSquares(humanSquares);
 
-    std::getline(in, line);  // "   Score: <score>"
+    // "   Score: <score>"
+    std::getline(in, line);
     pos = line.find("Score:");
     if (pos == std::string::npos) return false;
     int humanScore = std::stoi(line.substr(pos + 6));
     human->setScore(humanScore);
 
-    std::getline(in, line);  // empty line
+    std::getline(in, line);
 
-    // --- Load Round/Turn info ---
-    std::getline(in, line);  // "First Turn: <player>"
+    // Load Round/Turn info
+    // "First Turn: <player>"
+    std::getline(in, line);
     pos = line.find("First Turn:");
     if (pos == std::string::npos) return false;
     std::string firstTurnStr = line.substr(pos + 11);
     firstTurnStr.erase(0, firstTurnStr.find_first_not_of(" \t"));
     firstTurnIsHuman = (firstTurnStr == "Human");
 
-    std::getline(in, line);  // "Next Turn: <player>"
+    // "Next Turn: <player>"
+    std::getline(in, line);
     pos = line.find("Next Turn:");
     if (pos == std::string::npos) return false;
     nextTurn = line.substr(pos + 10);
     nextTurn.erase(0, nextTurn.find_first_not_of(" \t"));
 
     in.close();
-    std::cout << "Game loaded successfully from " << filename << ".\n"; // correct 
+    std::cout << "Game loaded successfully from " << filename << ".\n";
 
     // Mark that a game was loaded so that start() uses the loaded state.
     gameLoaded = true;
@@ -314,8 +348,7 @@ void Tournament::start()
 
     bool newFirstTurnIsHuman = false;
 
-    // If no saved game was loaded, perform new game initialization.
-    // Otherwise, resume the saved game.
+    // If no saved game was loaded, perform new game initialization. Otherwise, resume the saved game.
     if (!gameLoaded)
     {
         initializeBoardSize();
@@ -327,6 +360,7 @@ void Tournament::start()
     else
     {
         cout << "Resuming saved game...\n";
+
         // Optionally, update boardSize from loaded human board:
         if (!human->getSquares().empty())
             boardSize = human->getSquares().size();
@@ -337,9 +371,10 @@ void Tournament::start()
     }
 
     // When resuming a saved game, we want the first round to keep the loaded state.
-    // We'll use a flag "firstResumedRound" that is true if gameLoaded was true.
+    // Use a flag "firstResumedRound" that is true if gameLoaded was true.
     bool firstResumedRound = gameLoaded;
-    // And we determine the reset flag for the round: if resuming, do NOT reset for the first round.
+
+    // And we determine the reset flag for the round: if resuming, do not reset for the first round.
     // For a new game, we always reset.
     bool resetBoardsForRound = !gameLoaded;
 
@@ -360,6 +395,7 @@ void Tournament::start()
         }
 
         bool roundFirstTurn = firstTurnIsHuman;
+
         // Create a new Round object.
         // The Round constructor will call resetSquares() on both players only if resetBoardsForRound is true.
         Round round(*human, *computer, dice, boardSize, resetBoardsForRound, this, roundFirstTurn, nextTurn, gameLoaded);
@@ -367,10 +403,12 @@ void Tournament::start()
 
         if (firstResumedRound)
         {
-            firstResumedRound = false; // For subsequent rounds, we will reset the boards.
+
+            // For subsequent rounds, we will reset the boards.
+            firstResumedRound = false;
         }
 
-        // --- Reapply handicap (if active) before the round starts ---
+        // Reapply handicap (if active) before the round starts
         if (getHandicapActive())
         {
             if (getAdvantagePlayerName() == human->getName())
@@ -428,6 +466,7 @@ void Tournament::start()
 
         bool wantToSave = getYesNo("Would you like to save the game now? (y/n): ");
         if (wantToSave) {
+
             // Ask user for path
             cout << R"(Enter file path with filename ex: C:\Users\savedGame.txt to save: )";
             std::string filename;
