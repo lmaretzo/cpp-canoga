@@ -75,10 +75,11 @@ MoveDecision Human::decideMove(int diceSum, const Player& opponent, bool allowUn
     MoveDecision decision;
 
 
+
     // First, ask if the user wants a hint.
     bool wantHint = getYesNo("Would you like a hint for your move? (y/n): ");
     if (wantHint) {
-        MoveDecision hintDecision = Player::decideMove(diceSum, opponent, allowUncover);
+        MoveDecision hintDecision = Player::decideMove(diceSum, opponent, allowUncover, tournamentPtr);
         if (!hintDecision.squares.empty()) {
             cout << "Hint: Consider using the move: ";
             cout << (hintDecision.cover ? "cover " : "uncover ");
@@ -109,6 +110,7 @@ MoveDecision Human::decideMove(int diceSum, const Player& opponent, bool allowUn
         }
     }
 
+	//RIGHT HERE IT IS DECIDING TO COVER OR UNCOVER WHICH IS AFTER THE CALCULCATIONS OF THE OPPONENTS SQUARES WHICH IS WRONG IT NEEDS TO BE BEFORE.
     bool handicapBlocking = tournamentPtr && tournamentPtr->getHandicapActive() &&
         opponent.getName() == tournamentPtr->getAdvantagePlayerName() &&
         !opponent.getHasHadTurnInRound();

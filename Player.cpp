@@ -734,33 +734,32 @@ bool Player::canUncoverSquare(int squareLabel, const Tournament* tournamentPtr) 
     return true;  // Square can be uncovered
 }
 
-
-/* *********************************************************************
-Function Name: decideMove
-Purpose: To determine the player's move based on the dice roll and the state
-         of the opponent's board using an advanced strategic AI with endgame
-         detection and situational awareness.
-Parameters:
-         diceSum      - an integer representing the total from the dice roll
-         opponent     - a constant reference to the opponent Player object
-         allowUncover - a boolean flag indicating whether uncovering is allowed this turn
-Return Value: A MoveDecision structure containing the chosen move (cover/uncover),
-              the list of squares, and a textual explanation of the reasoning.
-Algorithm:
-         1) Generate all valid move combinations for covering and uncovering
-         2) Evaluate each move for:
-            - Immediate win detection
-            - Strategic value (board positioning)
-            - Tactical advantage (high-value squares)
-         3) Score moves using various heuristics
-         4) Select the highest scoring move with a detailed explanation
-         5) Ensure all game rules are respected (handicap, uncover permissions)
-Reference: AI Assisted
-********************************************************************* */
 MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowUncover, const Tournament* tournamentPtr) {
     MoveDecision coverDecision, uncoverDecision;
     coverDecision.cover = true;   // default for covering
     uncoverDecision.cover = false; // default for uncovering
+
+
+    // *** MOVED TO BEGINNING: Check if handicap blocking is in effect ***
+// Check opponent squares and handicap protection
+    bool opponentHasCoveredSquares = false;
+    vector<int> oppSquares = opponent.getSquares();
+    for (int sq : oppSquares) {
+        if (sq != 0) {
+            opponentHasCoveredSquares = true;
+            break;
+        }
+    }
+
+    bool handicapBlocking = tournamentPtr && tournamentPtr->getHandicapActive() &&
+        opponent.getName() == tournamentPtr->getAdvantagePlayerName() &&
+        !opponent.getHasHadTurnInRound();
+
+    // Force covering in these cases (handicap block logic mirror from Human.cpp)
+    bool forceCovering = false;
+    if (!opponentHasCoveredSquares || handicapBlocking || !canUncover(diceSum, opponent, tournamentPtr)) {
+        forceCovering = true;
+    }
 
     // Step 1: Generate all valid cover combinations
     vector<int> myAvailable;
@@ -972,28 +971,27 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
     // Step 3: Generate all valid uncover combinations (only if allowed by game rules)
     uncoverDecision.squares.clear(); // Default to empty (no uncover move)
 
-    // Check opponent squares and handicap protection
-    bool opponentHasCoveredSquares = false;
-    vector<int> oppSquares = opponent.getSquares();
-    for (int sq : oppSquares) {
-        if (sq != 0) {
-            opponentHasCoveredSquares = true;
-            break;
-        }
-    }
-
-    bool handicapBlocking = tournamentPtr && tournamentPtr->getHandicapActive() &&
-        opponent.getName() == tournamentPtr->getAdvantagePlayerName() &&
-        !opponent.getHasHadTurnInRound();
-
     // Only consider uncovering if explicitly allowed by game rules and our centralized conditions are met
     if (opponentHasCoveredSquares && !handicapBlocking && canUncover(diceSum, opponent, tournamentPtr)) {
-
         vector<int> oppCovered;
         vector<int> oppSquares = opponent.getSquares();
+
+        // Check if handicap is active for filtering out the handicap square
+        bool isHandicapActive = tournamentPtr && tournamentPtr->getHandicapActive() &&
+            opponent.getName() == tournamentPtr->getAdvantagePlayerName() &&
+            !opponent.getHasHadTurnInRound();
+        int handicapSquare = isHandicapActive ? tournamentPtr->getHandicapSquare() : 0;
+
+        // Only add squares that aren't protected by handicap
         for (int i = 0; i < static_cast<int>(oppSquares.size()); i++) {
-            if (oppSquares[i] != 0)  // Only consider covered squares
-                oppCovered.push_back(i + 1);
+            if (oppSquares[i] != 0) {  // Only consider covered squares
+                int squareLabel = i + 1;
+                // Skip the handicap square if it's protected
+                if (isHandicapActive && squareLabel == handicapSquare) {
+                    continue;  // Skip adding this square to available options
+                }
+                oppCovered.push_back(squareLabel);
+            }
         }
 
         vector<vector<int>> uncoverCombos = Player::getCombinations(oppCovered, diceSum);
@@ -1176,7 +1174,7 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
     }
 
     // Step 4: Make the final decision between covering and uncovering
-    if (!coverDecision.squares.empty() && !uncoverDecision.squares.empty()) {
+    if (!coverDecision.squares.empty() && !uncoverDecision.squares.empty() && !forceCovering) {
         // Both moves are available - calculate strategic scores for comparison
         int coverTotal = 0, uncoverTotal = 0, maxCover = 0, maxUncover = 0;
         bool coverWouldWin = false, uncoverWouldWin = false;
@@ -1292,7 +1290,7 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
     }
 
     // Step 5: Handle cases where only one type of move is available
-    else if (!uncoverDecision.squares.empty()) {
+    else if (!uncoverDecision.squares.empty() && !forceCovering) {
         string explanation = "Only an uncover move is available. " + uncoverDecision.explanation;
         return MoveDecision{ false, uncoverDecision.squares, explanation };
     }
