@@ -81,13 +81,8 @@ MoveDecision Human::decideMove(int diceSum, const Player& opponent, bool allowUn
     if (wantHint) {
         MoveDecision hintDecision = Player::decideMove(diceSum, opponent, allowUncover, tournamentPtr);
         if (!hintDecision.squares.empty()) {
-            cout << "Hint: Consider using the move: ";
-            cout << (hintDecision.cover ? "cover " : "uncover ");
-            for (int s : hintDecision.squares)
-                cout << s << " ";
-            cout << "\n";
             if (!hintDecision.explanation.empty()) {
-                cout << "Explanation: " << hintDecision.explanation << "\n";
+                cout << "Hint: " << hintDecision.explanation << "\n";
             }
         }
         else {
@@ -123,27 +118,23 @@ MoveDecision Human::decideMove(int diceSum, const Player& opponent, bool allowUn
     if (!opponentHasCoveredSquares || handicapBlocking || !canUncover(diceSum, opponent, tournamentPtr)) {
         forceCovering = true;
 
-        // Determine the reason for better user feedback
-        //if (!allowUncover) {
-        //    reasonMessage = "Uncovering is not allowed on the first turn.";
+        //if (!opponentHasCoveredSquares) {
+        //    reasonMessage = "Uncovering is not allowed because the opponent has no covered squares.";
         //}
-        if (!opponentHasCoveredSquares) {
-            reasonMessage = "Uncovering is not allowed because the opponent has no covered squares.";
-        }
-        else if (handicapBlocking) {
-            reasonMessage = "Uncovering is not allowed because " + opponent.getName() +
-                " has the handicap advantage and hasn't had a turn yet.";
-        }
-        else {
-            reasonMessage = "Uncovering is not allowed because there are no valid combinations that sum to " + std::to_string(diceSum) + ".";
-        }
+        //else if (handicapBlocking) {
+        //    reasonMessage = "Uncovering is not allowed because " + opponent.getName() +
+        //        " has the handicap advantage and hasn't had a turn yet.";
+        //}
+        //else {
+        //    reasonMessage = "Uncovering is not allowed because there are no valid combinations that sum to " + std::to_string(diceSum) + ".";
+        //}
     }
 
 
 
     if (forceCovering) {
         cover = true;
-        cout << reasonMessage << " You must cover your own squares." << endl;
+        cout << reasonMessage << "You must cover your own squares." << endl;
     }
     else {
         cover = getYesNo("Do you want to cover your squares? (y for cover, n for uncover): ");

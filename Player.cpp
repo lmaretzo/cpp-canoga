@@ -849,14 +849,14 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
                 coverDecision.squares = combo;
 
                 // Generate explanation
-                bestCoverExplanation = "Covering squares ";
+                bestCoverExplanation = "Cover squares: ";
                 for (size_t i = 0; i < combo.size(); i++) {
                     bestCoverExplanation += std::to_string(combo[i]);
                     if (i < combo.size() - 1) bestCoverExplanation += ", ";
                 }
 
                 if (wouldWin) {
-                    bestCoverExplanation += " would win the game by covering all squares!";
+                    bestCoverExplanation += " because it would win the game by covering all squares!";
                 }
                 else if (combo.size() > 1) {
                     // Sort squares by value to identify high and low values
@@ -879,7 +879,7 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
                             }
 
                             // Create explanation based on the number of low-value squares
-                            bestCoverExplanation += " is a strategic combination that covers high-value square " +
+                            bestCoverExplanation += " because it is a strategic combination that covers high-value square " +
                                 std::to_string(highestSquare) +
                                 " while efficiently using low-value square";
 
@@ -907,36 +907,36 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
                         }
 
                         else if (highestSquare >= 7) {
-                            bestCoverExplanation += " is strategic as it covers high-value square " +
+                            bestCoverExplanation += " because it is strategic as it covers high-value square " +
                                 std::to_string(highestSquare) + ".";
                         }
                         else if (highestSquare >= 5) {
                             // For mid-value square combinations
                             if (squareCount == 2) {
-                                bestCoverExplanation += " balances efficiency with strategic value by covering mid-value square " +
+                                bestCoverExplanation += " because it balances efficiency with strategic value by covering mid-value square " +
                                     std::to_string(highestSquare) + " along with square " +
                                     std::to_string(sortedSquares.front()) + ".";
                             }
                             else if (squareCount > 2) {
-                                bestCoverExplanation += " strategically covers mid-value square " +
+                                bestCoverExplanation += " because it strategically covers mid-value square " +
                                     std::to_string(highestSquare) + " while efficiently using " +
                                     std::to_string(squareCount - 1) + " additional squares to match the dice sum.";
                             }
                         }
                         else if (squareCount > 2) {
-                            bestCoverExplanation += " efficiently combines " + std::to_string(squareCount) +
+                            bestCoverExplanation += " because it efficiently combines " + std::to_string(squareCount) +
                                 " squares to maximize coverage with the given dice sum.";
                         }
                         else if (squareCount == 2) {
                             int firstSquare = sortedSquares.front();
                             int secondSquare = sortedSquares.back();
-                            bestCoverExplanation += " uses the exact combination needed (" +
+                            bestCoverExplanation += " because it uses the exact combination needed (" +
                                 std::to_string(firstSquare) + " + " + std::to_string(secondSquare) +
                                 " = " + std::to_string(firstSquare + secondSquare) +
                                 ") to match the dice sum.";
                         }
                         else {
-                            bestCoverExplanation += " is the best available option for the given dice sum.";
+                            bestCoverExplanation += " because it is the best available option for the given dice sum.";
                         }
                     }
                 }
@@ -944,19 +944,19 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
                     // Single square case - safe to access first element
                     int square = combo[0];
                     if (square >= 7) {
-                        bestCoverExplanation += " is strategic as it covers high-value square " +
+                        bestCoverExplanation += " because it is strategic as it covers high-value square " +
                             std::to_string(square) + ".";
                     }
                     else if (square >= 5) {
-                        bestCoverExplanation += " covers mid-value square " + std::to_string(square) + ", which provides good strategic value.";
+                        bestCoverExplanation += " because it covers mid-value square " + std::to_string(square) + ", which provides good strategic value.";
                     }
                     else {
-                        bestCoverExplanation += " covers a low-value square " + std::to_string(square) + ", which is the best option for this dice roll.";
+                        bestCoverExplanation += " because it covers a low-value square " + std::to_string(square) + ", which is the best option for this dice roll.";
                     }
                 }
                 else {
                     // Should never reach here (empty combo) but added for safety
-                    bestCoverExplanation += " is the best available option.";
+                    bestCoverExplanation += " because it is the best available option.";
                 }
             }
         }
@@ -1057,14 +1057,14 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
                     uncoverDecision.squares = combo;
 
                     // Generate explanation
-                    bestUncoverExplanation = "Uncovering squares ";
+                    bestUncoverExplanation = "Uncover squares: ";
                     for (size_t i = 0; i < combo.size(); i++) {
                         bestUncoverExplanation += std::to_string(combo[i]);
                         if (i < combo.size() - 1) bestUncoverExplanation += ", ";
                     }
 
                     if (wouldWin) {
-                        bestUncoverExplanation += " would win the game by uncovering all opponent's squares!";
+                        bestUncoverExplanation += " because it would win the game by uncovering all opponent's squares!";
                     }
                     else if (combo.size() > 1) {
                         // Sort squares by value to identify high and low values
@@ -1087,7 +1087,7 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
                                 }
 
                                 // Create explanation based on the number of low-value squares
-                                bestUncoverExplanation += " targets the high-value square " +
+                                bestUncoverExplanation += " because it targets the high-value square " +
                                     std::to_string(highestSquare) +
                                     " while using low-value square";
 
@@ -1120,30 +1120,30 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
                             else if (highestSquare >= 5) {
                                 // For mid-value square combinations
                                 if (squareCount == 2) {
-                                    bestUncoverExplanation += " focuses on mid-value square " +
+                                    bestUncoverExplanation += " because it focuses on mid-value square " +
                                         std::to_string(highestSquare) + " along with square " +
                                         std::to_string(sortedSquares.front()) + " to match the dice sum precisely.";
                                 }
                                 else if (squareCount > 2) {
-                                    bestUncoverExplanation += " strategically targets mid-value square " +
+                                    bestUncoverExplanation += " because it strategically targets mid-value square " +
                                         std::to_string(highestSquare) + " while using " +
                                         std::to_string(squareCount - 1) + " additional squares to match the exact sum.";
                                 }
                             }
                             else if (squareCount > 2) {
-                                bestUncoverExplanation += " efficiently targets " + std::to_string(squareCount) +
+                                bestUncoverExplanation += " because it efficiently targets " + std::to_string(squareCount) +
                                     " squares to maximize uncovering with the given dice sum.";
                             }
                             else if (squareCount == 2) {
                                 int firstSquare = sortedSquares.front();
                                 int secondSquare = sortedSquares.back();
-                                bestUncoverExplanation += " specifically targets the combination of squares " +
+                                bestUncoverExplanation += " because it specifically targets the combination of squares " +
                                     std::to_string(firstSquare) + " and " + std::to_string(secondSquare) +
                                     " which sum to " + std::to_string(firstSquare + secondSquare) +
                                     ", matching the dice roll perfectly.";
                             }
                             else {
-                                bestUncoverExplanation += " is optimal for the given dice sum.";
+                                bestUncoverExplanation += " because it is optimal for the given dice sum.";
                             }
                         }
                     }
@@ -1151,19 +1151,19 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
                         // Single square case - safe to access first element
                         int square = combo[0];
                         if (square >= 7) {
-                            bestUncoverExplanation += " targets the high-value square " +
+                            bestUncoverExplanation += " because it targets the high-value square " +
                                 std::to_string(square) + ".";
                         }
                         else if (square >= 5) {
-                            bestUncoverExplanation += " targets mid-value square " + std::to_string(square) + ", providing good tactical advantage.";
+                            bestUncoverExplanation += " because it targets mid-value square " + std::to_string(square) + ", providing good tactical advantage.";
                         }
                         else {
-                            bestUncoverExplanation += " targets a low-value square " + std::to_string(square) + ", which is necessary given the current dice roll.";
+                            bestUncoverExplanation += " because it targets a low-value square " + std::to_string(square) + ", which is necessary given the current dice roll.";
                         }
                     }
                     else {
                         // Should never reach here (empty combo) but added for safety
-                        bestUncoverExplanation += " is the best available option.";
+                        bestUncoverExplanation += " because it is the best available option.";
                     }
 
                     // Store the explanation for the best uncover move
@@ -1291,30 +1291,31 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
 
     // Step 5: Handle cases where only one type of move is available
     else if (!uncoverDecision.squares.empty() && !forceCovering) {
-        string explanation = "Only an uncover move is available. " + uncoverDecision.explanation;
+        string explanation = "Only an uncover move is available. \n" + uncoverDecision.explanation;
         return MoveDecision{ false, uncoverDecision.squares, explanation };
     }
     // Otherwise, only a cover move is available or there's no valid uncover move
     else {
         // If no cover move is available either, return empty decision
         if (coverDecision.squares.empty()) {
-            return MoveDecision{ true, vector<int>(), "No valid moves available for this dice sum." };
+            return MoveDecision{ true, vector<int>(), "No valid moves available for this dice sum. \n" };
         }
 
-        string explanation = "Only a cover move is available. " + coverDecision.explanation;
 
-        // Add explanation for why uncovering isn't an option
-        if (!opponentHasCoveredSquares) {
-            explanation += " Opponent has no covered squares to uncover.";
-        }
-        else if (handicapBlocking) {
-            explanation += " Uncovering is not allowed because " + opponent.getName() +
-                " has the handicap advantage and hasn't had a turn yet.";
-        }
-        else if (opponentHasCoveredSquares && !canUncover(diceSum, opponent, tournamentPtr)) {
-            explanation += " There are no valid combinations of opponent's covered squares that sum to " +
-                std::to_string(diceSum) + ".";
-        }
+        string explanation = coverDecision.explanation;
+
+        //// Add explanation for why uncovering isn't an option
+        //if (!opponentHasCoveredSquares) {
+        //    explanation += " Opponent has no covered squares to uncover.";
+        //}
+        //else if (handicapBlocking) {
+        //    explanation += " Uncovering is not allowed because " + opponent.getName() +
+        //        " has the handicap advantage and hasn't had a turn yet.";
+        //}
+        //else if (opponentHasCoveredSquares && !canUncover(diceSum, opponent, tournamentPtr)) {
+        //    explanation += " There are no valid combinations of opponent's covered squares that sum to " +
+        //        std::to_string(diceSum) + ".";
+        //}
 
         return MoveDecision{ true, coverDecision.squares, explanation };
     }

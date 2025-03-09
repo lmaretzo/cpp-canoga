@@ -42,11 +42,45 @@ MoveDecision Computer::decideMove(int diceSum, const Player& opponent, bool allo
     // Use the updated AI strategy from Player with tournament pointer
     MoveDecision decision = Player::decideMove(diceSum, opponent, allowUncover, tournamentPtr);
 
-    // added a delay
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    cout << getName() << " (Computer) has chosen squares: ";
-    for (int sq : decision.squares)
-        cout << sq << " ";
-    cout << "\n";
+    // Added a delay to simulate "thinking"
+    std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+
+
+    // Convert explanation to past tense for computer's actions
+    if (!decision.explanation.empty()) {
+        // Replace phrases like "Covering squares" with "Covered squares"
+        string pastTenseExplanation = decision.explanation;
+
+        // Convert present tense to past tense
+        if (decision.cover) {
+            size_t pos = pastTenseExplanation.find("Cover squares");
+            if (pos != string::npos) {
+                pastTenseExplanation.replace(pos, 16, "Covered squares");
+            }
+
+            // Replace "is" with "was" for statements about the move
+            pos = 0;
+            while ((pos = pastTenseExplanation.find(" is ", pos)) != string::npos) {
+                pastTenseExplanation.replace(pos, 4, " was ");
+                pos += 5;
+            }
+        }
+        else {
+            size_t pos = pastTenseExplanation.find("Uncover squares");
+            if (pos != string::npos) {
+                pastTenseExplanation.replace(pos, 18, "Uncovered squares");
+            }
+
+            // Replace "targets" with "targeted" for statements about the move
+            pos = 0;
+            while ((pos = pastTenseExplanation.find(" targets ", pos)) != string::npos) {
+                pastTenseExplanation.replace(pos, 9, " targeted ");
+                pos += 10;
+            }
+        }
+
+        cout << "Reasoning: " << pastTenseExplanation << "\n";
+    }
+
     return decision;
 }
