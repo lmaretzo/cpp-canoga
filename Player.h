@@ -358,6 +358,20 @@ Reference: None
     ********************************************************************* */
     bool canCoverSum(const std::vector<int>& values, int target) const;
 
+    /* *********************************************************************
+Function Name: formatNumberList
+Purpose: Helper function to format a list of numbers with proper commas and "and"
+Parameters:
+         numbers - a vector of integers to format
+Return Value: A string containing the formatted list
+Algorithm:
+         1) For empty lists, return an empty string
+         2) For a single item, return that item as a string
+         3) For multiple items, add commas between all but the last two items
+         4) Add " and " between the last two items
+Reference: None
+********************************************************************* */
+    std::string formatNumberList(const std::vector<int>& numbers) const;
 private:
     string playerName; // Holds the player's name.
     //bool computer;
@@ -389,5 +403,8 @@ Reference: None
         vector<int>& current, vector<vector<int>>& result);
 
 };
+
+
+
 
 #endif

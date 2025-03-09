@@ -701,6 +701,40 @@ bool Player::getHasHadTurnInRound() const {
 }
 
 /* *********************************************************************
+Function Name: formatNumberList
+Purpose: Helper function to format a list of numbers with proper commas and "and"
+Parameters:
+         numbers - a vector of integers to format
+Return Value: A string containing the formatted list
+Algorithm:
+         1) For empty lists, return an empty string
+         2) For a single item, return that item as a string
+         3) For multiple items, add commas between all but the last two items
+         4) Add " and " between the last two items
+Reference: None
+********************************************************************* */
+std::string Player::formatNumberList(const std::vector<int>& numbers) const {
+    if (numbers.empty()) return "";
+
+    if (numbers.size() == 1) {
+        return std::to_string(numbers[0]);
+    }
+
+    std::string result;
+    for (size_t i = 0; i < numbers.size(); i++) {
+        result += std::to_string(numbers[i]);
+        if (i < numbers.size() - 2) {
+            result += ", ";
+        }
+        else if (i == numbers.size() - 2) {
+            result += " and ";
+        }
+    }
+
+    return result;
+}
+
+/* *********************************************************************
 Function Name: canUncoverSquare
 Purpose: Checks if a specific square on the player's board can be uncovered,
          considering handicap protection rules.
@@ -733,6 +767,8 @@ bool Player::canUncoverSquare(int squareLabel, const Tournament* tournamentPtr) 
 
     return true;  // Square can be uncovered
 }
+
+
 
 MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowUncover, const Tournament* tournamentPtr) {
     MoveDecision coverDecision, uncoverDecision;
@@ -849,10 +885,11 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
                 coverDecision.squares = combo;
 
                 // Generate explanation
-                bestCoverExplanation = "Cover squares: ";
-                for (size_t i = 0; i < combo.size(); i++) {
-                    bestCoverExplanation += std::to_string(combo[i]);
-                    if (i < combo.size() - 1) bestCoverExplanation += ", ";
+                if (combo.size() == 1) {
+                    bestCoverExplanation = "Cover square: " + formatNumberList(combo);
+                }
+                else {
+                    bestCoverExplanation = "Cover squares: " + formatNumberList(combo);
                 }
 
                 if (wouldWin) {
@@ -1057,10 +1094,11 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
                     uncoverDecision.squares = combo;
 
                     // Generate explanation
-                    bestUncoverExplanation = "Uncover squares: ";
-                    for (size_t i = 0; i < combo.size(); i++) {
-                        bestUncoverExplanation += std::to_string(combo[i]);
-                        if (i < combo.size() - 1) bestUncoverExplanation += ", ";
+                    if (combo.size() == 1) {
+                        bestUncoverExplanation = "Uncover square: " + formatNumberList(combo);
+                    }
+                    else {
+                        bestUncoverExplanation = "Uncover squares: " + formatNumberList(combo);
                     }
 
                     if (wouldWin) {
@@ -1304,18 +1342,6 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
 
         string explanation = coverDecision.explanation;
 
-        //// Add explanation for why uncovering isn't an option
-        //if (!opponentHasCoveredSquares) {
-        //    explanation += " Opponent has no covered squares to uncover.";
-        //}
-        //else if (handicapBlocking) {
-        //    explanation += " Uncovering is not allowed because " + opponent.getName() +
-        //        " has the handicap advantage and hasn't had a turn yet.";
-        //}
-        //else if (opponentHasCoveredSquares && !canUncover(diceSum, opponent, tournamentPtr)) {
-        //    explanation += " There are no valid combinations of opponent's covered squares that sum to " +
-        //        std::to_string(diceSum) + ".";
-        //}
 
         return MoveDecision{ true, coverDecision.squares, explanation };
     }

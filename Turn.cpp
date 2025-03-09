@@ -283,9 +283,8 @@ void Turn::execute() {
         // This happens only after a successful move
         player.setHasHadTurnInRound(true);
         cout << (decision.cover ? "Covered" : "Uncovered") << " squares: ";
-        for (int sq : decision.squares)
-            cout << sq << " ";
-        cout << "\n";
+        // Get list from Player's formatNumberList helper
+        cout << player.formatNumberList(decision.squares) << "\n";
 
 
         // Immediately end the turn if the opponent is all uncovered
