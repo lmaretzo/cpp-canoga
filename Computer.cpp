@@ -38,9 +38,9 @@ Computer::~Computer()
 {
 }
 
-MoveDecision Computer::decideMove(int diceSum, const Player& opponent, bool allowUncover) {
-    // For now, simply use the default AI strategy from Player.
-    MoveDecision decision = Player::decideMove(diceSum, opponent, allowUncover);
+MoveDecision Computer::decideMove(int diceSum, const Player& opponent, bool allowUncover, const Tournament* tournamentPtr) {
+    // Use the updated AI strategy from Player with tournament pointer
+    MoveDecision decision = Player::decideMove(diceSum, opponent, allowUncover, tournamentPtr);
 
     // added a delay
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));

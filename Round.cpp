@@ -9,6 +9,8 @@
 #include <iostream>
 #include "Tournament.h"
 #include "Computer.h"
+#include <thread>
+#include <chrono>
 
 using namespace std;
 
@@ -361,27 +363,42 @@ Purpose: Rolls dice for each player and decides who goes first, then
          reflect the correct "first turn" data.
 Parameters: None
 Return Value: None
+Algorithm:
+         1) Announce that players will roll to determine who goes first
+         2) Have player1 roll first with a clear announcement
+         3) Short pause for readability
+         4) Have player2 roll second with a clear announcement
+         5) Compare rolls and determine who goes first
+         6) In case of tie, recursively re-roll
+         7) If player2 goes first, swap player pointers
+         8) Update Tournament object with first turn information
+Reference: None
 ********************************************************************* */
 void Round::determineFirstPlayer()
 {
-
+    cout << "\n=== Determining First Player ===\n";
     cout << "Rolling dice to determine who goes first...\n";
+
+    // First player rolls
+    cout << "\n" << player1->getName() << " is rolling the dice...\n";
     auto rollP1 = dice.roll();
-    auto rollP2 = dice.roll();
-
     int sumP1 = rollP1.first + rollP1.second;
-    int sumP2 = rollP2.first + rollP2.second;
-
     cout << player1->getName() << " rolled " << rollP1.first
         << " and " << rollP1.second << " (sum = " << sumP1 << ")\n";
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+    // Second player rolls
+    cout << "\n" << player2->getName() << " is rolling the dice...\n";
+    auto rollP2 = dice.roll();
+    int sumP2 = rollP2.first + rollP2.second;
     cout << player2->getName() << " rolled " << rollP2.first
         << " and " << rollP2.second << " (sum = " << sumP2 << ")\n";
-
 
     // Handle tie as a recursive re-roll
     if (sumP1 == sumP2)
     {
-        cout << "It's a tie! Re-rolling...\n";
+        cout << "\nIt's a tie! Re-rolling...\n";
         determineFirstPlayer();
         return;
     }
@@ -389,24 +406,20 @@ void Round::determineFirstPlayer()
     // Non-tie: pick a winner
     if (sumP1 > sumP2)
     {
-        cout << player1->getName() << " will go first!\n";
+        cout << "\n" << player1->getName() << " rolled higher and will go first!\n";
         firstTurnIsHuman = (player1->getName() == "Human");
         firstTurnPlayer = player1; // Now assigned correctly
-
     }
     else  // sumP2 > sumP1
     {
-        cout << player2->getName() << " will go first!\n";
+        cout << "\n" << player2->getName() << " rolled higher and will go first!\n";
         firstTurnIsHuman = (player2->getName() == "Human");
 
         // swap so player1 always remains the "first" pointer
         std::swap(player1, player2);
 
         firstTurnPlayer = player1;
-
-
     }
-
 
     // *******************************************************
     //  Immediately update the tournament so mid-round save

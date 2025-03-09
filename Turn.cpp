@@ -237,10 +237,10 @@ void Turn::execute() {
         MoveDecision decision;
         if (dynamic_cast<Computer*>(&player)) {
             cout << player.getName() << " (AI) is making a move...\n";
-            decision = static_cast<Computer*>(&player)->decideMove(sum, opponent, allowUncover);
+            decision = static_cast<Computer*>(&player)->decideMove(sum, opponent, allowUncover, tournamentPtr);
         }
         else {
-            decision = player.decideMove(sum, opponent, allowUncover);
+            decision = player.decideMove(sum, opponent, allowUncover, tournamentPtr);
         }
         lastMoveWasUncover = !decision.cover;  // Set the flag based on the decision.
         if (decision.squares.empty()) {

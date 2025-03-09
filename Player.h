@@ -321,7 +321,7 @@ Return Value: A MoveDecision structure that contains the decision (cover/uncover
 Algorithm: Computes valid move combinations and returns a decision; intended to be overridden by derived classes.
 Reference: None
 ********************************************************************* */
-    virtual MoveDecision decideMove(int diceSum, const Player& opponent, bool allowUncover);
+    virtual MoveDecision decideMove(int diceSum, const Player& opponent, bool allowUncover, const Tournament* tournamentPtr = nullptr);
 
     // Add these method declarations to the Player class in Player.h
 

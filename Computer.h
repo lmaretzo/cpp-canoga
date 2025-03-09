@@ -65,7 +65,7 @@ Reference: None
                or uncovering and returns the selected move.
     Reference: None
     ********************************************************************* */
-    virtual MoveDecision decideMove(int diceSum, const Player& opponent, bool allowUncover) override;
+    virtual MoveDecision decideMove(int diceSum, const Player& opponent, bool allowUncover, const Tournament* tournamentPtr = nullptr) override;
 };
 
 #endif

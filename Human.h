@@ -72,7 +72,7 @@ public:
              6) Return the constructed MoveDecision.
     Reference: AI Assisted
     ********************************************************************* */
-    virtual MoveDecision decideMove(int diceSum, const Player& opponent, bool allowUncover);
+    virtual MoveDecision decideMove(int diceSum, const Player& opponent, bool allowUncover, const Tournament* tournamentPtr = nullptr) override;
 
     Tournament* tournamentPtr; 
 

@@ -83,7 +83,7 @@ Algorithm:
     2) Set computer flag to false.
     3) Initialize score to 0.
     4) Create a vector of 9 squares, all uncovered (set to 0).
-Reference: None 
+Reference: None
 ********************************************************************* */
 Player::Player()
     : playerName("Unknown"), score(0), squares(9, 0), hasHadTurnInRound(false)
@@ -109,8 +109,8 @@ Player::Player(const string& name, int boardSize)
     : playerName(name), score(0), hasHadTurnInRound(false)
 
 {
-        resetSquares(boardSize);
-        boardModified = false; // Ensure board is marked unmodified.
+    resetSquares(boardSize);
+    boardModified = false; // Ensure board is marked unmodified.
 }
 
 /* *********************************************************************
@@ -757,7 +757,7 @@ Algorithm:
          5) Ensure all game rules are respected (handicap, uncover permissions)
 Reference: AI Assisted
 ********************************************************************* */
-MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowUncover) {
+MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowUncover, const Tournament* tournamentPtr) {
     MoveDecision coverDecision, uncoverDecision;
     coverDecision.cover = true;   // default for covering
     uncoverDecision.cover = false; // default for uncovering
@@ -769,6 +769,7 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
             myAvailable.push_back(i + 1);
     }
     vector<vector<int>> coverCombos = Player::getCombinations(myAvailable, diceSum);
+
 
     // Step 2: Find the optimal cover move if any valid moves exist
     if (!coverCombos.empty()) {
@@ -971,8 +972,23 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
     // Step 3: Generate all valid uncover combinations (only if allowed by game rules)
     uncoverDecision.squares.clear(); // Default to empty (no uncover move)
 
+    // Check opponent squares and handicap protection
+    bool opponentHasCoveredSquares = false;
+    vector<int> oppSquares = opponent.getSquares();
+    for (int sq : oppSquares) {
+        if (sq != 0) {
+            opponentHasCoveredSquares = true;
+            break;
+        }
+    }
+
+    bool handicapBlocking = tournamentPtr && tournamentPtr->getHandicapActive() &&
+        opponent.getName() == tournamentPtr->getAdvantagePlayerName() &&
+        !opponent.getHasHadTurnInRound();
+
     // Only consider uncovering if explicitly allowed by game rules and our centralized conditions are met
-    if (allowUncover && canUncover(diceSum, opponent, nullptr)) {
+    if (opponentHasCoveredSquares && !handicapBlocking && canUncover(diceSum, opponent, tournamentPtr)) {
+
         vector<int> oppCovered;
         vector<int> oppSquares = opponent.getSquares();
         for (int i = 0; i < static_cast<int>(oppSquares.size()); i++) {
@@ -1290,19 +1306,14 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
         string explanation = "Only a cover move is available. " + coverDecision.explanation;
 
         // Add explanation for why uncovering isn't an option
-        bool opponentHasCoveredSquares = false;
-        vector<int> oppSquares = opponent.getSquares();
-        for (int sq : oppSquares) {
-            if (sq != 0) {
-                opponentHasCoveredSquares = true;
-                break;
-            }
+        if (!opponentHasCoveredSquares) {
+            explanation += " Opponent has no covered squares to uncover.";
         }
-
-        if (opponentHasCoveredSquares && !allowUncover) {
-            explanation += " Uncovering is not allowed on the first turn.";
+        else if (handicapBlocking) {
+            explanation += " Uncovering is not allowed because " + opponent.getName() +
+                " has the handicap advantage and hasn't had a turn yet.";
         }
-        else if (opponentHasCoveredSquares && !canUncover(diceSum, opponent, nullptr)) {
+        else if (opponentHasCoveredSquares && !canUncover(diceSum, opponent, tournamentPtr)) {
             explanation += " There are no valid combinations of opponent's covered squares that sum to " +
                 std::to_string(diceSum) + ".";
         }
@@ -1310,7 +1321,7 @@ MoveDecision Player::decideMove(int diceSum, const Player& opponent, bool allowU
         return MoveDecision{ true, coverDecision.squares, explanation };
     }
 }
-    /* *********************************************************************
+/* *********************************************************************
 Function Name: offerHint
 Purpose: To provide a hint for the player's move. (Placeholder function.)
 Parameters: None.
