@@ -200,7 +200,7 @@ void Turn::execute() {
 
                 // Display the AI's reasoning for its decision
                 cout << player.getName() << " decides to roll " << diceToRoll
-                    << " die" << (diceToRoll == 1 ? "" : "ce") << ".\n"
+                    << (diceToRoll == 1 ? " die" : " dice") << ".\n"
                     << "Reasoning: " << optimaAndReason.second << "\n";
             }
             else {
