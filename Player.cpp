@@ -291,48 +291,41 @@ Algorithm:
          4) Check handicap protection
 Reference: None
 ********************************************************************* */
-bool Player::canUncover(int diceSum, const Player& opponent, const Tournament* tournamentPtr) const {
-
-    // Rule 1: If opponent has no covered squares, cannot uncover
-    bool opponentHasCoveredSquares = false;
-
+bool Player::canUncover(int diceSum, const Player& opponent, const Tournament* tPtr) const
+{
+    // 1) Does the opponent have any covered squares?
+    bool hasCovered = false;
     vector<int> oppSquares = opponent.getSquares();
-    for (int sq : oppSquares) {
-
-        // Opponent has covered at least one square
-        if (sq != 0) {
-            opponentHasCoveredSquares = true;
+    for (int val : oppSquares) {
+        if (val != 0) {  // Non-zero means covered
+            hasCovered = true;
             break;
         }
     }
-
-    if (!opponentHasCoveredSquares) {
+    if (!hasCovered) {
         return false;
     }
 
-    // Rule 2: Handicap protection
-    if (tournamentPtr && tournamentPtr->getHandicapActive() &&
-        opponent.getName() == tournamentPtr->getAdvantagePlayerName() &&
+    // 2) Check if handicap blocks uncover
+    if (tPtr && tPtr->getHandicapActive() &&
+        opponent.getName() == tPtr->getAdvantagePlayerName() &&
         !opponent.getHasHadTurnInRound()) {
         return false;
     }
 
-    // Rule 3: Check if there are valid combinations to uncover
-    vector<int> oppCovered;
+    // 3) Find valid combos to uncover
+    vector<int> coveredLabels;
     for (int i = 0; i < static_cast<int>(oppSquares.size()); i++) {
-
-        // Only consider covered squares
-        if (oppSquares[i] != 0)
-            oppCovered.push_back(i + 1);
-    }
-    vector<vector<int>> uncoverCombos = getCombinations(oppCovered, diceSum);
-    if (uncoverCombos.empty()) {
-        return false;
+        if (oppSquares[i] != 0) { // Means covered
+            coveredLabels.push_back(i + 1);
+        }
     }
 
-    // If we passed all checks, uncovering is allowed
-    return true;
+    auto combos = getCombinations(coveredLabels, diceSum);
+    return !combos.empty();
 }
+
+
 
 /* *********************************************************************
 Function Name: areAllCovered
@@ -1138,12 +1131,12 @@ MoveDecision Player::makeStrategicDecision(const MoveDecision& coverDecision,
     // If either move is a winning move, prioritize it
     if (coverWouldWin && !uncoverWouldWin) {
         MoveDecision result = coverDecision;
-        result.explanation = "Covering is recommended because it will win the game by covering all my squares. " + coverDecision.explanation;
+        //result.explanation = "Covering is recommended because it will win the game by covering all my squares. " + coverDecision.explanation;
         return result;
     }
     else if (!coverWouldWin && uncoverWouldWin) {
         MoveDecision result = uncoverDecision;
-        result.explanation = "Uncovering is recommended because it will win the game by uncovering all opponent's squares. " + uncoverDecision.explanation;
+        //result.explanation = "Uncovering is recommended because it will win the game by uncovering all opponent's squares. " + uncoverDecision.explanation;
         return result;
     }
     else if (coverWouldWin && uncoverWouldWin) {
@@ -1267,9 +1260,6 @@ std::string Player::generateMoveExplanation(const std::vector<int>& combo, bool 
     if (wouldWin) {
         if (isCover) {
             explanation += " because it would win the game by covering all squares!";
-        }
-        else {
-            explanation += " because it would win the game by uncovering all opponent's squares!";
         }
         return explanation;
     }

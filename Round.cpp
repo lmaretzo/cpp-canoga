@@ -181,19 +181,17 @@ void Round::play()
                 }
             }
         }
-
         // 2) Loaded a mid-game round (Skipped first round)
         else
         {
             if (isHumanNext)
             {
-                // If "Next Turn" is Human, the human goes first in this cycle
-                Player& humanRef = (player1->getName() == "Human") ? *player1 : *player2;
-                Player& compRef = (player1->getName() == "Human") ? *player2 : *player1;
+                // "Next Turn" is Human => we treat *player1 as the active human,
+                // and *player2 as the opponent, EXACTLY like the new-round code that
+                // starts with a human turn.
 
-                // Human's turn
-                Turn turnFirst(humanRef, compRef, dice,
-                    (firstTurnForFirstPlayer ? false : true),
+                Turn turnFirst(*player1, *player2, dice,
+                    true, // <-- Always allow uncover
                     tournamentPtr);
                 turnFirst.execute();
                 if (firstTurnForFirstPlayer) {
@@ -201,13 +199,15 @@ void Round::play()
                 }
                 if (isRoundOver()) break;
 
-                // Then computer's turn
-                Turn turnSecond(compRef, humanRef, dice, true, tournamentPtr);
+                // Then the second turn: player2 is active, player1 is opponent,
+                // always allow uncover = true, same as new-round second turn
+                Turn turnSecond(*player2, *player1, dice, true, tournamentPtr);
                 turnSecond.execute();
 
                 if (!bothPlayersTurnComplete) {
                     bothPlayersTurnComplete = true;
                 }
+                // Possibly break if the round ended
                 if (bothPlayersTurnComplete &&
                     (player1->areAllUncovered() || player2->areAllUncovered()))
                 {
@@ -216,12 +216,11 @@ void Round::play()
             }
             else
             {
-                // If "Next Turn" is Computer, the computer goes first in this cycle
-                Player& compRef = (player1->getName() == "Computer") ? *player1 : *player2;
-                Player& humanRef = (player1->getName() == "Computer") ? *player2 : *player1;
+                // "Next Turn" is Computer => we treat *player2 as the active computer,
+                // and *player1 as the opponent, EXACTLY like new-round code that
+                // starts with a computer turn.
 
-                // Computer's turn
-                Turn turnFirst(compRef, humanRef, dice,
+                Turn turnFirst(*player2, *player1, dice,
                     (firstTurnForFirstPlayer ? false : true),
                     tournamentPtr);
                 turnFirst.execute();
@@ -230,8 +229,8 @@ void Round::play()
                 }
                 if (isRoundOver()) break;
 
-                // Then human's turn
-                Turn turnSecond(humanRef, compRef, dice, true, tournamentPtr);
+                // Then the second turn: player1 is active, player2 is opponent
+                Turn turnSecond(*player1, *player2, dice, true, tournamentPtr);
                 turnSecond.execute();
 
                 if (!bothPlayersTurnComplete) {
@@ -243,11 +242,8 @@ void Round::play()
                     break;
                 }
             }
-            // Toggle for the next iteration of the loop
-            isHumanNext = !isHumanNext;
         }
     }
-
 
 
     // Evaluate final round outcomes

@@ -242,12 +242,22 @@ void Turn::execute() {
             break;
         }
 
-		// Check if the player can cover any combination of squares for the given sum.
-        if (!(canCoverAnyCombination(player, sum) || player.canUncover(sum, opponent, tournamentPtr))) {
+        bool canCover = canCoverAnyCombination(player, sum);
+        bool canUncoverMove = player.canUncover(sum, opponent, tournamentPtr);
+
+        if (!(canCover || canUncoverMove)) {
             cout << "No valid moves for sum = " << sum << ". "
                 << player.getName() << "'s turn ends.\n";
             break;
         }
+
+
+		//// Check if the player can cover any combination of squares for the given sum.
+  //      if (!(canCoverAnyCombination(player, sum) || player.canUncover(sum, opponent, tournamentPtr))) {
+  //          cout << "No valid moves for sum = " << sum << ". "
+  //              << player.getName() << "'s turn ends.\n";
+  //          break;
+  //      }
 
         // Use the unified decision method.
         MoveDecision decision;
@@ -340,15 +350,13 @@ void Turn::execute() {
         }
 
     } while (stillRolling);
+
     if (tournamentPtr != nullptr)
     {
-        // The opponent is now up next (unless the round is over).
-        // So if opponent is "Human", the next turn is "Human"; otherwise "Computer".
-        if (opponent.getName() == "Human")
-            tournamentPtr->setNextTurn("Human");
-        else
-            tournamentPtr->setNextTurn("Computer");
+        // We just finished 'player''s turn, so nextTurn should be 'opponent'.
+        tournamentPtr->setNextTurn(opponent.getName());
     }
+
     // Only ask to save if:
     // It's the human, and The round did NOT just end on this turn.
     if (!roundEnded && player.getName() == "Human") {

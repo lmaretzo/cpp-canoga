@@ -476,13 +476,11 @@ void Tournament::start()
     cout << computer->getName() << ": " << computer->getScore() << "\n";
 
     if (human->getScore() > computer->getScore())
-        cout << "=> Human wins the tournament!\n";
+        cout << "=== Human wins the tournament! ===\n";
     else if (computer->getScore() > human->getScore())
-        cout << "=> Computer wins the tournament!\n";
+        cout << "=== Computer wins the tournament! ===\n";
     else
-        cout << "=> It's a draw!\n";
-
-    cout << "Thank you for playing!\n";
+        cout << "=== It's a draw! ===\n";
 }
 
 /* *********************************************************************
