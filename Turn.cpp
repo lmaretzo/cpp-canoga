@@ -175,59 +175,57 @@ void Turn::execute() {
         // Set hasHadTurnInRound to true after a successful move, not at the beginning of the turn
         player.printBoard();
 
-        // If the active player is Computer, display "Rolling..." and pause.
-        cout << "\nRolling...\n";
-
-		// Pause for 1 second to simulate "rolling" the dice
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
-        // Update the relevant part of the Turn::execute() method:
+        // First check if squares 7-n are covered
         bool allCoveredSevenToN = areSquaresSevenToNCovered(player);
 
-		// Determine the number of dice to roll based on the game rules. Default: roll two dice.
+        // Determine the number of dice to roll based on the game rules. Default: roll two dice.
         int diceToRoll = 2;
 
         // Per game rules: Player can only choose dice count if squares 7-n are all covered
         if (allCoveredSevenToN) {
-
             // Compute the optimal dice roll using the enhanced function in the Player class.
             std::pair<int, std::string> optimaAndReason;
             if (player.getName() == "Computer") {
-
                 // For computer players, automatically use the optimal dice roll with explanation.
                 optimaAndReason = player.getOptimalDiceRollWithReason();
                 diceToRoll = optimaAndReason.first;
-
                 // Display the AI's reasoning for its decision
                 cout << player.getName() << " decides to roll " << diceToRoll
                     << (diceToRoll == 1 ? " die" : " dice") << ".\n"
                     << "Reasoning: " << optimaAndReason.second << "\n";
             }
             else {
-
                 // For human players, first ask if they want a hint regarding the optimal dice roll.
                 bool wantHint = getYesNo("Would you like a hint for the optimal dice roll? (y/n): ");
                 if (wantHint) {
-
                     // Display the hint with detailed reasoning.
                     optimaAndReason = player.getOptimalDiceRollWithReason();
-                    cout << "Hint: " << optimaAndReason.second << "\n";
+                    // For human players displaying optimal choice
+                    cout << "Hint: Based on your board, the optimal choice is "
+                        << optimaAndReason.first
+                        << (optimaAndReason.first == 1 ? " die" : " dice") 
+                        << ".\nReasoning: " << optimaAndReason.second << "\n";
 
                 }
-
                 // Then prompt the user to choose whether to roll one die.
                 bool rollOneDie = getYesNo("Do you want to roll one die? (y/n): ");
                 diceToRoll = rollOneDie ? 1 : 2;
             }
         }
-        
-		// Roll the dice and compute the sum.
+
+        // Now display the rolling message with the appropriate dice count
+        cout << "\nRolling " << diceToRoll << (diceToRoll == 1 ? " die" : " dice") << "...\n";
+
+        // Pause for 1 second to simulate "rolling" the dice
+        std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+
+        // Roll the dice and compute the sum.
         pair<int, int> rollVal = diceRef.roll(diceToRoll);
         int sum = rollVal.first + rollVal.second;
         printDice(rollVal.first, rollVal.second, diceToRoll);
         cout << "Sum = " << sum << "\n" << "\n";
 
-		// Check if the player can cover any combination of squares for the given sum.
+        // Check if the player can cover any combination of squares for the given sum.
         if (sum == 0) {
 
             // Prevent skipping on first turn of the round
@@ -270,39 +268,75 @@ void Turn::execute() {
             break;
         }
 
-		// Apply the move to the appropriate board.
-        bool allSuccessful = true;
-        for (int sq : decision.squares) {
-            bool success;
-            if (decision.cover)
-                success = player.coverSquare(sq);
-            else
-                //Pass tournament pointer to uncoverSquare
-                success = opponent.uncoverSquare(sq, tournamentPtr);
+        bool applyMove = true;
+        while (applyMove) {
+            // Try to apply the move
+            bool allSuccessful = true;
+            for (int sq : decision.squares) {
+                bool success;
+                if (decision.cover)
+                    success = player.coverSquare(sq);
+                else
+                    //Pass tournament pointer to uncoverSquare
+                    success = opponent.uncoverSquare(sq, tournamentPtr);
 
-            if (!success) {
+                if (!success) {
+                    //Add specific message for handicap protection
+                    if (!decision.cover && tournamentPtr &&
+                        tournamentPtr->getHandicapActive() &&
+                        sq == tournamentPtr->getHandicapSquare() &&
+                        opponent.getName() == tournamentPtr->getAdvantagePlayerName() &&
+                        !opponent.getHasHadTurnInRound()) {
 
-                //Add specific message for handicap protection
-                if (!decision.cover && tournamentPtr &&
-                    tournamentPtr->getHandicapActive() &&
-                    sq == tournamentPtr->getHandicapSquare() &&
-                    opponent.getName() == tournamentPtr->getAdvantagePlayerName() &&
-                    !opponent.getHasHadTurnInRound()) {
-
-                    cout << "Cannot uncover handicap square " << sq
-                        << " until " << opponent.getName() << " has had a turn.\n";
+                        cout << "Cannot uncover handicap square " << sq
+                            << " until " << opponent.getName() << " has had a turn.\n";
+                    }
+                    else {
+                        // Provide more specific feedback
+                        if (decision.cover) {
+                            cout << "That space is already covered!\n";
+                        }
+                        else {
+                            cout << "That space is already uncovered!\n";
+                        }
+                    }
+                    allSuccessful = false;
+                    break;
                 }
-                allSuccessful = false;
-                break;
             }
 
-        }
+            // If any square could not be covered/uncovered, reprompt only for human players
+            if (!allSuccessful) {
+                // For computer players, just end the turn
+                if (dynamic_cast<Computer*>(&player)) {
+                    cout << "Computer made an invalid move. Turn ends.\n";
+                    applyMove = false;
+                    break; // Exit the turn
+                }
+                else {
+                    // For human players, reprompt
+                    cout << "Could not apply the chosen move. Please try again.\n";
 
-		// If any square could not be covered/uncovered, end the turn.
-        if (!allSuccessful) {
-            cout << "Could not apply the chosen move. Turn ends.\n";
-            break;
+                    // Re-ask for the move decision with the same dice sum
+                    decision = player.decideMove(sum, opponent, allowUncover, tournamentPtr);
+
+                    // If user chose to skip on reprompt
+                    if (decision.squares.empty()) {
+                        cout << player.getName() << " chose to skip their turn.\n";
+                        applyMove = false;
+                        break;
+                    }
+
+                    // Continue to try applying the new move
+                    continue;
+                }
+            }
+            else {
+                // Move was successful, exit the reprompt loop
+                applyMove = false;
+            }
         }
+    
 
         // Mark that the player has had their turn in this round
         // This happens only after a successful move
