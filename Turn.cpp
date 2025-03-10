@@ -211,9 +211,8 @@ void Turn::execute() {
 
                     // Display the hint with detailed reasoning.
                     optimaAndReason = player.getOptimalDiceRollWithReason();
-                    cout << "Hint: Based on your board, the optimal choice is "
-                        << optimaAndReason.first << " die" << (optimaAndReason.first == 1 ? "" : "ce")
-                        << ".\nReasoning: " << optimaAndReason.second << "\n";
+                    cout << "Hint: " << optimaAndReason.second << "\n";
+
                 }
 
                 // Then prompt the user to choose whether to roll one die.
@@ -250,14 +249,6 @@ void Turn::execute() {
                 << player.getName() << "'s turn ends.\n";
             break;
         }
-
-
-		//// Check if the player can cover any combination of squares for the given sum.
-  //      if (!(canCoverAnyCombination(player, sum) || player.canUncover(sum, opponent, tournamentPtr))) {
-  //          cout << "No valid moves for sum = " << sum << ". "
-  //              << player.getName() << "'s turn ends.\n";
-  //          break;
-  //      }
 
         // Use the unified decision method.
         MoveDecision decision;
@@ -353,7 +344,7 @@ void Turn::execute() {
 
     if (tournamentPtr != nullptr)
     {
-        // We just finished 'player''s turn, so nextTurn should be 'opponent'.
+        // Just finished 'player''s turn, so nextTurn should be 'opponent'.
         tournamentPtr->setNextTurn(opponent.getName());
     }
 

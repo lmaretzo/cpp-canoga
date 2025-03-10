@@ -187,9 +187,6 @@ void Round::play()
             if (isHumanNext)
             {
                 // "Next Turn" is Human => we treat *player1 as the active human,
-                // and *player2 as the opponent, EXACTLY like the new-round code that
-                // starts with a human turn.
-
                 Turn turnFirst(*player1, *player2, dice,
                     true, // <-- Always allow uncover
                     tournamentPtr);
@@ -216,12 +213,9 @@ void Round::play()
             }
             else
             {
-                // "Next Turn" is Computer => we treat *player2 as the active computer,
-                // and *player1 as the opponent, EXACTLY like new-round code that
-                // starts with a computer turn.
-
+                // "Next Turn" is Computer allow uncover from the start
                 Turn turnFirst(*player2, *player1, dice,
-                    (firstTurnForFirstPlayer ? false : true),
+                    true,
                     tournamentPtr);
                 turnFirst.execute();
                 if (firstTurnForFirstPlayer) {
@@ -229,7 +223,7 @@ void Round::play()
                 }
                 if (isRoundOver()) break;
 
-                // Then the second turn: player1 is active, player2 is opponent
+                // Second turn is always true for uncover
                 Turn turnSecond(*player1, *player2, dice, true, tournamentPtr);
                 turnSecond.execute();
 
@@ -290,7 +284,7 @@ void Round::play()
 
         for (size_t i = 0; i < p2Squares.size(); i++) {
 
-            // sum up your own covered squares
+            // Sum up your covered squares
             if (p2Squares[i] != 0) {
                 scoreToAdd += p2Squares[i];
             }
@@ -414,7 +408,7 @@ void Round::determineFirstPlayer()
         firstTurnIsHuman = (player1->getName() == "Human");
         firstTurnPlayer = player1; // Now assigned correctly
     }
-    else  // sumP2 > sumP1
+    else
     {
         cout << "\n" << player2->getName() << " rolled higher and will go first!\n";
         firstTurnIsHuman = (player2->getName() == "Human");
@@ -429,7 +423,6 @@ void Round::determineFirstPlayer()
     if (tournamentPtr)
     {
         tournamentPtr->setFirstTurnIsHuman(firstTurnIsHuman);
-        // I do not call setNextTurn here, because that might be decided later elsewhere.
     }
 }
 

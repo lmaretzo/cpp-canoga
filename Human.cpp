@@ -171,7 +171,8 @@ MoveDecision Human::decideMove(int diceSum, const Player& opponent, bool allowUn
         }
 
         if (skip) {
-            continue; // Re-prompt for input
+            // Re-prompt for input
+            continue;
         }
 
         if (chosen.empty())

@@ -293,11 +293,12 @@ Reference: None
 ********************************************************************* */
 bool Player::canUncover(int diceSum, const Player& opponent, const Tournament* tPtr) const
 {
-    // 1) Does the opponent have any covered squares?
+    // 1) Does the opponent have any covered squares
     bool hasCovered = false;
     vector<int> oppSquares = opponent.getSquares();
     for (int val : oppSquares) {
-        if (val != 0) {  // Non-zero means covered
+        // Non-zero means covered
+        if (val != 0) {  
             hasCovered = true;
             break;
         }
@@ -316,7 +317,8 @@ bool Player::canUncover(int diceSum, const Player& opponent, const Tournament* t
     // 3) Find valid combos to uncover
     vector<int> coveredLabels;
     for (int i = 0; i < static_cast<int>(oppSquares.size()); i++) {
-        if (oppSquares[i] != 0) { // Means covered
+        // Means covered
+        if (oppSquares[i] != 0) {
             coveredLabels.push_back(i + 1);
         }
     }
@@ -440,7 +442,8 @@ void Player::printBoard() const {
     for (int i = 0; i < squares.size(); ++i) {
         cout << "+---";
     }
-    cout << "+" << endl; // End the top border
+    // End the top border
+    cout << "+" << endl;
 
     // Generate the row content dynamically
     for (int i = 0; i < squares.size(); ++i) {
@@ -482,27 +485,31 @@ void Player::printBoard() const {
 /* *********************************************************************
 Function Name: getOptimalDiceRollWithReason
 Purpose: Determines the strategic choice between rolling one or two dice
-         when squares 7-n are already covered, focusing only on squares 1-6.
+         when squares 7-n are already covered, with enhanced statistical analysis
+         that accounts for covering multiple squares with one roll.
 Parameters: None.
 Return Value: A pair containing:
               - an integer (1 or 2) representing the optimal number of dice to roll
               - a string explaining the reasoning behind the decision
 Algorithm:
          1) Analyze squares 1-6 to count uncovered squares and their values
-         2) Calculate probability distributions for one die vs two dice
+         2) Calculate enhanced probability metrics for one die vs two dice that
+            account for the value of covering multiple squares with one roll
          3) Evaluate strategic factors focusing on remaining low/mid squares
-         4) Make a decision based on maximizing expected value
+         4) Make a decision based on maximizing expected value and coverage potential
          5) Generate a detailed explanation of the reasoning
-Reference: None
+Reference: AI
 ********************************************************************* */
 std::pair<int, std::string> Player::getOptimalDiceRollWithReason() const {
     // Count uncovered squares in range 1-6 only
     int totalUncovered = 0;
-    int lowValueUncovered = 0;  // Squares 1-4
-    int midValueUncovered = 0;  // Squares 5-6
+    // Squares 1-4
+    int lowValueUncovered = 0;
+    // Squares 5-6
+    int midValueUncovered = 0;
     std::vector<int> uncoveredValues;
 
-    // We only analyze squares 1-6 since 7-n must be covered to have dice choice
+    // Only analyze squares 1-6 since 7-n must be covered to have dice choice
     int analysisBound = std::min(6, static_cast<int>(squares.size()));
 
     for (int i = 0; i < analysisBound; i++) {
@@ -520,72 +527,125 @@ std::pair<int, std::string> Player::getOptimalDiceRollWithReason() const {
     // Calculate progress for squares 1-6
     double progressPercentage = 100.0 * (analysisBound - totalUncovered) / analysisBound;
 
-    // If no uncovered squares in range 1-6, default to one die for finer control
-    if (totalUncovered == 0) {
-        return { 1, "All low and mid-value squares (1-6) are already covered. One die provides more control for potential uncover moves." };
+
+
+    // If only one square remains uncovered, favor precision of one die
+    if (totalUncovered == 1) {
+        return { 1, "Only one square remains uncovered (" +
+                std::to_string(uncoveredValues[0]) +
+                "). Rolling one die gives better precision for this specific value." };
     }
 
-    // If very few squares remain uncovered, favor precision of one die
-    if (totalUncovered <= 2) {
-        std::string remainingDesc = "";
-        for (int val : uncoveredValues) {
-            remainingDesc += std::to_string(val) + " ";
-        }
-        return { 1, "Only " + std::to_string(totalUncovered) + " square(s) remain uncovered (" +
-                remainingDesc + "). Rolling one die gives better precision for these specific values." };
-    }
-
-    // Calculate expected values for different strategies
-    // For one die: values 1-6
-    int oneCount = 0;
-    for (int i = 1; i <= 6; i++) {
-        // Count how many combinations we can make with this value
-        if (canCoverSum(uncoveredValues, i)) {
-            oneCount++;
-        }
-    }
-    double oneDieProb = oneCount / 6.0;
+    // Define probability distributions
+    // For one die: values 1-6 (equal probability of 1/6 each)
+    const std::vector<double> oneDieProbs = { 0, 1 / 6.0, 1 / 6.0, 1 / 6.0, 1 / 6.0, 1 / 6.0, 1 / 6.0 };
 
     // For two dice: values 2-12
-    int twoCount = 0;
-    // Probability distribution for two dice
     const std::vector<double> twoDiceProbs = {
         // 0 and 1 (not possible)
-        0, 0,
-
+        0, 0,                  
         // 2, 3
-        1 / 36.0, 2 / 36.0,
-
-        //4, 5
+        1 / 36.0, 2 / 36.0,     
+        //4. 5
         3 / 36.0, 4 / 36.0,
-
         // 6, 7
-        5 / 36.0, 6 / 36.0,
-
+        5 / 36.0, 6 / 36.0,     
         // 8, 9
         5 / 36.0, 4 / 36.0,     
-
         // 10, 11
-        3 / 36.0, 2 / 36.0,     
-
+        3 / 36.0, 2 / 36.0,    
         // 12
-        1 / 36.0              
+        1 / 36.0                 
     };
 
-    for (int i = 2; i <= 12; i++) {
-        if (canCoverSum(uncoveredValues, i)) {
-            // Use exact probability values rather than rounding
-            twoCount += static_cast<int>(twoDiceProbs[i] * 36);
+    // Calculate expected values with enhanced metrics
+    double oneDieExpectedValue = 0.0;
+    double twoDiceExpectedValue = 0.0;
+
+    // For one die (values 1-6)
+    for (int i = 1; i <= 6; i++) {
+        // Get all combinations that sum to i
+        std::vector<std::vector<int>> combos = getCombinations(uncoveredValues, i);
+
+        if (!combos.empty()) {
+            // Find the best combination (most squares or highest total)
+            int bestComboValue = 0;
+            for (const auto& combo : combos) {
+                // Value of a combo is a function of squares covered and their values
+                // I give weight to both covering more squares and higher value squares
+                // Base value for covering multiple squares is the 5
+                int comboValue = combo.size() * 5;
+                for (int square : combo) {
+                    // Add actual square values
+                    comboValue += square;
+                }
+                bestComboValue = std::max(bestComboValue, comboValue);
+            }
+
+            // Add to expected value (probability × value)
+            oneDieExpectedValue += oneDieProbs[i] * bestComboValue;
         }
     }
-    double twoDiceProb = twoCount / 36.0;
+
+    // For two dice (values 2-12)
+    for (int i = 2; i <= 12; i++) {
+        // Get all combinations that sum to i
+        std::vector<std::vector<int>> combos = getCombinations(uncoveredValues, i);
+
+        if (!combos.empty()) {
+            // Find the best combination (most squares or highest total)
+            int bestComboValue = 0;
+            for (const auto& combo : combos) {
+                // Value of a combo is a function of squares covered and their values
+                // I give weight to both covering more squares and higher value squares
+				// Base value for covering multiple squares is the 5
+                int comboValue = combo.size() * 5;
+                for (int square : combo) {
+                    // Add actual square values
+                    comboValue += square;
+                }
+                bestComboValue = std::max(bestComboValue, comboValue);
+            }
+
+            // Add to expected value (probability × value)
+            twoDiceExpectedValue += twoDiceProbs[i] * bestComboValue;
+        }
+    }
+
+    // Calculate usability percentages for reporting
+    int oneUsableCounts = 0;
+    for (int i = 1; i <= 6; i++) {
+        if (!getCombinations(uncoveredValues, i).empty()) {
+            oneUsableCounts++;
+        }
+    }
+    double oneDieUsability = (oneUsableCounts / 6.0) * 100.0;
+
+    // For two dice: count sum values we can utilize, weighted by probability
+    double twoUsableWeight = 0.0;
+    for (int i = 2; i <= 12; i++) {
+        if (!getCombinations(uncoveredValues, i).empty()) {
+            // Scale to 36 for integer comparison
+            twoUsableWeight += twoDiceProbs[i] * 36.0;
+        }
+    }
+    double twoDiceUsability = (twoUsableWeight / 36.0) * 100.0;
 
     // Decision factors
     std::string explanation;
     int decision;
 
+    // Decision based on uncovered square configuration
+    if (totalUncovered >= 4) {
+
+        // With 4+ uncovered squares, lean towards 2 dice to cover more in one roll
+        decision = 2;
+        explanation = "With " + std::to_string(totalUncovered) +
+            " uncovered squares remaining, two dice provide better coverage potential. " +
+            "Expected value for two dice is significantly higher than for one die.";
+    }
     // Decision based on uncovered square distribution
-    if (midValueUncovered > lowValueUncovered && midValueUncovered >= 2) {
+    else if (midValueUncovered > lowValueUncovered && midValueUncovered >= 2) {
         decision = 2;
         explanation = "More mid-value squares (" +
             std::to_string(midValueUncovered) +
@@ -593,29 +653,38 @@ std::pair<int, std::string> Player::getOptimalDiceRollWithReason() const {
             std::to_string(lowValueUncovered) +
             "). Rolling two dice gives better chances for values 5-6.";
     }
-    else if (lowValueUncovered >= totalUncovered / 2) {
+    else if (lowValueUncovered >= totalUncovered / 2 && totalUncovered <= 2) {
         decision = 1;
         explanation = "Majority of uncovered squares (" +
             std::to_string(lowValueUncovered) + " out of " +
             std::to_string(totalUncovered) +
-            ") are low-value (1-4). One die provides better precision for these values.";
+            ") are low-value (1-4) and few in number. One die provides better precision for these values.";
     }
-    // Decision based on probability comparison
-    else if (oneDieProb > twoDiceProb) {
+    // Decision based on statistical expected value
+      // 10% threshold for significance
+    else if (twoDiceExpectedValue > oneDieExpectedValue * 1.1) {
+        decision = 2;
+        explanation = "Statistical analysis favors two dice with a higher expected value. " 
+            "Two dice allow covering more squares in one roll.";
+    }
+    // 10% threshold for significance
+    else if (oneDieExpectedValue > twoDiceExpectedValue * 1.1) {
         decision = 1;
-        explanation = "Probability analysis shows one die gives " +
-            std::to_string(static_cast<int>(oneDieProb * 100)) +
-            "% chance of useful rolls vs " +
-            std::to_string(static_cast<int>(twoDiceProb * 100)) +
-            "% for two dice. One die is statistically advantageous.";
+        explanation = "Statistical analysis favors one die with a higher expected value. " 
+            "One die provides more precise targeting.";
+    }
+    // Fall back to dice usability percentage if expected values are close
+    else if (oneDieUsability > twoDiceUsability) {
+        decision = 1;
+        explanation = "One die offers " + std::to_string(static_cast<int>(oneDieUsability)) +
+            "% chance of useful rolls vs " + std::to_string(static_cast<int>(twoDiceUsability)) +
+            "% for two dice. One die is slightly advantageous.";
     }
     else {
         decision = 2;
-        explanation = "Probability analysis shows two dice give " +
-            std::to_string(static_cast<int>(twoDiceProb * 100)) +
-            "% chance of useful rolls vs " +
-            std::to_string(static_cast<int>(oneDieProb * 100)) +
-            "% for one die. Two dice are statistically advantageous.";
+        explanation = "Two dice offer " + std::to_string(static_cast<int>(twoDiceUsability)) +
+            "% chance of useful rolls vs " + std::to_string(static_cast<int>(oneDieUsability)) +
+            "% for one die. Two dice are slightly advantageous.";
     }
 
     return { decision, explanation };
