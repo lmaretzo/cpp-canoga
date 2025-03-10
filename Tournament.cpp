@@ -81,23 +81,6 @@ void Tournament::initializeBoardSize()
 
 }
 
-/* *********************************************************************
-Function Name: newGameInitialization
-Purpose: To set up a new game, including board size selection.
-Parameters: None.
-Return Value: None.
-Algorithm:
-    1) Display a welcome message.
-    2) Call initializeBoardSize() to get the board size from the user.
-    3) Perform any additional initialization for a new game.
-Reference: None
-********************************************************************* */
-void Tournament::newGameInitialization()
-{
-    cout << "=== Welcome to Basic Canoga Game ===\n";
-    cout << "We will play a few rounds until you decide to stop.\n";
-    initializeBoardSize();
-}
 
 /* *********************************************************************
 Function Name: saveGame

@@ -489,39 +489,30 @@ void Player::printBoard() const {
 /* *********************************************************************
 Function Name: getOptimalDiceRollWithReason
 Purpose: Determines the strategic choice between rolling one or two dice
-         based on a comprehensive analysis of the game state. This method should
-         only be called when squares 7 through n are all covered, giving the player
-         a choice of dice count. Otherwise game rules mandate using two dice.
+         when squares 7-n are already covered, focusing only on squares 1-6.
 Parameters: None.
 Return Value: A pair containing:
               - an integer (1 or 2) representing the optimal number of dice to roll
               - a string explaining the reasoning behind the decision
 Algorithm:
-         1) Analyze the full board to count uncovered squares and their values
+         1) Analyze squares 1-6 to count uncovered squares and their values
          2) Calculate probability distributions for one die vs two dice
-         3) Evaluate strategic factors (progress toward covering all squares)
+         3) Evaluate strategic factors focusing on remaining low/mid squares
          4) Make a decision based on maximizing expected value
          5) Generate a detailed explanation of the reasoning
-Reference: AI
+Reference: None
 ********************************************************************* */
 std::pair<int, std::string> Player::getOptimalDiceRollWithReason() const {
-
-    // Count uncovered squares
+    // Count uncovered squares in range 1-6 only
     int totalUncovered = 0;
-
-    // Squares 1-4
-    int lowValueUncovered = 0;
-
-	// Squares 5-9
-    int midValueUncovered = 0;
-
-	// Squares 10-11 if present
-    int highValueUncovered = 0;
-
+    int lowValueUncovered = 0;  // Squares 1-4
+    int midValueUncovered = 0;  // Squares 5-6
     std::vector<int> uncoveredValues;
 
-    for (int i = 0; i < squares.size(); i++) {
+    // We only analyze squares 1-6 since 7-n must be covered to have dice choice
+    int analysisBound = std::min(6, static_cast<int>(squares.size()));
 
+    for (int i = 0; i < analysisBound; i++) {
         // Uncovered square
         if (squares[i] == 0) {
             totalUncovered++;
@@ -529,20 +520,19 @@ std::pair<int, std::string> Player::getOptimalDiceRollWithReason() const {
             uncoveredValues.push_back(squareValue);
 
             if (squareValue <= 4) lowValueUncovered++;
-            else if (squareValue <= 9) midValueUncovered++;
-            else highValueUncovered++;
+            else midValueUncovered++;
         }
     }
 
-    // Calculate progress (percentage of squares covered)
-    double progressPercentage = 100.0 * (squares.size() - totalUncovered) / squares.size();
+    // Calculate progress for squares 1-6
+    double progressPercentage = 100.0 * (analysisBound - totalUncovered) / analysisBound;
 
-    // If no squares are uncovered, default to one die with explanation
+    // If no uncovered squares in range 1-6, default to one die for finer control
     if (totalUncovered == 0) {
-        return { 1, "All squares are already covered. One die provides more control for potential uncover moves." };
+        return { 1, "All low and mid-value squares (1-6) are already covered. One die provides more control for potential uncover moves." };
     }
 
-    // If very few squares remain, specific tactical decisions apply
+    // If very few squares remain uncovered, favor precision of one die
     if (totalUncovered <= 2) {
         std::string remainingDesc = "";
         for (int val : uncoveredValues) {
@@ -553,7 +543,6 @@ std::pair<int, std::string> Player::getOptimalDiceRollWithReason() const {
     }
 
     // Calculate expected values for different strategies
-
     // For one die: values 1-6
     int oneCount = 0;
     for (int i = 1; i <= 6; i++) {
@@ -568,51 +557,32 @@ std::pair<int, std::string> Player::getOptimalDiceRollWithReason() const {
     int twoCount = 0;
     // Probability distribution for two dice
     const std::vector<double> twoDiceProbs = {
-        // 0 (not possible)
-        0,
+        // 0 and 1 (not possible)
+        0, 0,
 
-        // 1 (not possible)
-        0,
+        // 2, 3
+        1 / 36.0, 2 / 36.0,
 
-        // 2
-        1 / 36.0,
+        //4, 5
+        3 / 36.0, 4 / 36.0,
 
-        // 3
-        2 / 36.0,
+        // 6, 7
+        5 / 36.0, 6 / 36.0,
 
-		// 4
-        3 / 36.0,
+        // 8, 9
+        5 / 36.0, 4 / 36.0,     
 
-		// 5
-        4 / 36.0,
+        // 10, 11
+        3 / 36.0, 2 / 36.0,     
 
-		// 6
-        5 / 36.0,
-
-		// 7
-        6 / 36.0,
-
-		// 8
-        5 / 36.0,
-
-		// 9
-        4 / 36.0,
-
-		// 10
-        3 / 36.0,
-
-		// 11
-        2 / 36.0,
-
-        //12
-        1 / 36.0
+        // 12
+        1 / 36.0              
     };
 
     for (int i = 2; i <= 12; i++) {
         if (canCoverSum(uncoveredValues, i)) {
-
-            // Cast to int before addition
-            twoCount += static_cast<int>(twoDiceProbs[i] * 36);        
+            // Use exact probability values rather than rounding
+            twoCount += static_cast<int>(twoDiceProbs[i] * 36);
         }
     }
     double twoDiceProb = twoCount / 36.0;
@@ -621,29 +591,14 @@ std::pair<int, std::string> Player::getOptimalDiceRollWithReason() const {
     std::string explanation;
     int decision;
 
-    // Special case: very high progress
-    if (progressPercentage >= 75) {
-        if (highValueUncovered > 0) {
-            decision = 2;
-            explanation = "Board is " + std::to_string(static_cast<int>(progressPercentage)) +
-                "% covered, but high-value squares (" +
-                std::to_string(highValueUncovered) +
-                ") remain uncovered. Rolling two dice increases chances of getting higher sums.";
-        }
-        else {
-            decision = 1;
-            explanation = "Board is " + std::to_string(static_cast<int>(progressPercentage)) +
-                "% covered with only low/mid-value squares remaining. Rolling one die gives more precise control.";
-        }
-    }
     // Decision based on uncovered square distribution
-    else if (highValueUncovered > lowValueUncovered && midValueUncovered > lowValueUncovered) {
+    if (midValueUncovered > lowValueUncovered && midValueUncovered >= 2) {
         decision = 2;
-        explanation = "More mid/high-value squares (" +
-            std::to_string(midValueUncovered + highValueUncovered) +
+        explanation = "More mid-value squares (" +
+            std::to_string(midValueUncovered) +
             ") remain uncovered than low-value squares (" +
             std::to_string(lowValueUncovered) +
-            "). Rolling two dice gives better chances for higher sums needed.";
+            "). Rolling two dice gives better chances for values 5-6.";
     }
     else if (lowValueUncovered >= totalUncovered / 2) {
         decision = 1;
@@ -1075,7 +1030,7 @@ void Player::evaluateUncoverMoves(int diceSum, const Player& opponent, const Tou
         }
 
         // For uncovering, we generally want the lowest sum (most efficient) Base score: Lower sum is better
-        int score = 100 - comboSum;
+        int score = 30 - comboSum;
 
         // Check if this move would win the game
         bool wouldWin = true;
@@ -1254,7 +1209,7 @@ MoveDecision Player::makeStrategicDecision(const MoveDecision& coverDecision,
     // Bonus for high-value squares
     if (maxCover >= 7) coverScore += 10;
 
-    int uncoverScore = 100 - uncoverTotal + (2 * maxUncover);
+    int uncoverScore = 30 - uncoverTotal + (2 * maxUncover);
 
     // Higher bonus for targeting opponent's high squares
     if (maxUncover >= 7) uncoverScore += 15;

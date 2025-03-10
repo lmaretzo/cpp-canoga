@@ -249,15 +249,6 @@ private:
     ********************************************************************* */
     void initializeBoardSize();
 
-    /* *********************************************************************
-    Function Name: newGameInitialization
-    Purpose: Sets up a new game with initial parameters.
-    Parameters: None.
-    Return Value: None.
-    Algorithm: Displays welcome message and initializes the board size.
-    Reference: None
-    ********************************************************************* */
-    void newGameInitialization();
 
     /* *********************************************************************
     Data Member: human
