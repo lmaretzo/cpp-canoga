@@ -103,7 +103,7 @@ Return Value: None.
 Algorithm:
          1) Set playerName to the given name and score to 0.
          2) Call resetSquares(boardSize) to initialize the board.
-Reference: AI ASSISTED
+Reference: AI
 ********************************************************************* */
 Player::Player(const string& name, int boardSize)
     : playerName(name), score(0), hasHadTurnInRound(false)
@@ -252,7 +252,7 @@ Algorithm:
          1) Check if squareLabel is within range.
          2) If the square is already uncovered (0), return false.
          3) Otherwise, set the square's value to 0 (uncover it) and return true.
-Reference: AI ASSISTED
+Reference: AI
 ********************************************************************* */
 bool Player::uncoverSquare(int squareLabel, const Tournament* tournamentPtr)
 {

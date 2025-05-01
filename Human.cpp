@@ -26,7 +26,7 @@ Return Value: None.
 Algorithm:
          1) Call the base class (Player) constructor with the provided name and board size.
          2) Initialize the tournamentPtr with the provided tournament pointer.
-Reference: None
+Reference: AI
 ********************************************************************* */
 Human::Human(const string& name, int boardSize, Tournament* tournament)
     : Player(name, boardSize), tournamentPtr(tournament)

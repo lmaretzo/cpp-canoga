@@ -363,3 +363,7 @@ MigrationBackup/
 FodyWeavers.xsd
 /savenew
 /save.txt
+
+# VS project files
+*.vcxproj
+*.vcxproj.filters
